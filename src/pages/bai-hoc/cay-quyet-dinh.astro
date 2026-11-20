@@ -2,11 +2,17 @@
 import Lesson from '../../layouts/Lesson.astro';
 import Tex from '../../components/Tex.svelte';
 import PyCell from '../../components/PyCell.svelte';
-import Quiz from '../../components/Quiz.svelte';
 import data from '../../data/titanic.json';
 import { fmt } from '../../lib/ml-core';
 import titanicUrl from '../../data/titanic.json?url';
 import Lazy from '../../components/Lazy.svelte';
+import Goals from '../../components/hoc/Goals.astro';
+import Mission from '../../components/hoc/Mission.svelte';
+import Debrief from '../../components/hoc/Debrief.svelte';
+import Checkpoint from '../../components/hoc/Checkpoint.astro';
+import Exercises from '../../components/hoc/Exercises.astro';
+import WrapUp from '../../components/hoc/WrapUp.astro';
+import { treeLearn as L } from '../../lib/hoc/cay-quyet-dinh';
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const P = data.people;
@@ -40,8 +46,11 @@ print("Random Forest:    ", rung.score(X[te], y[te]))
 gb = GradientBoostingClassifier(n_estimators=100, learning_rate=0.1, max_depth=2, random_state=0).fit(X[~te], y[~te])
 print("Gradient Boosting:", gb.score(X[te], y[te]))
 print("Mức quan trọng của đặc trưng (rừng):", dict(zip(F, rung.feature_importances_.round(3))))`;
+const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 ---
 <Lesson slug="cay-quyet-dinh" data="891 hành khách tàu Titanic (1912) với giới tính, hạng vé, tuổi, giá vé, số người thân đi cùng" lead="Một cây quyết định là chuỗi câu hỏi có/không, giống trò chơi hai mươi câu hỏi. Máy tự tìm câu hỏi nào nên hỏi trước, bằng một phép đo độ lẫn lộn gọi là Gini. Rồi ta trồng cả một rừng cây, và thử cách cho các cây nhỏ lần lượt sửa lỗi cho nhau.">
+
+  <Goals spec={L} />
 
   <section id="bai-toan">
     <div class="prose">
@@ -71,6 +80,9 @@ print("Mức quan trọng của đặc trưng (rừng):", dict(zip(F, rung.featu
       <p>Nếu chỉ được hỏi một câu để đoán ai sống sót, bạn sẽ hỏi gì? Có lẽ là giới tính. Cây quyết định làm đúng việc đó, nhưng một cách có hệ thống: nó thử <b>mọi</b> câu hỏi có thể, chấm điểm từng câu, và chọn câu tách hai nhóm "sạch" nhất. Rồi lặp lại việc đó trong từng nhóm con.</p>
       <p>"Sạch" ở đây nghĩa là trong mỗi nhánh, gần như tất cả cùng một kết cục. Một nhánh 50 người sống, 50 người mất là lẫn lộn hoàn toàn. Một nhánh 95 sống, 5 mất là gần sạch.</p>
     </div>
+    <div class="prose"><Mission client:visible slug={L.slug} m={M["gini"]} /></div>
+    <div class="prose"><Debrief client:visible slug={L.slug} m={M["gini"]} /></div>
+    <div class="prose"><Checkpoint q={L.checkpoints["truc-giac"]} /></div>
   </section>
 
   <section id="tinh-tay">
@@ -78,10 +90,13 @@ print("Mức quan trọng của đặc trưng (rừng):", dict(zip(F, rung.featu
       <h2><span class="step-no">4</span>Tính tay từng bước</h2>
       <p>Tìm câu hỏi đầu tiên — gốc của cây. Thử kéo ngưỡng tuổi và xem Gini thay đổi; rồi so sánh câu hỏi tốt nhất của từng đặc trưng ở bảng bên phải.</p>
     </div>
+    <div class="prose"><Mission client:visible slug={L.slug} m={M["chia"]} /></div>
     <div class="wide"><Lazy client:visible view="ch4/SplitLab" data={{ people: `${titanicUrl}#people`, testIds: `${titanicUrl}#testIds`, features: `${titanicUrl}#features` }} /></div>
+    <div class="prose"><Debrief client:visible slug={L.slug} m={M["chia"]} /></div>
     <div class="prose">
       <p>Giới tính thắng: Gini sau khi chia thấp nhất. Sau đó cây lặp lại đúng quy trình này riêng cho nhóm nam và riêng cho nhóm nữ, cho đến khi đạt độ sâu tối đa hoặc nhóm đã thuần một loại.</p>
     </div>
+    <div class="prose"><Checkpoint q={L.checkpoints["tinh-tay"]} /></div>
   </section>
 
   <section id="ly-thuyet">
@@ -101,6 +116,7 @@ print("Mức quan trọng của đặc trưng (rừng):", dict(zip(F, rung.featu
       <Tex tex={String.raw`F_m(\mathbf x) = F_{m-1}(\mathbf x) + \ceta{\eta}\, h_m(\mathbf x), \qquad p = \sigma(F_M(\mathbf x))`} display />
       <p>Đây chính là Gradient Descent, nhưng thay vì cập nhật tham số, ta cập nhật cả một hàm: phần dư y − p đúng bằng âm gradient của mất mát log theo F.</p>
     </div>
+    <div class="prose"><Checkpoint q={L.checkpoints["ly-thuyet"]} /></div>
   </section>
 
   <section id="ma-nguon">
@@ -109,14 +125,24 @@ print("Mức quan trọng của đặc trưng (rừng):", dict(zip(F, rung.featu
       <p>Ba mô hình với scikit-learn trên đúng cách chia train/test của trang này. Cây độ sâu 3 in ra giống hệt cây bạn thấy ở phần 7.</p>
       <PyCell client:visible code={pyCode} packages={['numpy', 'scikit-learn']} title="cay_titanic.py" />
     </div>
+    <div class="prose">
+      <h3>Thử sửa mã</h3>
+      <p>Sửa trực tiếp trong ô trên rồi bấm Chạy; bấm "Khôi phục" để quay về mã gốc. Đoán kết quả trước khi mở phần kỳ vọng.</p>
+      <Exercises items={L.codeTasks} kind="code" />
+    </div>
+    <div class="prose"><Checkpoint q={L.checkpoints["ma-nguon"]} /></div>
   </section>
 
   <section id="danh-gia">
     <div class="prose">
       <h2><span class="step-no">7</span>Toàn bộ dữ liệu và đánh giá</h2>
     </div>
+    <div class="prose"><Mission client:visible slug={L.slug} m={M["dosau"]} /></div>
     <div class="wide"><Lazy client:visible view="ch4/TreeLab" data={{ people: `${titanicUrl}#people`, testIds: `${titanicUrl}#testIds`, features: `${titanicUrl}#features` }} /></div>
+    <div class="prose"><Debrief client:visible slug={L.slug} m={M["dosau"]} /></div>
+    <div class="prose"><Mission client:visible slug={L.slug} m={M["rung"]} /></div>
     <div class="wide"><Lazy client:visible view="ch4/EnsembleLab" data={{ people: `${titanicUrl}#people`, testIds: `${titanicUrl}#testIds`, features: `${titanicUrl}#features` }} /></div>
+    <div class="prose"><Debrief client:visible slug={L.slug} m={M["rung"]} /></div>
     <div class="prose">
       <p>Với chỉ 178 hành khách trong tập test, mỗi người đoán đúng hay sai thay đổi độ chính xác hơn nửa điểm phần trăm. Bấm "Trồng lại rừng khác" để thấy kết quả dao động bao nhiêu chỉ vì may rủi.</p>
       <h3>Bẫy thường gặp</h3>
@@ -125,17 +151,9 @@ print("Mức quan trọng của đặc trưng (rừng):", dict(zip(F, rung.featu
         <li><b>Tin vào "mức quan trọng" một cách máy móc.</b> Đặc trưng có nhiều giá trị khác nhau (như giá vé) có nhiều ngưỡng để thử, nên dễ được chọn hơn dù không thật sự quan trọng hơn.</li>
         <li><b>Rò rỉ dữ liệu.</b> Nếu điền tuổi thiếu bằng trung vị tính trên toàn bộ dữ liệu (cả tập test), thông tin của tập test đã lọt vào huấn luyện. Ở đây, trung vị {data.medianAge} được tính trên cả 891 người — một sai sót nhỏ cố ý để nhắc bạn: trong dự án thật, hãy tính trên tập huấn luyện. Chương 3B có <a href={`${base}/bai-hoc/xu-ly-du-lieu#truc-giac`}>cách điền tuổi theo danh xưng</a> và <a href={`${base}/bai-hoc/xu-ly-du-lieu#danh-gia`}>thí nghiệm rò rỉ</a>.</li>
       </ul>
-      <h3>Kiểm tra nhanh</h3>
-      <Quiz client:visible questions={[
-        { q: 'Một nút có 30 người sống và 10 người mất. Gini của nút bằng bao nhiêu?', options: ['0,25', '0,375', '0,5'], answer: 1, why: 'G = 1 − (30/40)² − (10/40)² = 1 − 0,5625 − 0,0625 = 0,375.' },
-        { q: 'Vì sao Random Forest chỉ cho mỗi nút xét vài đặc trưng ngẫu nhiên?', options: ['Để chạy nhanh hơn', 'Để các cây khác nhau hơn, nhờ đó bỏ phiếu triệt tiêu được lỗi', 'Vì các đặc trưng khác không quan trọng'], answer: 1, why: 'Nếu cây nào cũng được xét mọi đặc trưng, chúng sẽ cùng chọn "giới tính" ở gốc và giống nhau. Các cây giống nhau thì sai giống nhau, bỏ phiếu không giúp gì.' },
-        { q: 'Trong Gradient Boosting, cây thứ m học cái gì?', options: ['Nhãn y gốc', 'Phần sai y − p của tổng các cây trước', 'Một mẫu bootstrap ngẫu nhiên'], answer: 1, why: 'Mỗi cây mới sửa phần sai còn lại. Vì vậy các cây phải được trồng tuần tự, không song song như Random Forest.' },
-      ]} />
-      <p class="src">Nguồn dữ liệu: danh sách hành khách Titanic (Encyclopedia Titanica), bản 891 hành khách phổ biến trong giảng dạy, CSV trong kho <a href="https://github.com/datasciencedojo/datasets">datasciencedojo/datasets</a>.</p>
+
     </div>
   </section>
-</Lesson>
 
-<style>
-  .src { font-size: 0.82rem; color: var(--pencil); margin-top: 2rem; }
-</style>
+  <WrapUp spec={L} source={"Nguồn dữ liệu: danh sách hành khách Titanic (Encyclopedia Titanica), bản 891 hành khách phổ biến trong giảng dạy, CSV trong kho <a href=\"https://github.com/datasciencedojo/datasets\">datasciencedojo/datasets</a>."} />
+</Lesson>

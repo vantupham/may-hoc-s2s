@@ -4,9 +4,15 @@ import Tex from '../../components/Tex.svelte';
 import SlopeGuess from '../../components/gd/SlopeGuess.svelte';
 import GDLab from '../../components/gd/GDLab.svelte';
 import PyCell from '../../components/PyCell.svelte';
-import Quiz from '../../components/Quiz.svelte';
 import housing from '../../data/housing.json';
 import { linearRegressionGD, fmt, tex } from '../../lib/ml-core';
+import Goals from '../../components/hoc/Goals.astro';
+import Mission from '../../components/hoc/Mission.svelte';
+import Debrief from '../../components/hoc/Debrief.svelte';
+import Checkpoint from '../../components/hoc/Checkpoint.astro';
+import Exercises from '../../components/hoc/Exercises.astro';
+import WrapUp from '../../components/hoc/WrapUp.astro';
+import { gdLearn as L } from '../../lib/hoc/gradient-descent';
 
 const mini = housing.mini;
 const xs = mini.map((h) => h.income);
@@ -43,8 +49,11 @@ for k in range(25):
         print(f"vòng {k+1:2d}: L = {L:.4f}  dL/dw = {dw:+.4f}  w mới = {w:.4f}")
 
 print("Nghiệm chính xác w* =", np.sum(x * y) / np.sum(x * x))`;
+const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 ---
 <Lesson slug="gradient-descent" data="5 khu vực, rồi 400 khu vực trong bộ California Housing (điều tra dân số Mỹ 1990)" lead="Gần như mọi mô hình học máy đều học bằng cùng một cách: đoán, đo xem sai bao nhiêu, rồi chỉnh một chút theo hướng bớt sai. Bài này mổ xẻ cách đó trên đúng 5 khu dân cư có thật ở California — từng phép cộng, phép nhân.">
+
+  <Goals spec={L} />
 
   <section id="bai-toan">
     <div class="prose">
@@ -84,10 +93,13 @@ print("Nghiệm chính xác w* =", np.sum(x * y) / np.sum(x * x))`;
       <h2><span class="step-no">3</span>Trực giác</h2>
       <p>Trước khi học thuật toán, hãy tự làm "máy học" bằng tay. Kéo thanh trượt và để ý hai điều: các hình vuông đỏ to lên hay nhỏ đi, và điểm xanh trên đường cong bên phải đi về đâu.</p>
     </div>
+    <div class="prose"><Mission client:visible slug={L.slug} m={M["tay"]} /></div>
     <div class="wide"><SlopeGuess client:visible houses={mini} /></div>
+    <div class="prose"><Debrief client:visible slug={L.slug} m={M["tay"]} /></div>
     <div class="prose">
       <p>Đường cong <span class="v-L">L(w)</span> có hình cái bát. Tìm <span class="v-w">w</span> tốt nhất nghĩa là <b>tìm đáy bát</b>. Với một tham số ta có thể dò bằng mắt, nhưng mô hình thật có hàng nghìn đến hàng tỷ tham số. Ta cần một cách tự động.</p>
     </div>
+    <div class="prose"><Checkpoint q={L.checkpoints["truc-giac"]} /></div>
   </section>
 
   <section id="tinh-tay">
@@ -105,10 +117,12 @@ print("Nghiệm chính xác w* =", np.sum(x * y) / np.sum(x * x))`;
       <Tex tex={String.raw`\cw{w_{\text{mới}}} = 0 - \ceta{0{,}01} \times (\cg{${tex(s0.dw, 4)}}) = \cw{${tex(s0.wNext, 4)}}`} display />
       <p>Mất mát giảm từ <span class="num v-L">{fmt(s0.loss, 4)}</span> xuống <span class="num v-L">{fmt(s1.loss, 4)}</span> chỉ sau một bước. Giờ hãy tự chạy:</p>
     </div>
+    <div class="prose"><Mission client:visible slug={L.slug} m={M["vong"]} /></div>
     <div class="wide"><GDLab client:visible houses={mini} /></div>
-    <div class="prose">
-      <p><b>Thử ngay:</b> chọn <span class="v-eta">η = 0,05</span> và xem quả bóng nhảy qua lại hai bên đáy. Chọn <span class="v-eta">η = 0,07</span> và xem nó văng ra ngoài. Chọn <span class="v-eta">η = 0,002</span> và xem nó bò rất chậm.</p>
-    </div>
+    <div class="prose"><Debrief client:visible slug={L.slug} m={M["vong"]} /></div>
+    <div class="prose"><Mission client:visible slug={L.slug} m={M["eta"]} /></div>
+    <div class="prose"><Debrief client:visible slug={L.slug} m={M["eta"]} /></div>
+    <div class="prose"><Checkpoint q={L.checkpoints["tinh-tay"]} /></div>
   </section>
 
   <section id="ly-thuyet">
@@ -129,6 +143,7 @@ print("Nghiệm chính xác w* =", np.sum(x * y) / np.sum(x * x))`;
       <Tex tex={String.raw`\cw{w^*} = \frac{\sum \cx{x_i}\cy{y_i}}{\sum \cx{x_i}^2} = \cw{${tex(wStar, 4)}}`} display />
       <p>Sau 25 vòng với η = 0,01, Gradient Descent đạt <span class="num v-w">{fmt(w25, 4)}</span>. Hai cách cho cùng một đáp số. Ở các mô hình lớn không có công thức giải trực tiếp, Gradient Descent là con đường duy nhất.</p>
     </div>
+    <div class="prose"><Checkpoint q={L.checkpoints["ly-thuyet"]} /></div>
   </section>
 
   <section id="ma-nguon">
@@ -137,6 +152,12 @@ print("Nghiệm chính xác w* =", np.sum(x * y) / np.sum(x * x))`;
       <p>Toàn bộ thuật toán chỉ khoảng 10 dòng NumPy. Bấm <b>Chạy</b> để chạy Python ngay trên trình duyệt; bạn có thể sửa <code>eta</code> hoặc số vòng lặp rồi chạy lại. Các con số in ra trùng với bảng ở phần 4.</p>
       <PyCell client:visible code={pyCode} title="gradient_descent.py" />
     </div>
+    <div class="prose">
+      <h3>Thử sửa mã</h3>
+      <p>Sửa trực tiếp trong ô trên rồi bấm Chạy; bấm "Khôi phục" để quay về mã gốc. Đoán kết quả trước khi mở phần kỳ vọng.</p>
+      <Exercises items={L.codeTasks} kind="code" />
+    </div>
+    <div class="prose"><Checkpoint q={L.checkpoints["ma-nguon"]} /></div>
   </section>
 
   <section id="danh-gia">
@@ -149,17 +170,9 @@ print("Nghiệm chính xác w* =", np.sum(x * y) / np.sum(x * x))`;
         <li><b>Tốc độ học quá nhỏ</b> → hội tụ rất chậm, tốn thời gian tính toán.</li>
         <li><b>Mô hình quá đơn giản</b> → dù tối ưu hoàn hảo, đường ŷ = w·x vẫn sai nhiều với căn 4. Thêm hệ số chặn b và thêm đặc trưng (vị trí) là chủ đề của bài sau.</li>
       </ul>
-      <h3>Kiểm tra nhanh</h3>
-      <Quiz client:visible questions={[
-        { q: 'Tại vị trí hiện tại, đạo hàm ∂L/∂w = +2,5. Bước tiếp theo, w sẽ thay đổi thế nào?', options: ['Tăng lên', 'Giảm xuống', 'Giữ nguyên'], answer: 1, why: 'w mới = w − η × 2,5. Đạo hàm dương nghĩa là đi sang phải thì L tăng, nên ta đi sang trái (giảm w).' },
-        { q: 'Mất mát tăng dần sau mỗi vòng lặp. Nguyên nhân khả dĩ nhất?', options: ['Tốc độ học quá nhỏ', 'Tốc độ học quá lớn', 'Dữ liệu quá ít'], answer: 1, why: 'Bước quá dài sẽ nhảy vượt qua đáy sang sườn bên kia, cao hơn chỗ cũ. Lặp lại thì càng ngày càng xa đáy.' },
-        { q: 'Vì sao bước cập nhật tự ngắn lại khi gần đáy, dù η không đổi?', options: ['Vì máy tính làm tròn số', 'Vì độ dốc ∂L/∂w gần bằng 0 ở gần đáy', 'Vì số vòng lặp tăng'], answer: 1, why: 'Độ dài bước là η × |∂L/∂w|. Ở đáy bát, mặt cong gần như nằm ngang nên đạo hàm nhỏ dần về 0.' },
-      ]} />
-      <p class="src">Nguồn dữ liệu: California Housing, U.S. Census 1990 (Pace & Barry, 1997), bản CSV trong kho <a href="https://github.com/ageron/handson-ml2">ageron/handson-ml2</a>.</p>
+
     </div>
   </section>
-</Lesson>
 
-<style>
-  .src { font-size: 0.82rem; color: var(--faint); margin-top: 2rem; }
-</style>
+  <WrapUp spec={L} source={"Nguồn dữ liệu: California Housing, U.S. Census 1990 (Pace & Barry, 1997), bản CSV trong kho <a href=\"https://github.com/ageron/handson-ml2\">ageron/handson-ml2</a>."} />
+</Lesson>

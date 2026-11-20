@@ -9,10 +9,16 @@ import HandStats from '../../components/dulieu/HandStats.svelte';
 import NoiseLab from '../../components/dulieu/NoiseLab.svelte';
 import ShiftLab from '../../components/dulieu/ShiftLab.svelte';
 import PyCell from '../../components/PyCell.svelte';
-import Quiz from '../../components/Quiz.svelte';
 import titanic from '../../data/titanic.json';
 import { permutation } from '../../lib/ml-core';
 import californiaUrl from '../../data/california.json?url';
+import Goals from '../../components/hoc/Goals.astro';
+import Mission from '../../components/hoc/Mission.svelte';
+import Debrief from '../../components/hoc/Debrief.svelte';
+import Checkpoint from '../../components/hoc/Checkpoint.astro';
+import Exercises from '../../components/hoc/Exercises.astro';
+import WrapUp from '../../components/hoc/WrapUp.astro';
+import { khamPhaLearn as L } from '../../lib/hoc/kham-pha-du-lieu';
 
 const cal = JSON.parse(readFileSync('src/data/california.json', 'utf8'));
 // 9 khu vực ngẫu nhiên và khu vực đầu tiên có thu nhập bị chặn ở 15,0001
@@ -48,8 +54,11 @@ ngoai_lai = nph[(nph < q1 - 1.5 * (q3 - q1)) | (nph > q3 + 1.5 * (q3 - q1))]
 print("\\nNgoại lai người/hộ:", len(ngoai_lai), "khu vực; lớn nhất", round(nph.max(), 1))
 
 print(df[cot].corr().round(2))`;
+const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 ---
 <Lesson slug="kham-pha-du-lieu" data="toàn bộ 20.640 khu vực California Housing với đủ 10 cột, và 569 mẫu sinh thiết Breast Cancer Wisconsin với đủ 30 đặc trưng" lead="Ba chương trước, dữ liệu luôn đến tay ta đã sạch sẽ: đúng hai cột, không ô trống, chia sẵn train và test. Ngoài đời không như vậy. Chương này dạy cách khám một bộ dữ liệu trước khi đưa cho mô hình: thiếu ở đâu, sai ở đâu, và nó có giống thế giới mà mô hình sẽ phải làm việc hay không.">
+
+  <Goals spec={L} />
 
   <section id="bai-toan">
     <div class="prose">
@@ -65,12 +74,16 @@ print(df[cot].corr().round(2))`;
       <h2><span class="step-no">2</span>Khám phá dữ liệu</h2>
       <p>Việc đầu tiên là lập một "phiếu khám sức khoẻ" cho từng cột: có bao nhiêu ô, thiếu bao nhiêu, giá trị nằm trong khoảng nào, phân bố ra sao. Hãy bấm qua từng cột và đọc các cờ cảnh báo.</p>
     </div>
+    <div class="prose"><Mission client:visible slug={L.slug} m={M["phieu"]} /></div>
     <div class="wide"><ProfileLab client:visible /></div>
+    <div class="prose"><Debrief client:visible slug={L.slug} m={M["phieu"]} /></div>
     <div class="prose">
       <p>Chỉ năm phút khám đã thấy bốn vấn đề: cột phòng ngủ thiếu 207 ô; giá nhà, tuổi nhà và thu nhập đều bị chặn trần; các cột đếm lệch phải rất mạnh; và loại "trên đảo" chỉ có 5 khu vực. Không vấn đề nào làm chương trình báo lỗi. Mô hình vẫn sẽ chạy và vẫn cho ra một con số — chỉ là con số đó sai theo những cách khó thấy.</p>
       <p>Bước tiếp theo: xem các cột liên quan với nhau thế nào.</p>
     </div>
+    <div class="prose"><Mission client:visible slug={L.slug} m={M["tuongquan"]} /></div>
     <div class="wide"><CorrLab client:visible /></div>
+    <div class="prose"><Debrief client:visible slug={L.slug} m={M["tuongquan"]} /></div>
   </section>
 
   <section id="truc-giac">
@@ -79,7 +92,10 @@ print(df[cot].corr().round(2))`;
       <p>Người làm học máy có câu "rác vào, rác ra". Mô hình không biết dòng nào là lỗi: nó chỉ cố gắng khớp mọi dòng. Với hồi quy, sai số bị <b>bình phương</b> trước khi cộng lại, nên một điểm sai lệch xa có sức nặng bằng hàng chục điểm bình thường.</p>
       <p>Nhưng không phải điểm lạ nào cũng là rác. Một khu vực có 1.000 người mà chỉ 4 hộ không phải lỗi gõ phím: đó có thể là một trại lính. Việc của người làm dữ liệu là <b>hỏi vì sao</b> trước khi xoá.</p>
     </div>
+    <div class="prose"><Mission client:visible slug={L.slug} m={M["ngoailai"]} /></div>
     <div class="wide"><OutlierLab client:visible /></div>
+    <div class="prose"><Debrief client:visible slug={L.slug} m={M["ngoailai"]} /></div>
+    <div class="prose"><Checkpoint q={L.checkpoints["truc-giac"]} /></div>
   </section>
 
   <section id="tinh-tay">
@@ -87,10 +103,13 @@ print(df[cot].corr().round(2))`;
       <h2><span class="step-no">4</span>Tính tay từng bước</h2>
       <p>Mọi con số trong phiếu khám đều từ vài công thức đơn giản. Ta tính lại trên 10 khu vực để thấy rõ từng bước, trong đó có một khu vực mang thu nhập lớn nhất bộ dữ liệu.</p>
     </div>
+    <div class="prose"><Mission client:visible slug={L.slug} m={M["tay"]} /></div>
     <div class="wide"><HandStats client:visible rows={rows} /></div>
+    <div class="prose"><Debrief client:visible slug={L.slug} m={M["tay"]} /></div>
     <div class="prose">
       <p>Hãy so trung bình với trung vị: chỉ một khu vực đã kéo trung bình lên rõ rệt, còn trung vị gần như không đổi. Đó là lý do phiếu khám luôn đặt hai con số cạnh nhau. Khi trung bình lệch xa trung vị, dữ liệu có một cái đuôi dài cần xem kỹ.</p>
     </div>
+    <div class="prose"><Checkpoint q={L.checkpoints["tinh-tay"]} /></div>
   </section>
 
   <section id="ly-thuyet">
@@ -143,6 +162,7 @@ print(df[cot].corr().round(2))`;
       <h3>Cân bằng và công bằng</h3>
       <p>Trên Titanic, {surv((p) => p.sex === 1)}% phụ nữ sống sót so với {surv((p) => p.sex === 0)}% nam giới. Một mô hình học từ đây sẽ dựa rất nhiều vào giới tính — điều đúng với lịch sử năm 1912 nhưng sẽ là phân biệt đối xử nếu dùng cho một quyết định ngày nay. Kiểm tra một bộ dữ liệu luôn gồm câu hỏi: mỗi nhóm người có bao nhiêu mẫu, và mô hình sai nhiều hơn ở nhóm nào?</p>
     </div>
+    <div class="prose"><Checkpoint q={L.checkpoints["ly-thuyet"]} /></div>
   </section>
 
   <section id="ma-nguon">
@@ -151,6 +171,12 @@ print(df[cot].corr().round(2))`;
       <p>Toàn bộ phiếu khám ở phần 2 gói gọn trong vài lệnh pandas. Tạo thói quen chạy chúng <b>trước</b> khi viết dòng huấn luyện đầu tiên.</p>
       <PyCell client:visible code={pyCode} packages={['pandas']} title="kham_du_lieu.py" />
     </div>
+    <div class="prose">
+      <h3>Thử sửa mã</h3>
+      <p>Sửa trực tiếp trong ô trên rồi bấm Chạy; bấm "Khôi phục" để quay về mã gốc. Đoán kết quả trước khi mở phần kỳ vọng.</p>
+      <Exercises items={L.codeTasks} kind="code" />
+    </div>
+    <div class="prose"><Checkpoint q={L.checkpoints["ma-nguon"]} /></div>
   </section>
 
   <section id="danh-gia">
@@ -158,11 +184,15 @@ print(df[cot].corr().round(2))`;
       <h2><span class="step-no">7</span>Toàn bộ dữ liệu và đánh giá</h2>
       <p>Hai lỗi nguy hiểm nhất không lộ ra trong phiếu khám, vì từng cột nhìn vẫn bình thường: <b>nhãn sai</b> và <b>dữ liệu không đại diện</b>. Ta đo cả hai bằng mô hình.</p>
     </div>
+    <div class="prose"><Mission client:visible slug={L.slug} m={M["nhansai"]} /></div>
     <div class="wide"><NoiseLab client:visible /></div>
+    <div class="prose"><Debrief client:visible slug={L.slug} m={M["nhansai"]} /></div>
     <div class="prose">
       <p>Hồi quy logistic khá bền với nhãn lật ngẫu nhiên: tới 30%, độ chính xác chỉ giảm vài điểm; đến 40% thì sụp hẳn. Điều đáng chú ý hơn nằm ở bảng dưới: phần lớn các mẫu bị mô hình "phản đối" đúng là những mẫu ta đã lật. Nghĩa là chính mô hình học trên dữ liệu bẩn có thể giúp làm sạch dữ liệu: ta không cần kiểm tra lại cả 455 mẫu, chỉ cần nhờ chuyên gia xem lại vài chục mẫu bị nghi. Ngay cả khi không lật nhãn nào, vẫn có vài mẫu bị nghi: đó là những ca khó, hoặc chính bộ dữ liệu gốc đã có nhãn đáng xem lại.</p>
     </div>
+    <div class="prose"><Mission client:visible slug={L.slug} m={M["lech"]} /></div>
     <div class="wide"><ShiftLab client:visible /></div>
+    <div class="prose"><Debrief client:visible slug={L.slug} m={M["lech"]} /></div>
     <div class="prose">
       <p>Học ở nội địa rồi dùng ở gần vịnh, sai số tăng mạnh, dù trên phần giữ lại của vùng nội địa mô hình trông rất ổn. Con số đánh giá chỉ đáng tin khi tập test giống nơi mô hình sẽ được dùng.</p>
       <h3>Bẫy thường gặp</h3>
@@ -172,15 +202,11 @@ print(df[cot].corr().round(2))`;
         <li><b>Tin vào tương quan.</b> Tương quan mạnh không có nghĩa là thay đổi cột này sẽ làm thay đổi cột kia.</li>
         <li><b>Đánh giá trên tập test lấy từ cùng nơi với tập huấn luyện</b> trong khi mô hình sẽ được dùng ở nơi khác.</li>
       </ul>
-      <h3>Kiểm tra nhanh</h3>
-      <Quiz client:visible questions={[
-        { q: 'Trung bình dân số mỗi khu vực là 1.425, trung vị là 1.166. Điều đó gợi ý gì?', options: ['Dữ liệu đối xứng', 'Có một đuôi dài về phía giá trị lớn', 'Có nhiều ô thiếu'], answer: 1, why: 'Vài khu vực rất đông dân kéo trung bình lên, còn trung vị gần như không đổi. Độ lệch (skew) của cột này gần 5.' },
-        { q: 'Một mô hình phân biệt "dòng huấn luyện" với "dòng dùng thật" đạt AUC 0,98. Nên kết luận gì?', options: ['Mô hình chính rất tốt', 'Hai tập dữ liệu khác nhau rất nhiều, điểm đánh giá trên tập huấn luyện không đáng tin', 'Cần thêm đặc trưng'], answer: 1, why: 'Nếu hai tập giống nhau, không mô hình nào phân biệt được chúng (AUC khoảng 0,5). AUC gần 1 là dấu hiệu lệch phân phối mạnh.' },
-        { q: 'Vì sao confident learning dùng xác suất ngoài tập (out-of-fold) chứ không dùng xác suất của mô hình học trên toàn bộ dữ liệu?', options: ['Để chạy nhanh hơn', 'Vì mô hình đã thấy một mẫu khi học thì có xu hướng đồng ý với nhãn của mẫu đó, kể cả khi nhãn sai', 'Vì scikit-learn bắt buộc'], answer: 1, why: 'Mô hình có thể "học thuộc" nhãn sai. Chỉ mô hình chưa thấy mẫu đó mới cho ý kiến độc lập về nhãn của nó.' },
-      ]} />
-      <p class="src">Nguồn dữ liệu: California Housing (U.S. Census 1990), Breast Cancer Wisconsin (UCI), Titanic. Phương pháp tìm nhãn sai theo Northcutt, Jiang và Chuang, <a href="https://jair.org/index.php/jair/article/view/12125">Confident Learning</a> (JAIR, 2021).</p>
+
     </div>
   </section>
+
+  <WrapUp spec={L} source={"Nguồn dữ liệu: California Housing (U.S. Census 1990), Breast Cancer Wisconsin (UCI), Titanic. Phương pháp tìm nhãn sai theo Northcutt, Jiang và Chuang, <a href=\"https://jair.org/index.php/jair/article/view/12125\">Confident Learning</a> (JAIR, 2021)."} />
 </Lesson>
 
 <style>

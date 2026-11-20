@@ -3,13 +3,19 @@ import Lesson from '../../layouts/Lesson.astro';
 import Tex from '../../components/Tex.svelte';
 import DigitImg from '../../components/DigitImg.svelte';
 import PyCell from '../../components/PyCell.svelte';
-import Quiz from '../../components/Quiz.svelte';
 import peng from '../../data/penguins.json';
 import dg from '../../data/digits.json';
 import { fmt } from '../../lib/ml-core';
 import penguinsUrl from '../../data/penguins.json?url';
 import digitsUrl from '../../data/digits.json?url';
 import Lazy from '../../components/Lazy.svelte';
+import Goals from '../../components/hoc/Goals.astro';
+import Mission from '../../components/hoc/Mission.svelte';
+import Debrief from '../../components/hoc/Debrief.svelte';
+import Checkpoint from '../../components/hoc/Checkpoint.astro';
+import Exercises from '../../components/hoc/Exercises.astro';
+import WrapUp from '../../components/hoc/WrapUp.astro';
+import { unsupLearn as L } from '../../lib/hoc/khong-giam-sat';
 
 const sp = peng.species;
 const avg = (k: number, f: 'len' | 'dep') => { const g = peng.birds.filter((b) => b.species === k); return g.reduce((a, b) => a + b[f], 0) / g.length; };
@@ -36,8 +42,11 @@ d = json.loads(open_url("${digitsUrl}").read())
 X = np.array([x["px"] for x in d["digits"]], dtype=float)
 pca = PCA().fit(X)
 print("Phương sai giữ lại với 2, 10, 20 thành phần:", pca.explained_variance_ratio_.cumsum()[[1, 9, 19]].round(3))`;
+const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 ---
 <Lesson slug="khong-giam-sat" data="342 con chim cánh cụt ở quần đảo Palmer, Nam Cực, và 1.797 chữ số viết tay 8×8 điểm ảnh (UCI)" lead="Từ đầu tới giờ, mọi dữ liệu đều có đáp án: giá nhà, chẩn đoán, loài hoa. Nhưng phần lớn dữ liệu trên đời không có nhãn. Học không giám sát tìm cấu trúc ẩn trong dữ liệu không nhãn: các nhóm tự nhiên (phân cụm) và những hướng quan trọng nhất (giảm chiều).">
+
+  <Goals spec={L} />
 
   <section id="bai-toan">
     <div class="prose">
@@ -68,16 +77,20 @@ print("Phương sai giữ lại với 2, 10, 20 thành phần:", pca.explained_v
       <p><b>K-means</b> giống trò chơi "đặt K lá cờ": cắm K lá cờ ngẫu nhiên, mỗi con chim chạy về lá cờ gần nhất, rồi dời mỗi lá cờ về giữa đám chim của nó. Lặp lại cho tới khi không ai đổi chỗ.</p>
       <p><b>PCA</b> giống chụp ảnh một vật thể 3 chiều: bạn xoay vật sao cho bức ảnh 2 chiều cho thấy nhiều chi tiết nhất. PCA tìm góc chụp đó cho dữ liệu 64 chiều.</p>
     </div>
+    <div class="prose"><Checkpoint q={L.checkpoints["truc-giac"]} /></div>
   </section>
 
   <section id="tinh-tay">
     <div class="prose">
       <h2><span class="step-no">4</span>Tính tay từng bước</h2>
     </div>
+    <div class="prose"><Mission client:visible slug={L.slug} m={M["kmeans"]} /></div>
     <div class="wide"><Lazy client:visible view="ch6/KMeansLab" data={{ birds: `${penguinsUrl}#birds` }} props={{ initIdx: peng.initIdx, species: sp, mean: peng.mean, std: peng.std }} /></div>
+    <div class="prose"><Debrief client:visible slug={L.slug} m={M["kmeans"]} /></div>
     <div class="prose">
       <p>Bật "Tô màu theo loài thật" ở vòng cuối: ba cụm khớp ba loài khá tốt, dù thuật toán chưa từng thấy nhãn. Chỗ nhầm nằm ở vùng Chinstrap giáp Gentoo. Bấm "Khởi tạo tâm khác" vài lần — đôi khi K-means kẹt ở một lời giải kém hơn.</p>
     </div>
+    <div class="prose"><Checkpoint q={L.checkpoints["tinh-tay"]} /></div>
   </section>
 
   <section id="ly-thuyet">
@@ -93,6 +106,7 @@ print("Phương sai giữ lại với 2, 10, 20 thành phần:", pca.explained_v
       <Tex tex={String.raw`\Sigma = \frac{1}{n-1}\sum_{i=1}^n (\mathbf x_i - \bar{\mathbf x})(\mathbf x_i - \bar{\mathbf x})^\top, \qquad \Sigma\,\mathbf v_k = \lambda_k \mathbf v_k`} display />
       <p>Vector riêng v<sub>1</sub> ứng với trị riêng lớn nhất λ<sub>1</sub> là hướng dữ liệu trải rộng nhất; λ<sub>1</sub> chính là phương sai theo hướng đó. Các vector riêng vuông góc với nhau. Toạ độ mới của một ảnh là z<sub>k</sub> = v<sub>k</sub>·(x − x̄). Trang này tìm vector riêng bằng thuật toán Jacobi: xoay ma trận từng cặp hàng cột cho tới khi chỉ còn đường chéo.</p>
     </div>
+    <div class="prose"><Checkpoint q={L.checkpoints["ly-thuyet"]} /></div>
   </section>
 
   <section id="ma-nguon">
@@ -100,6 +114,12 @@ print("Phương sai giữ lại với 2, 10, 20 thành phần:", pca.explained_v
       <h2><span class="step-no">6</span>Mã nguồn</h2>
       <PyCell client:visible code={pyCode} packages={['numpy', 'scikit-learn']} title="khong_giam_sat.py" />
     </div>
+    <div class="prose">
+      <h3>Thử sửa mã</h3>
+      <p>Sửa trực tiếp trong ô trên rồi bấm Chạy; bấm "Khôi phục" để quay về mã gốc. Đoán kết quả trước khi mở phần kỳ vọng.</p>
+      <Exercises items={L.codeTasks} kind="code" />
+    </div>
+    <div class="prose"><Checkpoint q={L.checkpoints["ma-nguon"]} /></div>
   </section>
 
   <section id="danh-gia">
@@ -107,8 +127,12 @@ print("Phương sai giữ lại với 2, 10, 20 thành phần:", pca.explained_v
       <h2><span class="step-no">7</span>Toàn bộ dữ liệu và đánh giá</h2>
       <p>Học không giám sát khó đánh giá vì không có đáp án. Ở đây ta "gian lận" một chút: có nhãn loài thật để kiểm tra. Trong thực tế, ta dựa vào các chỉ số nội tại và hiểu biết về lĩnh vực.</p>
     </div>
+    <div class="prose"><Mission client:visible slug={L.slug} m={M["dbscan"]} /></div>
     <div class="wide"><Lazy client:visible view="ch6/ClusterEval" data={{ birds: `${penguinsUrl}#birds` }} props={{ species: sp }} /></div>
+    <div class="prose"><Debrief client:visible slug={L.slug} m={M["dbscan"]} /></div>
+    <div class="prose"><Mission client:visible slug={L.slug} m={M["pca"]} /></div>
     <div class="wide"><Lazy client:visible view="ch6/PCALab" data={{ digits: `${digitsUrl}#digits` }} /></div>
+    <div class="prose"><Debrief client:visible slug={L.slug} m={M["pca"]} /></div>
     <div class="prose">
       <p>Chỉ với 2 thành phần, các chữ số 0, 4, 6 đã tách khá rõ. Khoảng 20 thành phần giữ được gần 90% phương sai: ảnh 64 số có thể nén còn 20 số mà vẫn nhận ra. Chương 9 sẽ dùng chính bộ chữ số này để huấn luyện một mạng nơ-ron.</p>
       <h3>Bẫy thường gặp</h3>
@@ -118,15 +142,11 @@ print("Phương sai giữ lại với 2, 10, 20 thành phần:", pca.explained_v
         <li><b>Diễn giải cụm như sự thật.</b> K-means luôn trả về đúng K cụm, kể cả khi dữ liệu không có cấu trúc cụm nào.</li>
         <li><b>Coi thành phần chính là "đặc trưng có ý nghĩa".</b> Thành phần chính là hướng có phương sai lớn, không nhất thiết là hướng quan trọng cho bài toán của bạn.</li>
       </ul>
-      <h3>Kiểm tra nhanh</h3>
-      <Quiz client:visible questions={[
-        { q: 'Sau pha cập nhật, tâm của một cụm nằm ở đâu?', options: ['Tại điểm dữ liệu gần tâm cũ nhất', 'Tại trung bình cộng các điểm trong cụm', 'Tại trung vị của cụm'], answer: 1, why: 'Trung bình cộng là điểm làm tổng bình phương khoảng cách tới các điểm trong cụm nhỏ nhất.' },
-        { q: 'Chạy K-means hai lần với khởi tạo khác nhau cho kết quả khác nhau. Vì sao?', options: ['Do lỗi làm tròn', 'K-means chỉ đảm bảo tới một cực tiểu địa phương', 'Do dữ liệu thay đổi'], answer: 1, why: 'Hàm mục tiêu có nhiều "thung lũng". Mỗi khởi tạo có thể rơi vào thung lũng khác nhau.' },
-        { q: 'Thành phần chính thứ nhất của PCA là gì?', options: ['Đặc trưng có giá trị lớn nhất', 'Hướng mà dữ liệu có phương sai lớn nhất', 'Hướng phân biệt các lớp tốt nhất'], answer: 1, why: 'PCA không dùng nhãn. Nó chỉ tìm hướng trải rộng nhất — có thể trùng hoặc không trùng với hướng phân biệt lớp.' },
-      ]} />
-      <p class="src">Nguồn dữ liệu: Palmer Penguins — K. B. Gorman, T. D. Williams &amp; W. R. Fraser (2014), Palmer Station LTER, CC0; CSV trong kho <a href="https://github.com/mwaskom/seaborn-data">mwaskom/seaborn-data</a>. Chữ số viết tay — E. Alpaydin &amp; C. Kaynak (1998), UCI, CC BY 4.0; bản 8×8 trong scikit-learn.</p>
+
     </div>
   </section>
+
+  <WrapUp spec={L} source={"Nguồn dữ liệu: Palmer Penguins — K. B. Gorman, T. D. Williams &amp; W. R. Fraser (2014), Palmer Station LTER, CC0; CSV trong kho <a href=\"https://github.com/mwaskom/seaborn-data\">mwaskom/seaborn-data</a>. Chữ số viết tay — E. Alpaydin &amp; C. Kaynak (1998), UCI, CC BY 4.0; bản 8×8 trong scikit-learn."} />
 </Lesson>
 
 <style>

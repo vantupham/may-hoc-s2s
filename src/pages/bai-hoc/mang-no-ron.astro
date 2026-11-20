@@ -4,13 +4,19 @@ import Tex from '../../components/Tex.svelte';
 import BackpropLab from '../../components/ch8/BackpropLab.svelte';
 import DigitImg from '../../components/DigitImg.svelte';
 import PyCell from '../../components/PyCell.svelte';
-import Quiz from '../../components/Quiz.svelte';
 import cancer from '../../data/cancer.json';
 import dg from '../../data/digits.json';
 import split from '../../data/digits-split.json';
 import tiny from '../../data/tinynet.json';
 import digitsUrl from '../../data/digits.json?url';
 import Lazy from '../../components/Lazy.svelte';
+import Goals from '../../components/hoc/Goals.astro';
+import Mission from '../../components/hoc/Mission.svelte';
+import Debrief from '../../components/hoc/Debrief.svelte';
+import Checkpoint from '../../components/hoc/Checkpoint.astro';
+import Exercises from '../../components/hoc/Exercises.astro';
+import WrapUp from '../../components/hoc/WrapUp.astro';
+import { nnLearn as L } from '../../lib/hoc/mang-no-ron';
 
 // Hình nhỏ ba hàm kích hoạt
 const AW = 170, AH = 110;
@@ -51,8 +57,11 @@ for epoch in range(15):
         W1 -= 0.1 * g1.T @ x;  b1 -= 0.1 * g1.sum(0)
     acc = ((np.maximum(0, X[te] @ W1.T + b1) @ W2.T + b2).argmax(1) == Y[te]).mean()
     print(f"epoch {epoch + 1:2d}: độ chính xác test {acc:.3f}")`;
+const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 ---
 <Lesson slug="mang-no-ron" data="Chữ số viết tay 8×8 điểm ảnh (1.797 ảnh, UCI) và 6 bệnh nhân của bộ Breast Cancer Wisconsin" lead="Một nơ-ron nhân tạo chỉ là hồi quy logistic của chương 2. Xếp nhiều nơ-ron thành tầng, nối tầng này vào tầng kia, ta có mạng nơ-ron: thứ đứng sau nhận dạng ảnh, dịch máy và các mô hình ngôn ngữ. Bài này mổ xẻ cách mạng học — lan truyền ngược — trên một mạng đủ nhỏ để nhìn thấy mọi con số.">
+
+  <Goals spec={L} />
 
   <section id="bai-toan">
     <div class="prose">
@@ -90,16 +99,20 @@ for epoch in range(15):
       <p>Nếu không có hàm kích hoạt, ghép bao nhiêu tầng tuyến tính lại vẫn chỉ là một hàm tuyến tính. Chính các "khúc gập" của tanh hay ReLU cho phép mạng uốn ranh giới theo hình dạng tuỳ ý.</p>
       <p>Học là chỉnh mọi trọng số để giảm mất mát — vẫn là Gradient Descent. Câu hỏi khó là: với hàng nghìn trọng số nằm ở các tầng khác nhau, làm sao biết mỗi trọng số góp bao nhiêu vào sai số ở đầu ra? <b>Lan truyền ngược</b> trả lời bằng cách đi ngược từ đầu ra, áp dụng quy tắc dây chuyền từng tầng một.</p>
     </div>
+    <div class="prose"><Checkpoint q={L.checkpoints["truc-giac"]} /></div>
   </section>
 
   <section id="tinh-tay">
     <div class="prose">
       <h2><span class="step-no">4</span>Tính tay từng bước</h2>
     </div>
+    <div class="prose"><Mission client:visible slug={L.slug} m={M["lantruyen"]} /></div>
     <div class="wide"><BackpropLab client:visible patients={cancer.mini} init={tiny} /></div>
+    <div class="prose"><Debrief client:visible slug={L.slug} m={M["lantruyen"]} /></div>
     <div class="prose">
       <p>Để ý gradient của trọng số ở tầng đầu: nó bằng gradient ở đầu ra nhân với trọng số v nối tới, nhân với đạo hàm tanh, nhân với đầu vào. Mỗi tầng đi lùi thêm một thừa số. Bấm "Áp dụng cập nhật" vài lần và xem mất mát của bệnh nhân này giảm dần.</p>
     </div>
+    <div class="prose"><Checkpoint q={L.checkpoints["tinh-tay"]} /></div>
   </section>
 
   <section id="ly-thuyet">
@@ -116,6 +129,7 @@ for epoch in range(15):
       <h3>Gradient Descent theo lô</h3>
       <p>Thay vì tính gradient trên toàn bộ 1.437 ảnh, ta lấy trung bình trên một lô nhỏ (32 ảnh) rồi cập nhật ngay. Gradient của lô bị nhiễu một chút, nhưng mỗi epoch có tới 45 bước cập nhật thay vì 1, và nhiễu đó còn giúp tránh kẹt ở cực tiểu kém.</p>
     </div>
+    <div class="prose"><Checkpoint q={L.checkpoints["ly-thuyet"]} /></div>
   </section>
 
   <section id="ma-nguon">
@@ -125,13 +139,21 @@ for epoch in range(15):
       <PyCell client:visible code={pyCode} title="mlp_chu_so.py" />
       <p>Trong thực tế, người ta dùng PyTorch hoặc JAX: chúng tự động tính lan truyền ngược (automatic differentiation) cho bất kỳ mạng nào bạn viết.</p>
     </div>
+    <div class="prose">
+      <h3>Thử sửa mã</h3>
+      <p>Sửa trực tiếp trong ô trên rồi bấm Chạy; bấm "Khôi phục" để quay về mã gốc. Đoán kết quả trước khi mở phần kỳ vọng.</p>
+      <Exercises items={L.codeTasks} kind="code" />
+    </div>
+    <div class="prose"><Checkpoint q={L.checkpoints["ma-nguon"]} /></div>
   </section>
 
   <section id="danh-gia">
     <div class="prose">
       <h2><span class="step-no">7</span>Toàn bộ dữ liệu và đánh giá</h2>
     </div>
+    <div class="prose"><Mission client:visible slug={L.slug} m={M["huanluyen"]} /></div>
     <div class="wide"><Lazy client:visible view="ch8/DigitTrainer" data={{ digits: `${digitsUrl}#digits` }} props={{ testIds: split.testIds }} /></div>
+    <div class="prose"><Debrief client:visible slug={L.slug} m={M["huanluyen"]} /></div>
     <div class="prose">
       <p>Sau khoảng 15 epoch, mạng đạt khoảng 95–97% trên tập test, tuỳ khởi tạo. Thử η = 2: mất mát nhảy loạn, giống quả bóng văng khỏi lòng chảo ở chương 0. Thử η = 0,01: học rất chậm.</p>
       <h3>Bẫy thường gặp</h3>
@@ -141,15 +163,11 @@ for epoch in range(15):
         <li><b>Không chuẩn hoá đầu vào.</b> Đầu vào 0–16 thay vì 0–1 làm tổng có trọng số lớn và quá trình học kém ổn định.</li>
         <li><b>Quá khớp.</b> Mạng có nhiều tham số dễ học thuộc. Theo dõi độ chính xác test; dùng dừng sớm hoặc điều chuẩn khi khoảng cách train–test lớn dần.</li>
       </ul>
-      <h3>Kiểm tra nhanh</h3>
-      <Quiz client:visible questions={[
-        { q: 'Bỏ hết hàm kích hoạt khỏi một mạng 5 tầng. Mạng mới tương đương với gì?', options: ['Một mạng 5 tầng yếu hơn một chút', 'Một mô hình tuyến tính duy nhất', 'Một cây quyết định'], answer: 1, why: 'Tích của các ma trận vẫn là một ma trận: W⁵W⁴W³W²W¹x = Wx. Không có phi tuyến thì độ sâu vô nghĩa.' },
-        { q: 'Ở tầng đầu ra softmax với cross-entropy, ∂L/∂z bằng gì?', options: ['p − y (y viết dạng one-hot)', 'p(1 − p)', '−ln p'], answer: 0, why: 'Giống hồi quy logistic, đạo hàm của softmax và cross-entropy triệt tiêu nhau thành dạng gọn p − y.' },
-        { q: 'Một nơ-ron ReLU có z < 0 với mọi ảnh huấn luyện. Điều gì xảy ra với trọng số vào nơ-ron đó?', options: ['Chúng được cập nhật rất nhanh', 'Chúng không bao giờ được cập nhật, vì gradient qua ReLU bằng 0', 'Chúng bị đặt lại ngẫu nhiên'], answer: 1, why: 'Đạo hàm của ReLU bằng 0 khi z < 0, nên δ của nơ-ron đó luôn bằng 0. Đây gọi là nơ-ron "chết".' },
-      ]} />
-      <p class="src">Nguồn dữ liệu: Optical Recognition of Handwritten Digits — E. Alpaydin &amp; C. Kaynak (1998), UCI Machine Learning Repository, CC BY 4.0; bản 8×8 trong scikit-learn. Breast Cancer Wisconsin (Diagnostic), UCI.</p>
+
     </div>
   </section>
+
+  <WrapUp spec={L} source={"Nguồn dữ liệu: Optical Recognition of Handwritten Digits — E. Alpaydin &amp; C. Kaynak (1998), UCI Machine Learning Repository, CC BY 4.0; bản 8×8 trong scikit-learn. Breast Cancer Wisconsin (Diagnostic), UCI."} />
 </Lesson>
 
 <style>

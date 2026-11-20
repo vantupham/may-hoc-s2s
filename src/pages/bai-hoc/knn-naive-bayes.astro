@@ -5,13 +5,19 @@ import IrisKNN from '../../components/ch3/IrisKNN.svelte';
 import KChoice from '../../components/ch3/KChoice.svelte';
 import NBHand from '../../components/ch3/NBHand.svelte';
 import PyCell from '../../components/PyCell.svelte';
-import Quiz from '../../components/Quiz.svelte';
 import iris from '../../data/iris.json';
 import sms from '../../data/sms.json';
 import { fmt } from '../../lib/ml-core';
 import irisUrl from '../../data/iris.json?url';
 import smsUrl from '../../data/sms.json?url';
 import Lazy from '../../components/Lazy.svelte';
+import Goals from '../../components/hoc/Goals.astro';
+import Mission from '../../components/hoc/Mission.svelte';
+import Debrief from '../../components/hoc/Debrief.svelte';
+import Checkpoint from '../../components/hoc/Checkpoint.astro';
+import Exercises from '../../components/hoc/Exercises.astro';
+import WrapUp from '../../components/hoc/WrapUp.astro';
+import { knnNbLearn as L } from '../../lib/hoc/knn-naive-bayes';
 
 const sp = iris.species;
 const avg = (c: number, k: 'len' | 'wid') => { const a = iris.flowers.filter((f) => f.y === c); return a.reduce((s, f) => s + f[k], 0) / a.length; };
@@ -58,8 +64,11 @@ print("Độ chính xác test:", (nb.predict(X_te) == y_te).mean())
 tin = ["Congratulations! You have won a free ticket. Call now to claim",
        "Are you coming home for dinner tonight?"]
 print(nb.predict_proba(cv.transform(tin))[:, 1].round(4), "← xác suất spam")`;
+const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 ---
 <Lesson slug="knn-naive-bayes" data="150 bông hoa Iris (Fisher, 1936) và 5.574 tin nhắn SMS tiếng Anh có nhãn spam/thường (UCI)" lead="Hai cách phân loại không cần Gradient Descent. KNN không học gì cả: gặp điểm mới thì hỏi các điểm cũ gần nhất. Naive Bayes chỉ đếm: từ nào hay xuất hiện trong tin rác? Cả hai đơn giản đến mức tính tay được, và vẫn đáng ngạc nhiên vì hoạt động tốt.">
+
+  <Goals spec={L} />
 
   <section id="bai-toan">
     <div class="prose">
@@ -97,12 +106,15 @@ print(nb.predict_proba(cv.transform(tin))[:, 1].round(4), "← xác suất spam"
       <h3>KNN: "Hãy cho tôi biết bạn bè của bạn là ai"</h3>
       <p>Muốn đoán loài của một bông hoa lạ, hãy tìm k bông đã biết loài có số đo gần nó nhất, rồi để chúng bỏ phiếu. Không có tham số nào để học; toàn bộ dữ liệu huấn luyện chính là mô hình.</p>
     </div>
+    <div class="prose"><Mission client:visible slug={L.slug} m={M["knn"]} /></div>
     <div class="wide"><IrisKNN client:visible flowers={iris.flowers} testIds={iris.testIds} species={sp} /></div>
+    <div class="prose"><Debrief client:visible slug={L.slug} m={M["knn"]} /></div>
     <div class="prose">
       <p>Đặt hoa mới vào vùng giữa <i>versicolor</i> và <i>virginica</i> rồi đổi k: dự đoán có thể lật qua lật lại. Bật "Tô vùng quyết định" với k = 1 để thấy ranh giới lởm chởm, rồi tăng k để thấy nó mượt dần.</p>
       <h3>Naive Bayes: mỗi từ là một bằng chứng</h3>
       <p>Một tin có từ "free" — khả năng là rác tăng lên. Thêm "prize", tăng nữa. Thêm "mum", giảm đi. Naive Bayes cộng dồn các bằng chứng đó, mỗi từ một lần, như thể chúng độc lập với nhau. Giả định "ngây thơ" (naive) này rõ ràng sai — "free" và "prize" hay đi cùng nhau — nhưng mô hình vẫn hoạt động rất tốt.</p>
     </div>
+    <div class="prose"><Checkpoint q={L.checkpoints["truc-giac"]} /></div>
   </section>
 
   <section id="tinh-tay">
@@ -111,10 +123,13 @@ print(nb.predict_proba(cv.transform(tin))[:, 1].round(4), "← xác suất spam"
       <p>Với KNN, phép tính duy nhất là khoảng cách Euclid — định lý Pythagoras trên mặt phẳng. Bấm vào khoảng cách của từng láng giềng trong bảng ở phần 3 để xem phép tính đầy đủ.</p>
       <p>Với Naive Bayes, ta "huấn luyện" trên 6 tin nhắn thật bằng cách đếm, rồi chấm điểm một tin mới:</p>
     </div>
+    <div class="prose"><Mission client:visible slug={L.slug} m={M["nbtay"]} /></div>
     <div class="wide"><NBHand client:visible mini={sms.mini} /></div>
+    <div class="prose"><Debrief client:visible slug={L.slug} m={M["nbtay"]} /></div>
     <div class="prose">
       <p>Để ý từ "call": nó xuất hiện trong cả tin rác lẫn tin thường, nhưng nhiều hơn ở tin rác, nên kéo về phía spam một chút. Từ chưa từng gặp bị bỏ qua — mô hình không có bằng chứng nào về nó.</p>
     </div>
+    <div class="prose"><Checkpoint q={L.checkpoints["tinh-tay"]} /></div>
   </section>
 
   <section id="ly-thuyet">
@@ -131,6 +146,7 @@ print(nb.predict_proba(cv.transform(tin))[:, 1].round(4), "← xác suất spam"
       <Tex tex={String.raw`\cL{\text{điểm}}(c) = \log P(c) + \sum_{t=1}^{m}\log P(w_t \mid c), \qquad P(w \mid c) = \frac{n_{c,w} + \alpha}{N_c + \alpha |V|}`} display />
       <p><i>n<sub>c,w</sub></i> là số lần từ w xuất hiện trong các tin lớp c, <i>N<sub>c</sub></i> là tổng số từ của lớp c, |V| là kích thước từ điển. Hằng số α = 1 gọi là <abbr title="Laplace smoothing">làm mịn Laplace</abbr>: nếu không có nó, một từ chưa từng xuất hiện trong tin thường sẽ có xác suất 0, và log 0 = −∞ làm cả tin bị coi là rác chỉ vì một từ.</p>
     </div>
+    <div class="prose"><Checkpoint q={L.checkpoints["ly-thuyet"]} /></div>
   </section>
 
   <section id="ma-nguon">
@@ -141,6 +157,12 @@ print(nb.predict_proba(cv.transform(tin))[:, 1].round(4), "← xác suất spam"
       <p>Naive Bayes với scikit-learn, dùng đúng từ điển và bảng đếm của trang này:</p>
       <PyCell client:visible code={pyNb} packages={['numpy', 'scikit-learn']} title="naive_bayes_sms.py" />
     </div>
+    <div class="prose">
+      <h3>Thử sửa mã</h3>
+      <p>Sửa trực tiếp trong ô trên rồi bấm Chạy; bấm "Khôi phục" để quay về mã gốc. Đoán kết quả trước khi mở phần kỳ vọng.</p>
+      <Exercises items={L.codeTasks} kind="code" />
+    </div>
+    <div class="prose"><Checkpoint q={L.checkpoints["ma-nguon"]} /></div>
   </section>
 
   <section id="danh-gia">
@@ -148,12 +170,16 @@ print(nb.predict_proba(cv.transform(tin))[:, 1].round(4), "← xác suất spam"
       <h2><span class="step-no">7</span>Toàn bộ dữ liệu và đánh giá</h2>
       <h3>Chọn k cho KNN</h3>
     </div>
+    <div class="prose"><Mission client:visible slug={L.slug} m={M["chonk"]} /></div>
     <div class="wide"><KChoice client:visible flowers={iris.flowers} testIds={iris.testIds} /></div>
+    <div class="prose"><Debrief client:visible slug={L.slug} m={M["chonk"]} /></div>
     <div class="prose">
       <p>Tập test chỉ có 30 bông, nên mỗi bông sai làm độ chính xác giảm hơn 3 điểm phần trăm. Đừng đọc quá nhiều vào những dao động nhỏ; chương 8 sẽ giới thiệu cross-validation để chọn k chắc chắn hơn.</p>
       <h3>Bộ lọc thư rác</h3>
     </div>
+    <div class="prose"><Mission client:visible slug={L.slug} m={M["loc"]} /></div>
     <div class="wide"><Lazy client:visible view="ch3/NBFull" data={{ sms: smsUrl }} /></div>
+    <div class="prose"><Debrief client:visible slug={L.slug} m={M["loc"]} /></div>
     <div class="prose">
       <h3>Bẫy thường gặp</h3>
       <ul>
@@ -162,15 +188,11 @@ print(nb.predict_proba(cv.transform(tin))[:, 1].round(4), "← xác suất spam"
         <li><b>Quên làm mịn</b> trong Naive Bayes → một từ lạ đủ để lật kết quả.</li>
         <li><b>Dữ liệu lệch lớp.</b> Chỉ {fmt(spamPct, 1)}% là tin rác, nên mô hình "luôn đoán tin thường" đã đạt {fmt(100 - spamPct, 1)}% độ chính xác. Hãy nhìn số tin rác lọt qua và số tin thường bị chặn nhầm, không chỉ độ chính xác.</li>
       </ul>
-      <h3>Kiểm tra nhanh</h3>
-      <Quiz client:visible questions={[
-        { q: 'KNN với k = 1 đạt 100% độ chính xác trên tập huấn luyện. Điều này nói lên gì?', options: ['Mô hình hoàn hảo', 'Gần như không nói lên gì: mỗi điểm huấn luyện là láng giềng gần nhất của chính nó', 'Nên dùng k = 1 cho mọi bài toán'], answer: 1, why: 'Khoảng cách từ một điểm tới chính nó bằng 0, nên với k = 1 mô hình chỉ đang tra lại nhãn đã biết. Phải đo trên tập test.' },
-        { q: 'Vì sao Naive Bayes cộng log xác suất thay vì nhân xác suất?', options: ['Vì cộng nhanh hơn nhân', 'Vì tích của nhiều số nhỏ bị làm tròn về 0 trên máy tính', 'Vì log làm mô hình chính xác hơn'], answer: 1, why: 'Một tin 30 từ cho tích của 30 xác suất cỡ 0,001, tức khoảng 10⁻⁹⁰ — dễ tràn dưới. Log biến tích thành tổng mà không đổi lớp thắng.' },
-        { q: 'Một từ chưa bao giờ xuất hiện trong tin thường. Không có làm mịn Laplace, điều gì xảy ra?', options: ['Từ đó bị bỏ qua', 'P(từ | thường) = 0, nên mọi tin chứa từ đó đều bị coi là rác', 'Mô hình báo lỗi'], answer: 1, why: 'log 0 = −∞ kéo tổng điểm của lớp "thường" về âm vô cùng, bất kể các từ khác nói gì. Cộng thêm α = 1 vào mỗi bộ đếm tránh được điều đó.' },
-      ]} />
-      <p class="src">Nguồn dữ liệu: Iris — R. A. Fisher (1936), UCI Machine Learning Repository, bản trong scikit-learn. SMS Spam Collection — T. A. Almeida &amp; J. M. Gómez Hidalgo (2011), UCI, CC BY 4.0; bản TSV trong kho <a href="https://github.com/justmarkham/pycon-2016-tutorial">justmarkham/pycon-2016-tutorial</a>.</p>
+
     </div>
   </section>
+
+  <WrapUp spec={L} source={"Nguồn dữ liệu: Iris — R. A. Fisher (1936), UCI Machine Learning Repository, bản trong scikit-learn. SMS Spam Collection — T. A. Almeida &amp; J. M. Gómez Hidalgo (2011), UCI, CC BY 4.0; bản TSV trong kho <a href=\"https://github.com/justmarkham/pycon-2016-tutorial\">justmarkham/pycon-2016-tutorial</a>."} />
 </Lesson>
 
 <style>

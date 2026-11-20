@@ -3,11 +3,17 @@ import Lesson from '../../layouts/Lesson.astro';
 import Tex from '../../components/Tex.svelte';
 import DigitImg from '../../components/DigitImg.svelte';
 import PyCell from '../../components/PyCell.svelte';
-import Quiz from '../../components/Quiz.svelte';
 import data from '../../data/fashion-cnn.json';
 import { decodeImage, fmt } from '../../lib/ml-core';
 import cnnUrl from '../../data/fashion-cnn.json?url';
 import Lazy from '../../components/Lazy.svelte';
+import Goals from '../../components/hoc/Goals.astro';
+import Mission from '../../components/hoc/Mission.svelte';
+import Debrief from '../../components/hoc/Debrief.svelte';
+import Checkpoint from '../../components/hoc/Checkpoint.astro';
+import Exercises from '../../components/hoc/Exercises.astro';
+import WrapUp from '../../components/hoc/WrapUp.astro';
+import { cnnLearn as L } from '../../lib/hoc/cnn';
 
 const names = data.names;
 const examples = names.map((_, k) => data.images.find((im) => im.y === k)).filter(Boolean) as { y: number; b64: string }[];
@@ -32,8 +38,11 @@ print("Sau ReLU:"); print(np.maximum(0, ra))
 # Max-pool 2×2
 pool = np.maximum(0, ra).reshape(2, 2, 2, 2).max(axis=(1, 3))
 print("Sau max-pool 2×2:"); print(pool)`;
+const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 ---
 <Lesson slug="cnn" data={`Fashion-MNIST: 10.000 ảnh xám 28×28 của 10 loại quần áo, giày, túi do Zalando Research công bố`} lead="Mạng ở chương 9 coi ảnh là một hàng 64 con số, bỏ qua chuyện điểm ảnh nào nằm cạnh điểm ảnh nào. Mạng tích chập (CNN) giữ nguyên cấu trúc lưới: một bộ lọc nhỏ trượt khắp ảnh, tìm cùng một hoạ tiết ở mọi vị trí. Bài này cho bạn xem từng phép nhân trong đó.">
+
+  <Goals spec={L} />
 
   <section id="bai-toan">
     <div class="prose">
@@ -58,16 +67,20 @@ print("Sau max-pool 2×2:"); print(pool)`;
       <p>Hãy tưởng tượng một con tem 3×3 ô có in sẵn các con số. Ta đặt con tem lên góc trái trên của ảnh, nhân từng số trên tem với điểm ảnh bên dưới, cộng 9 tích lại — được một con số. Dịch tem sang phải một ô, lặp lại. Quét hết ảnh, ta được một ảnh mới gọi là <b>bản đồ đặc trưng</b>.</p>
       <p>Nếu tem có dạng "âm bên trái, dương bên phải", con số sẽ lớn ở những chỗ ảnh chuyển từ tối sang sáng theo chiều ngang: tem đó là một <b>bộ dò cạnh dọc</b>. CNN không cần ai thiết kế tem — nó tự học các con số trên tem bằng lan truyền ngược.</p>
     </div>
+    <div class="prose"><Checkpoint q={L.checkpoints["truc-giac"]} /></div>
   </section>
 
   <section id="tinh-tay">
     <div class="prose">
       <h2><span class="step-no">4</span>Tính tay từng bước</h2>
     </div>
+    <div class="prose"><Mission client:visible slug={L.slug} m={M["tichchap"]} /></div>
     <div class="wide"><Lazy client:visible view="ch9/ConvLab" data={{ images: `${cnnUrl}#images`, Wc: `${cnnUrl}#Wc`, bc: `${cnnUrl}#bc` }} props={{ names }} /></div>
+    <div class="prose"><Debrief client:visible slug={L.slug} m={M["tichchap"]} /></div>
     <div class="prose">
       <p>So sánh bộ lọc "cạnh dọc" tự đặt với các bộ lọc học được: nhiều bộ lọc học được cũng là bộ dò cạnh hoặc bộ dò vùng sáng — mạng tự khám phá lại những gì con người từng thiết kế bằng tay.</p>
     </div>
+    <div class="prose"><Checkpoint q={L.checkpoints["tinh-tay"]} /></div>
   </section>
 
   <section id="ly-thuyet">
@@ -84,6 +97,7 @@ print("Sau max-pool 2×2:"); print(pool)`;
       <Tex tex={String.raw`\cg{\frac{\partial L}{\partial k_{i,j}}} = \sum_{r,c} \cg{\frac{\partial L}{\partial z_{r,c}}}\; \cx{x_{r+i,\;c+j}}`} display />
       <p>Bản thân phép tính này cũng là một phép tích chập — giữa ảnh đầu vào và bản đồ gradient. Mạng trên trang được huấn luyện bằng đúng công thức này, viết bằng NumPy trong <code>scripts/prep_ch9.py</code> của kho mã.</p>
     </div>
+    <div class="prose"><Checkpoint q={L.checkpoints["ly-thuyet"]} /></div>
   </section>
 
   <section id="ma-nguon">
@@ -92,13 +106,21 @@ print("Sau max-pool 2×2:"); print(pool)`;
       <p>Tích chập và max-pool viết tay trên một ảnh 6×6 có vạch sáng dọc. Chạy rồi thử đổi bộ lọc thành bộ dò cạnh ngang.</p>
       <PyCell client:visible code={pyCode} title="tich_chap.py" />
     </div>
+    <div class="prose">
+      <h3>Thử sửa mã</h3>
+      <p>Sửa trực tiếp trong ô trên rồi bấm Chạy; bấm "Khôi phục" để quay về mã gốc. Đoán kết quả trước khi mở phần kỳ vọng.</p>
+      <Exercises items={L.codeTasks} kind="code" />
+    </div>
+    <div class="prose"><Checkpoint q={L.checkpoints["ma-nguon"]} /></div>
   </section>
 
   <section id="danh-gia">
     <div class="prose">
       <h2><span class="step-no">7</span>Toàn bộ dữ liệu và đánh giá</h2>
     </div>
+    <div class="prose"><Mission client:visible slug={L.slug} m={M["camang"]} /></div>
     <div class="wide"><Lazy client:visible view="ch9/PipelineLab" data={{ net: cnnUrl, images: `${cnnUrl}#images`, confusion: `${cnnUrl}#confusion` }} props={{ names, testAcc: data.testAcc, nTest: data.nTest }} /></div>
+    <div class="prose"><Debrief client:visible slug={L.slug} m={M["camang"]} /></div>
     <div class="prose">
       <p>Với chỉ 6 bộ lọc và một tầng tích chập, mạng đạt {fmt(data.testAcc * 100, 1)}% trên tập test. Các CNN sâu hơn đạt trên 93% trên Fashion-MNIST.</p>
       <h3>Bẫy thường gặp</h3>
@@ -107,15 +129,11 @@ print("Sau max-pool 2×2:"); print(pool)`;
         <li><b>Nhầm thứ tự chiều</b> (cao, rộng, kênh) giữa các thư viện. Rất nhiều lỗi CNN trong thực tế là lỗi sắp xếp mảng.</li>
         <li><b>Kết luận "mạng hiểu quần áo".</b> Mạng chỉ học thống kê điểm ảnh của 8.000 ảnh nền đen, sản phẩm đặt giữa. Ảnh chụp thật ngoài đời sẽ làm nó lúng túng.</li>
       </ul>
-      <h3>Kiểm tra nhanh</h3>
-      <Quiz client:visible questions={[
-        { q: 'Áp một bộ lọc 3×3 (không đệm viền) lên ảnh 28×28. Bản đồ đặc trưng có kích thước bao nhiêu?', options: ['28 × 28', '26 × 26', '25 × 25'], answer: 1, why: 'Cửa sổ 3×3 có 28 − 3 + 1 = 26 vị trí theo mỗi chiều.' },
-        { q: 'Vì sao CNN cần ít tham số hơn nhiều so với mạng dense cho ảnh?', options: ['Vì nó bỏ bớt điểm ảnh', 'Vì cùng một bộ lọc nhỏ được dùng chung ở mọi vị trí', 'Vì nó không có bias'], answer: 1, why: 'Chia sẻ trọng số: 9 trọng số của bộ lọc được dùng lại ở 676 vị trí, thay vì mỗi vị trí một bộ trọng số riêng.' },
-        { q: 'Bộ lọc [[−1, 0, 1], [−1, 0, 1], [−1, 0, 1]] cho giá trị lớn ở đâu?', options: ['Chỗ ảnh đồng màu', 'Chỗ ảnh chuyển từ tối sang sáng theo chiều ngang (cạnh dọc)', 'Chỗ ảnh chuyển từ tối sang sáng theo chiều dọc (cạnh ngang)'], answer: 1, why: 'Cột trái nhân −1, cột phải nhân +1: tổng lớn khi bên phải sáng hơn bên trái, tức có một cạnh dọc.' },
-      ]} />
-      <p class="src">Nguồn dữ liệu: Fashion-MNIST — H. Xiao, K. Rasul &amp; R. Vollgraf (2017), Zalando Research, giấy phép MIT; tập t10k trong kho <a href="https://github.com/zalandoresearch/fashion-mnist">zalandoresearch/fashion-mnist</a>.</p>
+
     </div>
   </section>
+
+  <WrapUp spec={L} source={"Nguồn dữ liệu: Fashion-MNIST — H. Xiao, K. Rasul &amp; R. Vollgraf (2017), Zalando Research, giấy phép MIT; tập t10k trong kho <a href=\"https://github.com/zalandoresearch/fashion-mnist\">zalandoresearch/fashion-mnist</a>."} />
 </Lesson>
 
 <style>

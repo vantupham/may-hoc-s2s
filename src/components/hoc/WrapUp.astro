@@ -1,0 +1,38 @@
+---
+/**
+ * Bước 8 "Tổng kết và rút kinh nghiệm", dùng chung cho mọi bài có khung trải nghiệm:
+ * bài học rút ra, kiểm tra, tự đánh giá và phản tư, thử thách, nguồn dữ liệu.
+ */
+import Quiz from '../Quiz.svelte';
+import Exercises from './Exercises.astro';
+import Takeaways from './Takeaways.astro';
+import SelfCheck from './SelfCheck.svelte';
+import { lessons, sectionsFor } from '../../lib/lessons';
+import type { LessonLearn } from '../../lib/learn';
+
+interface Props { spec: LessonLearn; source?: string }
+const { spec, source } = Astro.props;
+const lesson = lessons.find((l) => l.slug === spec.slug)!;
+const labels = Object.fromEntries(sectionsFor(lesson).map((s, i) => [s.id, `Bước ${i + 1}. ${s.label}`]));
+const nApply = spec.quiz.filter((q) => q.q.startsWith('Vận dụng')).length;
+const nRecall = spec.quiz.length - nApply;
+const num = ['không', 'Một', 'Hai', 'Ba', 'Bốn', 'Năm', 'Sáu'];
+---
+<section id="tong-ket">
+  <div class="prose">
+    <h2><span class="step-no">8</span>Tổng kết và rút kinh nghiệm</h2>
+    <Takeaways t={spec.takeaways} />
+    <h3>Kiểm tra</h3>
+    <p>{num[nRecall] ?? nRecall} câu nhớ lại{nApply > 0 && `, ${(num[nApply] ?? String(nApply)).toLowerCase()} câu vận dụng sang tình huống mới`}.</p>
+    <Quiz client:visible questions={spec.quiz} />
+    <SelfCheck client:visible spec={spec} title={lesson.title} labels={labels} />
+    <h3>Thử thách</h3>
+    <p>Ba mức: tính tay, thực hành trên mã hoặc lab, và một câu hỏi mở không có đáp án duy nhất.</p>
+    <Exercises items={spec.challenges} />
+    {source && <p class="src" set:html={source} />}
+  </div>
+</section>
+
+<style>
+  .src { font-size: 0.82rem; color: var(--pencil); margin-top: 2rem; }
+</style>

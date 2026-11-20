@@ -10,13 +10,19 @@ import SplitLab from '../../components/dulieu/SplitLab.svelte';
 import CurveLab from '../../components/dulieu/CurveLab.svelte';
 import BeforeAfter from '../../components/dulieu/BeforeAfter.svelte';
 import PyCell from '../../components/PyCell.svelte';
-import Quiz from '../../components/Quiz.svelte';
 import { quantileCalc, sortNum, present, imputeGroupMedian, standardize, minMax, tex, fmt } from '../../lib/ml-core';
 import type { Calc } from '../../lib/ml-core';
 import { oceanVi } from '../../lib/dulieu';
 import titanicUrl from '../../data/titanic.json?url';
 import californiaUrl from '../../data/california.json?url';
 import Lazy from '../../components/Lazy.svelte';
+import Goals from '../../components/hoc/Goals.astro';
+import Mission from '../../components/hoc/Mission.svelte';
+import Debrief from '../../components/hoc/Debrief.svelte';
+import Checkpoint from '../../components/hoc/Checkpoint.astro';
+import Exercises from '../../components/hoc/Exercises.astro';
+import WrapUp from '../../components/hoc/WrapUp.astro';
+import { xuLyLearn as L } from '../../lib/hoc/xu-ly-du-lieu';
 
 const cal = JSON.parse(readFileSync('src/data/california.json', 'utf8'));
 const groups = cal.ocean.map((o: number) => cal.cats[o]);
@@ -80,8 +86,11 @@ for ten, cv, nhom in [("ngẫu nhiên", KFold(5, shuffle=True, random_state=0), 
                       ("theo vùng", GroupKFold(5), o_dia_ly)]:
     rmse = -cross_val_score(mo_hinh, df, y, cv=cv, groups=nhom, scoring="neg_root_mean_squared_error")
     print(f"Chia {ten}: RMSE từng phần {rmse.round(3)}, trung bình {rmse.mean():.4f}")`;
+const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 ---
 <Lesson slug="xu-ly-du-lieu" data="toàn bộ 20.640 khu vực California Housing, 891 hành khách Titanic, 569 mẫu sinh thiết Breast Cancer Wisconsin" lead="Bài 3A tìm ra các vấn đề. Bài này sửa chúng: điền giá trị thiếu, mã hoá, đưa về cùng thang đo, chặn rò rỉ, chia train/test cho đúng — và đo xem mỗi bước thật sự đáng giá bao nhiêu. Cuối bài là câu hỏi lớn của chương: nên thu thập thêm dữ liệu, hay làm cho dữ liệu đang có tốt hơn?">
+
+  <Goals spec={L} />
 
   <section id="bai-toan">
     <div class="prose">
@@ -113,8 +122,11 @@ for ten, cv, nhom in [("ngẫu nhiên", KFold(5, shuffle=True, random_state=0), 
       <h2><span class="step-no">3</span>Trực giác</h2>
       <p>Không có cách điền "trung lập". Mỗi cách là một <b>giả định</b> về lý do ô bị trống. Điền trung bình là giả định ô trống trông giống một khu vực điển hình. Điền theo nhóm là giả định nó giống các khu vực cùng nhóm. Điền bằng láng giềng là giả định nó giống những khu vực có số phòng, số hộ, dân số gần nó nhất. Giả định càng sát sự thật, giá trị điền càng đúng.</p>
     </div>
+    <div class="prose"><Mission client:visible slug={L.slug} m={M["dien"]} /></div>
     <div class="wide"><ImputeLab client:visible /></div>
     <div class="wide"><Lazy client:visible view="dulieu/TitanicAge" data={{ people: `${titanicUrl}#people` }} /></div>
+    <div class="prose"><Debrief client:visible slug={L.slug} m={M["dien"]} /></div>
+    <div class="prose"><Checkpoint q={L.checkpoints["truc-giac"]} /></div>
   </section>
 
   <section id="tinh-tay">
@@ -126,7 +138,10 @@ for ten, cv, nhom in [("ngẫu nhiên", KFold(5, shuffle=True, random_state=0), 
     <div class="prose">
       <p>Ba phép biến đổi thang đo có ba tính chất khác nhau. Chuẩn hoá z đưa trung bình về 0, độ lệch chuẩn về 1, nhưng giữ nguyên hình dạng phân phối. Min-max ép mọi giá trị vào [0, 1] nên rất nhạy với một giá trị cực lớn. Log thay đổi hình dạng: kéo đuôi dài vào gần. Tác động của từng cách lên mô hình được đo dưới đây.</p>
     </div>
+    <div class="prose"><Mission client:visible slug={L.slug} m={M["mahoa"]} /></div>
     <div class="wide"><EncodeLab client:visible /></div>
+    <div class="prose"><Debrief client:visible slug={L.slug} m={M["mahoa"]} /></div>
+    <div class="prose"><Checkpoint q={L.checkpoints["tinh-tay"]} /></div>
   </section>
 
   <section id="ly-thuyet">
@@ -172,6 +187,7 @@ for ten, cv, nhom in [("ngẫu nhiên", KFold(5, shuffle=True, random_state=0), 
         <dt>Không nên dùng cho</dt><dd>Định giá nhà hiện nay: giá đã thay đổi rất nhiều sau hơn 30 năm (lệch khái niệm); không có thông tin về từng căn nhà.</dd>
       </dl>
     </div>
+    <div class="prose"><Checkpoint q={L.checkpoints["ly-thuyet"]} /></div>
   </section>
 
   <section id="ma-nguon">
@@ -180,6 +196,12 @@ for ten, cv, nhom in [("ngẫu nhiên", KFold(5, shuffle=True, random_state=0), 
       <p>Trong scikit-learn, <code>ColumnTransformer</code> áp dụng các bước khác nhau cho các nhóm cột khác nhau, và <code>Pipeline</code> nối chúng với mô hình. Cross-validation sẽ gọi <code>fit</code> của cả chuỗi trên từng phần huấn luyện.</p>
       <PyCell client:visible code={pyCode} packages={['numpy', 'pandas', 'scikit-learn']} title="xu_ly_du_lieu.py" />
     </div>
+    <div class="prose">
+      <h3>Thử sửa mã</h3>
+      <p>Sửa trực tiếp trong ô trên rồi bấm Chạy; bấm "Khôi phục" để quay về mã gốc. Đoán kết quả trước khi mở phần kỳ vọng.</p>
+      <Exercises items={L.codeTasks} kind="code" />
+    </div>
+    <div class="prose"><Checkpoint q={L.checkpoints["ma-nguon"]} /></div>
   </section>
 
   <section id="danh-gia">
@@ -187,13 +209,21 @@ for ten, cv, nhom in [("ngẫu nhiên", KFold(5, shuffle=True, random_state=0), 
       <h2><span class="step-no">7</span>Toàn bộ dữ liệu và đánh giá</h2>
       <p>Ba thí nghiệm cuối trả lời ba câu hỏi: con số đánh giá có bị rò rỉ thổi phồng không, tập test có mô phỏng đúng nơi dùng thật không, và nên đầu tư vào dữ liệu theo hướng nào.</p>
     </div>
+    <div class="prose"><Mission client:visible slug={L.slug} m={M["rori"]} /></div>
     <div class="wide"><LeakLab client:visible /></div>
+    <div class="prose"><Debrief client:visible slug={L.slug} m={M["rori"]} /></div>
+    <div class="prose"><Mission client:visible slug={L.slug} m={M["chia"]} /></div>
     <div class="wide"><SplitLab client:visible /></div>
+    <div class="prose"><Debrief client:visible slug={L.slug} m={M["chia"]} /></div>
+    <div class="prose"><Mission client:visible slug={L.slug} m={M["nhieu"]} /></div>
     <div class="wide"><CurveLab client:visible /></div>
+    <div class="prose"><Debrief client:visible slug={L.slug} m={M["nhieu"]} /></div>
     <div class="prose">
       <p>Cuối cùng, gom mọi bước của chương lại:</p>
     </div>
+    <div class="prose"><Mission client:visible slug={L.slug} m={M["truocsau"]} /></div>
     <div class="wide"><BeforeAfter client:visible /></div>
+    <div class="prose"><Debrief client:visible slug={L.slug} m={M["truocsau"]} /></div>
     <div class="prose">
       <h3>Danh sách kiểm tra trước khi huấn luyện</h3>
       <ol class="check">
@@ -213,15 +243,11 @@ for ten, cv, nhom in [("ngẫu nhiên", KFold(5, shuffle=True, random_state=0), 
         <li><b>Chia ngẫu nhiên dữ liệu có nhóm.</b> Mô hình nhớ "anh em sinh đôi" thay vì học quy luật.</li>
         <li><b>Thu thập thêm khi đường cong học đã phẳng.</b> Tốn công mà không cải thiện được gì.</li>
       </ul>
-      <h3>Kiểm tra nhanh</h3>
-      <Quiz client:visible questions={[
-        { q: 'Bạn điền ô thiếu bằng trung vị tính trên toàn bộ dữ liệu, rồi mới chia train/test. Vấn đề là gì?', options: ['Không có vấn đề vì trung vị không bị ngoại lai kéo lệch', 'Trung vị đã dùng thông tin của tập test: một dạng rò rỉ', 'Trung vị làm sai kiểu dữ liệu'], answer: 1, why: 'Mọi tham số của bước xử lý phải học từ tập huấn luyện. Ở đây ảnh hưởng nhỏ, nhưng thói quen này với các bước khác có thể thổi phồng điểm số rất nhiều.' },
-        { q: 'Đường cong học của mô hình: sai số huấn luyện và kiểm định đã gặp nhau và nằm ngang từ 1.000 mẫu. Nên làm gì?', options: ['Thu thập thêm 100.000 mẫu', 'Thêm đặc trưng tốt hơn hoặc dùng mô hình linh hoạt hơn', 'Giảm số mẫu cho nhanh'], answer: 1, why: 'Hai đường gặp nhau và phẳng nghĩa là mô hình bị giới hạn bởi độ phức tạp của nó (bias). Thêm dữ liệu không thay đổi được điều đó.' },
-        { q: 'Dữ liệu ảnh y tế có 3 ảnh cho mỗi bệnh nhân. Chia train/test thế nào?', options: ['Ngẫu nhiên theo ảnh', 'Theo bệnh nhân: cả 3 ảnh của một người vào cùng một tập', 'Phân tầng theo độ sáng ảnh'], answer: 1, why: 'Ba ảnh của cùng một người rất giống nhau. Chia theo ảnh, mô hình có thể nhận ra người thay vì nhận ra bệnh, và điểm test sẽ cao giả tạo.' },
-      ]} />
-      <p class="src">Nguồn dữ liệu: California Housing (U.S. Census 1990; Pace và Barry, 1997), Titanic, Breast Cancer Wisconsin (UCI). Phiếu dữ liệu theo Gebru và cộng sự, <a href="https://arxiv.org/abs/1803.09010">Datasheets for Datasets</a>.</p>
+
     </div>
   </section>
+
+  <WrapUp spec={L} source={"Nguồn dữ liệu: California Housing (U.S. Census 1990; Pace và Barry, 1997), Titanic, Breast Cancer Wisconsin (UCI). Phiếu dữ liệu theo Gebru và cộng sự, <a href=\"https://arxiv.org/abs/1803.09010\">Datasheets for Datasets</a>."} />
 </Lesson>
 
 <style>

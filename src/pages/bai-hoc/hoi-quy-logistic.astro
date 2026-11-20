@@ -4,11 +4,17 @@ import Tex from '../../components/Tex.svelte';
 import SigmoidExplorer from '../../components/logreg/SigmoidExplorer.svelte';
 import LogRegLab from '../../components/logreg/LogRegLab.svelte';
 import PyCell from '../../components/PyCell.svelte';
-import Quiz from '../../components/Quiz.svelte';
 import cancer from '../../data/cancer.json';
 import { logisticRegressionGD, fmt, tex } from '../../lib/ml-core';
 import cancerUrl from '../../data/cancer.json?url';
 import Lazy from '../../components/Lazy.svelte';
+import Goals from '../../components/hoc/Goals.astro';
+import Mission from '../../components/hoc/Mission.svelte';
+import Debrief from '../../components/hoc/Debrief.svelte';
+import Checkpoint from '../../components/hoc/Checkpoint.astro';
+import Exercises from '../../components/hoc/Exercises.astro';
+import WrapUp from '../../components/hoc/WrapUp.astro';
+import { logregLearn as L } from '../../lib/hoc/hoi-quy-logistic';
 
 const mini = cancer.mini;
 const t = logisticRegressionGD(mini.map((p) => [p.x1, p.x2] as [number, number]), mini.map((p) => p.y), { lr: 1, epochs: 2 });
@@ -58,8 +64,11 @@ for nguong in (0.5, 0.2):
     tn, fp, fn, tp = confusion_matrix(y_te, pred).ravel()
     print(f"ngưỡng {nguong}: bỏ sót {fn}, báo nhầm {fp}, "
           f"recall {recall_score(y_te, pred):.3f}, precision {precision_score(y_te, pred):.3f}")`;
+const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 ---
 <Lesson slug="hoi-quy-logistic" data="569 mẫu sinh thiết trong bộ Breast Cancer Wisconsin (UCI)" lead="Hai bài trước dự đoán một con số. Bài này dự đoán một lựa chọn: khối u lành hay ác. Ta giữ nguyên ý tưởng đường thẳng và Gradient Descent, chỉ thêm một hàm biến điểm số thành xác suất — và một hàm mất mát mới phù hợp với xác suất.">
+
+  <Goals spec={L} />
 
   <section id="bai-toan">
     <div class="prose">
@@ -95,11 +104,16 @@ for nguong in (0.5, 0.2):
       <p>Bước 1 giống hồi quy tuyến tính: tính một <b>điểm số</b> <span class="v-z">z</span> bằng tổ hợp tuyến tính. Nhưng z có thể là bất kỳ số nào, từ âm vô cùng đến dương vô cùng — không phải xác suất. Bước 2: ép z vào khoảng (0, 1) bằng hàm <abbr title="Sigmoid / logistic function">sigmoid</abbr>.</p>
       <Tex tex={String.raw`\cz{z} = \cw{w_1}\cx{x_1} + \cw{w_2}\cx{x_2} + \cb{b} \qquad \cp{p} = \sigma(\cz{z}) = \frac{1}{1+e^{-\cz{z}}}`} display />
     </div>
+    <div class="prose"><Mission client:visible slug={L.slug} m={M["sigmoid"]} /></div>
     <div class="wide"><SigmoidExplorer client:visible /></div>
+    <div class="prose"><Debrief client:visible slug={L.slug} m={M["sigmoid"]} /></div>
     <div class="prose">
       <p>Tập hợp các điểm có z = 0 (tức p = 0,5) là một đường thẳng trên mặt phẳng (x₁, x₂): đó là <b>ranh giới quyết định</b>. Hãy thử tự đặt nó:</p>
     </div>
+    <div class="prose"><Mission client:visible slug={L.slug} m={M["ranhgioi"]} /></div>
     <div class="wide"><Lazy client:visible view="logreg/BoundaryGuess" data={{ patients: `${cancerUrl}#patients` }} /></div>
+    <div class="prose"><Debrief client:visible slug={L.slug} m={M["ranhgioi"]} /></div>
+    <div class="prose"><Checkpoint q={L.checkpoints["truc-giac"]} /></div>
   </section>
 
   <section id="tinh-tay">
@@ -110,10 +124,13 @@ for nguong in (0.5, 0.2):
       <Tex tex={String.raw`\cg{\frac{\partial L}{\partial w_1}} = ${tex(s0.gw[0], 4)} \;\Rightarrow\; \cw{w_1} = 0 - 1 \times (${tex(s0.gw[0], 4)}) = \cw{${tex(s0.wNext[0], 4)}}`} display />
       <p>Sau đúng một bước, mất mát giảm từ <span class="num v-L">{fmt(s0.loss, 4)}</span> xuống <span class="num v-L">{fmt(s1.loss, 4)}</span>. Chạy tiếp và xem ranh giới xoay vào vị trí:</p>
     </div>
+    <div class="prose"><Mission client:visible slug={L.slug} m={M["buoc"]} /></div>
     <div class="wide"><LogRegLab client:visible patients={mini} /></div>
+    <div class="prose"><Debrief client:visible slug={L.slug} m={M["buoc"]} /></div>
     <div class="prose">
       <p>Sáu điểm này tách được hoàn toàn bằng một đường thẳng, nên mô hình cứ thế tự tin hơn mãi: trọng số tăng dần không dừng. Trên dữ liệu thật có chồng lấn, điều đó không xảy ra.</p>
     </div>
+    <div class="prose"><Checkpoint q={L.checkpoints["tinh-tay"]} /></div>
   </section>
 
   <section id="ly-thuyet">
@@ -131,6 +148,7 @@ for nguong in (0.5, 0.2):
       <h3>Không có công thức đóng</h3>
       <p>Đặt các đạo hàm bằng 0 cho một hệ phương trình chứa hàm mũ, không giải được bằng đại số. Gradient Descent (hoặc các biến thể của nó) là cách duy nhất. May mắn là mất mát cross-entropy là hàm lồi: chỉ có một đáy, nên Gradient Descent luôn tìm được nó.</p>
     </div>
+    <div class="prose"><Checkpoint q={L.checkpoints["ly-thuyet"]} /></div>
   </section>
 
   <section id="ma-nguon">
@@ -141,6 +159,12 @@ for nguong in (0.5, 0.2):
       <p>Phiên bản scikit-learn trên toàn bộ dữ liệu, so sánh hai ngưỡng:</p>
       <PyCell client:visible code={pySklearn} packages={['numpy', 'scikit-learn']} title="logistic_sklearn.py" />
     </div>
+    <div class="prose">
+      <h3>Thử sửa mã</h3>
+      <p>Sửa trực tiếp trong ô trên rồi bấm Chạy; bấm "Khôi phục" để quay về mã gốc. Đoán kết quả trước khi mở phần kỳ vọng.</p>
+      <Exercises items={L.codeTasks} kind="code" />
+    </div>
+    <div class="prose"><Checkpoint q={L.checkpoints["ma-nguon"]} /></div>
   </section>
 
   <section id="danh-gia">
@@ -148,7 +172,9 @@ for nguong in (0.5, 0.2):
       <h2><span class="step-no">7</span>Toàn bộ dữ liệu và đánh giá</h2>
       <p>Tách 569 bệnh nhân thành 455 để huấn luyện và 114 để kiểm tra. Mô hình xuất ra xác suất; quyết định cuối cùng phụ thuộc vào <b>ngưỡng</b> ta chọn. Ngưỡng không phải chuyện toán học — nó là chuyện cái giá của từng loại sai lầm.</p>
     </div>
+    <div class="prose"><Mission client:visible slug={L.slug} m={M["nguong"]} /></div>
     <div class="wide"><Lazy client:visible view="logreg/FullLogReg" data={{ patients: `${cancerUrl}#patients`, testIds: `${cancerUrl}#testIds` }} /></div>
+    <div class="prose"><Debrief client:visible slug={L.slug} m={M["nguong"]} /></div>
     <div class="prose">
       <h3>Bẫy thường gặp</h3>
       <ul>
@@ -156,17 +182,9 @@ for nguong in (0.5, 0.2):
         <li><b>Coi ngưỡng 0,5 là mặc định đúng.</b> Ngưỡng nên chọn theo chi phí của bỏ sót và báo nhầm.</li>
         <li><b>Dữ liệu tách được hoàn toàn</b> → trọng số tăng vô hạn (như 6 bệnh nhân ở phần 4). Thực tế người ta thêm <abbr title="Regularization">điều chuẩn</abbr> để giữ trọng số nhỏ — chủ đề của bài sau.</li>
       </ul>
-      <h3>Kiểm tra nhanh</h3>
-      <Quiz client:visible questions={[
-        { q: 'Một bệnh nhân có z = 0. Mô hình cho xác suất ác tính bao nhiêu?', options: ['0', '0,5', '1'], answer: 1, why: 'σ(0) = 1 / (1 + e⁰) = 1/2. Điểm này nằm đúng trên ranh giới quyết định.' },
-        { q: 'Bệnh nhân ác tính (y = 1) nhưng mô hình cho p = 0,01. Mất mát của người này?', options: ['Khoảng 0,01', 'Khoảng 0,69', 'Khoảng 4,6'], answer: 2, why: '−ln(0,01) ≈ 4,6. Đoán sai một cách tự tin bị phạt nặng, còn p = 0,5 chỉ bị phạt 0,69.' },
-        { q: 'Hạ ngưỡng từ 0,5 xuống 0,2 thường làm gì?', options: ['Giảm số ca bỏ sót, tăng số ca báo nhầm', 'Tăng số ca bỏ sót, giảm số ca báo nhầm', 'Không thay đổi gì vì mô hình giữ nguyên'], answer: 0, why: 'Ngưỡng thấp hơn nghĩa là chỉ cần nghi ngờ nhẹ cũng gọi là ác tính: bắt được nhiều ca thật hơn (recall tăng) nhưng cũng nhiều báo động nhầm hơn (precision giảm).' },
-      ]} />
-      <p class="src">Nguồn dữ liệu: Breast Cancer Wisconsin (Diagnostic), Wolberg, Street & Mangasarian (1995), UCI Machine Learning Repository; bản có sẵn trong scikit-learn.</p>
+
     </div>
   </section>
-</Lesson>
 
-<style>
-  .src { font-size: 0.82rem; color: var(--faint); margin-top: 2rem; }
-</style>
+  <WrapUp spec={L} source={"Nguồn dữ liệu: Breast Cancer Wisconsin (Diagnostic), Wolberg, Street & Mangasarian (1995), UCI Machine Learning Repository; bản có sẵn trong scikit-learn."} />
+</Lesson>

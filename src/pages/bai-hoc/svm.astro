@@ -4,7 +4,6 @@ import Tex from '../../components/Tex.svelte';
 import MarginGuess from '../../components/ch5/MarginGuess.svelte';
 import SVMStepLab from '../../components/ch5/SVMStepLab.svelte';
 import PyCell from '../../components/PyCell.svelte';
-import Quiz from '../../components/Quiz.svelte';
 import cancer from '../../data/cancer.json';
 import cancerUrl from '../../data/cancer.json?url';
 import gridUrl from '../../data/svm-rbf.json?url';
@@ -14,14 +13,10 @@ import Mission from '../../components/hoc/Mission.svelte';
 import Debrief from '../../components/hoc/Debrief.svelte';
 import Checkpoint from '../../components/hoc/Checkpoint.astro';
 import Exercises from '../../components/hoc/Exercises.astro';
-import Takeaways from '../../components/hoc/Takeaways.astro';
-import SelfCheck from '../../components/hoc/SelfCheck.svelte';
+import WrapUp from '../../components/hoc/WrapUp.astro';
 import { svmLearn as L } from '../../lib/hoc/svm';
-import { lessons, sectionsFor } from '../../lib/lessons';
 
 const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
-const lesson = lessons.find((l) => l.slug === L.slug)!;
-const stepLabels = Object.fromEntries(sectionsFor(lesson).map((s, i) => [s.id, `Bước ${i + 1}. ${s.label}`]));
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const pyCode = `import numpy as np, json
@@ -143,22 +138,5 @@ for g in (0.1, 1, 10, 50):
     </div>
   </section>
 
-  <section id="tong-ket">
-    <div class="prose">
-      <h2><span class="step-no">8</span>Tổng kết và rút kinh nghiệm</h2>
-      <Takeaways t={L.takeaways} />
-      <h3>Kiểm tra</h3>
-      <p>Ba câu nhớ lại, hai câu vận dụng sang tình huống mới.</p>
-      <Quiz client:visible questions={L.quiz} />
-      <SelfCheck client:visible spec={L} title={lesson.title} labels={stepLabels} />
-      <h3>Thử thách</h3>
-      <p>Ba mức: tính tay, sửa mã, và một câu hỏi mở không có đáp án duy nhất.</p>
-      <Exercises items={L.challenges} />
-      <p class="src">Nguồn dữ liệu: Breast Cancer Wisconsin (Diagnostic), Wolberg, Street &amp; Mangasarian (1995), UCI Machine Learning Repository; bản có sẵn trong scikit-learn.</p>
-    </div>
-  </section>
+  <WrapUp spec={L} source="Nguồn dữ liệu: Breast Cancer Wisconsin (Diagnostic), Wolberg, Street &amp; Mangasarian (1995), UCI Machine Learning Repository; bản có sẵn trong scikit-learn." />
 </Lesson>
-
-<style>
-  .src { font-size: 0.82rem; color: var(--pencil); margin-top: 2rem; }
-</style>

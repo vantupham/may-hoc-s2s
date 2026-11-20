@@ -91,8 +91,9 @@ tests/                  # kiểm thử và fixtures
    `src/lib/hoc/<slug>.ts` theo kiểu `LessonLearn` (`src/lib/learn.ts`), đặt `extended: true` cho bài,
    rồi ghép các component trong `src/components/hoc/`:
    `Goals` ở đầu bài; `Mission` trước và `Debrief` sau mỗi lab chính; `Checkpoint` cuối bước 3–6;
-   `Exercises` ở bước 6; bước 8 `tong-ket` gồm `Takeaways`, `Quiz`, `SelfCheck`, `Exercises`.
-   Mọi số trong bảng ghi và đáp án phải được kiểm thử lại trong `tests/learn.test.ts`.
+   `Exercises` ở bước 6; bước 8 là `WrapUp` (gồm `Takeaways`, `Quiz`, `SelfCheck`, `Exercises`).
+   Đăng ký nội dung trong `src/lib/hoc/index.ts`. Mọi số trong bảng ghi phải được kiểm thử lại trong
+   `tests/learn.test.ts` bằng chính logic của lab.
 
 Dữ liệu lớn không nhúng vào HTML. Trang lấy URL bằng `import url from '../../data/x.json?url'`
 (Vite xuất tệp vào `_astro/` kèm mã băm), rồi bọc phòng thí nghiệm trong `Lazy`:

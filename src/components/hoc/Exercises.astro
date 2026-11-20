@@ -1,10 +1,11 @@
 ---
 /** Danh sách bài tập gập/mở: đề, gợi ý, lời giải. Dùng cho "Thử sửa mã" (bước 6) và "Thử thách" (bước 8). */
 import type { Exercise } from '../../lib/learn';
+import { highlightPython } from '../../lib/pyhl';
 
 interface Props { items: Exercise[]; kind?: 'code' | 'challenge' }
 const { items, kind = 'challenge' } = Astro.props;
-const levelName = ['', '① Tính tay', '② Sửa mã', '③ Câu hỏi mở'];
+const levelName = ['', '① Tính tay', '② Thực hành', '③ Câu hỏi mở'];
 ---
 <ol class={`ex ${kind}`}>
   {items.map((x) => (
@@ -14,7 +15,7 @@ const levelName = ['', '① Tính tay', '② Sửa mã', '③ Câu hỏi mở'];
       {x.hint && <details><summary>Gợi ý</summary><p set:html={x.hint} /></details>}
       <details class="sol"><summary>{kind === 'code' ? 'Kết quả kỳ vọng' : 'Lời giải'}</summary>
         <p set:html={x.answer} />
-        {x.code && <pre><code>{x.code}</code></pre>}
+        {x.code && <pre class="py"><code set:html={highlightPython(x.code)} /></pre>}
       </details>
     </li>
   ))}

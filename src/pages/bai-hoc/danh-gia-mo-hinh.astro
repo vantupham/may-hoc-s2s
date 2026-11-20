@@ -2,10 +2,16 @@
 import Lesson from '../../layouts/Lesson.astro';
 import Tex from '../../components/Tex.svelte';
 import PyCell from '../../components/PyCell.svelte';
-import Quiz from '../../components/Quiz.svelte';
 import housingUrl from '../../data/housing.json?url';
 import cancerUrl from '../../data/cancer.json?url';
 import Lazy from '../../components/Lazy.svelte';
+import Goals from '../../components/hoc/Goals.astro';
+import Mission from '../../components/hoc/Mission.svelte';
+import Debrief from '../../components/hoc/Debrief.svelte';
+import Checkpoint from '../../components/hoc/Checkpoint.astro';
+import Exercises from '../../components/hoc/Exercises.astro';
+import WrapUp from '../../components/hoc/WrapUp.astro';
+import { evalLearn as L } from '../../lib/hoc/danh-gia-mo-hinh';
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const pyCode = `import numpy as np, json
@@ -33,8 +39,11 @@ Xc = np.array([[p["x1"], p["x2"]] for p in c["patients"]]); yc = np.array([p["y"
 m = np.array([p["id"] in ct for p in c["patients"]])
 p = LogisticRegression().fit(Xc[~m], yc[~m]).predict_proba(Xc[m])[:, 1]
 print("AUC test:", round(roc_auc_score(yc[m], p), 4))`;
+const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 ---
 <Lesson slug="danh-gia-mo-hinh" data="Lại hai bộ dữ liệu quen thuộc: 400 khu vực California Housing và 569 mẫu sinh thiết Breast Cancer Wisconsin" lead="Ở mọi chương trước, ta đã chia train/test và đọc độ chính xác. Chương này hỏi kỹ hơn: con số đó đáng tin đến đâu? Chọn bậc đa thức, chọn k, chọn C thế nào mà không lén nhìn tập test? Và tại sao một mô hình vừa có thể quá đơn giản, vừa có thể quá phức tạp?">
+
+  <Goals spec={L} />
 
   <section id="bai-toan">
     <div class="prose">
@@ -50,7 +59,7 @@ print("AUC test:", round(roc_auc_score(yc[m], p), 4))`;
       <p>Dữ liệu là 400 khu vực đã gặp ở chương 1, chia sẵn 320 huấn luyện và 80 test. Hai điều về dữ liệu này sẽ gây chuyện:</p>
       <ul>
         <li>Thu nhập lệch phải: vài khu vực có thu nhập trên 10, trong khi phần lớn dưới 6. Đa thức bậc cao rất "hoảng" ở vùng thưa dữ liệu.</li>
-        <li>Tập test chỉ có 80 khu vực, và tình cờ không chứa khu vực nào có thu nhập cực cao. Một tập test nhỏ có thể không đại diện cho những trường hợp khó.</li>
+        <li>Vùng thu nhập cao gần như trống: trong 320 khu vực huấn luyện chỉ có đúng một khu vực thu nhập trên 12,1 (mức 15,0001 — mức bị chặn trần). Một điểm đơn độc như vậy có thể quyết định cả hình dạng của mô hình ở vùng đó.</li>
       </ul>
     </div>
   </section>
@@ -61,16 +70,20 @@ print("AUC test:", round(roc_auc_score(yc[m], p), 4))`;
       <p>Hình dung một học sinh ôn thi. Nếu chỉ học thuộc đáp án của đúng 20 bài tập trong sách, em sẽ làm đúng 100% bài tập đó, nhưng gặp đề thi mới là lúng túng. Nếu chỉ học một mẹo duy nhất ("chọn đáp án dài nhất"), em sai đều ở mọi đề. Mô hình cũng vậy: quá phức tạp thì <b>học thuộc</b> (variance cao), quá đơn giản thì <b>học không tới</b> (bias cao).</p>
       <p>Cross-validation là cách tự kiểm tra trước kỳ thi: tự che một phần bài tập, học phần còn lại, rồi làm thử phần bị che. Làm vậy nhiều lần với các phần khác nhau để có điểm trung bình đáng tin.</p>
     </div>
+    <div class="prose"><Checkpoint q={L.checkpoints["truc-giac"]} /></div>
   </section>
 
   <section id="tinh-tay">
     <div class="prose">
       <h2><span class="step-no">4</span>Tính tay từng bước</h2>
     </div>
+    <div class="prose"><Mission client:visible slug={L.slug} m={M["cv"]} /></div>
     <div class="wide"><Lazy client:visible view="ch7/CVLab" data={{ sample: `${housingUrl}#sample`, testIds: `${housingUrl}#testIds` }} /></div>
+    <div class="prose"><Debrief client:visible slug={L.slug} m={M["cv"]} /></div>
     <div class="prose">
-      <p>Với bậc 3, năm con số MSE khá đều nhau. Với bậc 9, một phần có MSE lên tới hàng nghìn. Điểm trung bình cross-validation bắt được sự bất ổn đó, còn tập test 80 khu vực thì không — vì nó tình cờ không có khu vực thu nhập cao nào.</p>
+      <p>Với bậc 3, năm con số MSE khá đều nhau. Với bậc 9, một phần có MSE lên tới hàng nghìn. Đó là phần chứa khu vực thu nhập 15,0001: khi nó bị giấu, mô hình học trên 4 phần còn lại (thu nhập cao nhất chỉ 12,04) phải <b>ngoại suy</b> lên tới 15, và đa thức bậc 9 vọt lên. Điểm trung bình cross-validation bắt được sự bất ổn đó, còn tập test 80 khu vực thì không: khi học trên đủ 320 khu vực, điểm 15,0001 "ghim" đường cong lại, nên mọi khu vực test đều nằm trong vùng đã có dữ liệu.</p>
     </div>
+    <div class="prose"><Checkpoint q={L.checkpoints["tinh-tay"]} /></div>
   </section>
 
   <section id="ly-thuyet">
@@ -90,6 +103,7 @@ print("AUC test:", round(roc_auc_score(yc[m], p), 4))`;
       <Tex tex={String.raw`\text{AUC} = P\big(\hat p(\text{ca dương}) > \hat p(\text{ca âm})\big)`} display />
       <p>Đường ROC nối mọi cặp đó. AUC = 1 là phân biệt hoàn hảo, 0,5 là đoán bừa. AUC hữu ích để so mô hình trước khi chọn ngưỡng.</p>
     </div>
+    <div class="prose"><Checkpoint q={L.checkpoints["ly-thuyet"]} /></div>
   </section>
 
   <section id="ma-nguon">
@@ -99,17 +113,27 @@ print("AUC test:", round(roc_auc_score(yc[m], p), 4))`;
       <PyCell client:visible code={pyCode} packages={['numpy', 'scikit-learn']} title="danh_gia.py" />
       <p>Kết quả hơi khác phòng thí nghiệm phần 4 vì ở đây bộ chuẩn hoá được học lại trong từng lần chia — đúng như nên làm. Phòng thí nghiệm dùng trung bình và độ lệch chuẩn của cả 320 khu vực cho đơn giản.</p>
     </div>
+    <div class="prose">
+      <h3>Thử sửa mã</h3>
+      <p>Sửa trực tiếp trong ô trên rồi bấm Chạy; bấm "Khôi phục" để quay về mã gốc. Đoán kết quả trước khi mở phần kỳ vọng.</p>
+      <Exercises items={L.codeTasks} kind="code" />
+    </div>
+    <div class="prose"><Checkpoint q={L.checkpoints["ma-nguon"]} /></div>
   </section>
 
   <section id="danh-gia">
     <div class="prose">
       <h2><span class="step-no">7</span>Toàn bộ dữ liệu và đánh giá</h2>
     </div>
+    <div class="prose"><Mission client:visible slug={L.slug} m={M["biasvar"]} /></div>
     <div class="wide"><Lazy client:visible view="ch7/BiasVarLab" data={{ sample: `${housingUrl}#sample`, testIds: `${housingUrl}#testIds` }} /></div>
+    <div class="prose"><Debrief client:visible slug={L.slug} m={M["biasvar"]} /></div>
     <div class="prose">
-      <p>MSE huấn luyện luôn giảm khi bậc tăng: mô hình linh hoạt hơn thì khớp tập huấn luyện tốt hơn. Đường CV giảm nhẹ tới bậc 3–4 rồi vọt lên. Đường test khá phẳng, vì tập test không có khu vực khó. Nếu chọn bậc theo tập test, ta có thể chọn bậc 9 và gặp thảm hoạ khi dùng thật.</p>
+      <p>MSE huấn luyện luôn giảm khi bậc tăng: mô hình linh hoạt hơn thì khớp tập huấn luyện tốt hơn. Đường CV giảm nhẹ tới bậc 3–4 rồi vọt lên. Đường test khá phẳng, vì mọi khu vực test đều nằm trong vùng đã có dữ liệu huấn luyện. Nếu chọn bậc theo tập test, ta có thể chọn bậc 9 và gặp thảm hoạ khi dùng thật: một khu vực mới có thu nhập 13,5 — nơi không có dữ liệu — được đa thức bậc 9 dự đoán giá 6,05, vượt cả mức trần 5,0 của toàn bộ dữ liệu.</p>
     </div>
+    <div class="prose"><Mission client:visible slug={L.slug} m={M["roc"]} /></div>
     <div class="wide"><Lazy client:visible view="ch7/ROCLab" data={{ patients: `${cancerUrl}#patients`, testIds: `${cancerUrl}#testIds` }} /></div>
+    <div class="prose"><Debrief client:visible slug={L.slug} m={M["roc"]} /></div>
     <div class="prose">
       <h3>Bẫy thường gặp</h3>
       <ul>
@@ -119,17 +143,9 @@ print("AUC test:", round(roc_auc_score(yc[m], p), 4))`;
         <li><b>Tin vào con số của một tập test nhỏ.</b> Với 80 mẫu, khoảng tin cậy rất rộng. Báo cáo cả độ lệch giữa các phần của CV.</li>
         <li><b>Chia ngẫu nhiên dữ liệu theo thời gian.</b> Dự báo tương lai thì tập kiểm định phải nằm sau tập huấn luyện về thời gian.</li>
       </ul>
-      <h3>Kiểm tra nhanh</h3>
-      <Quiz client:visible questions={[
-        { q: 'Mô hình có MSE huấn luyện rất thấp nhưng MSE cross-validation rất cao. Đó là dấu hiệu của gì?', options: ['Bias cao', 'Variance cao (quá khớp)', 'Dữ liệu quá ít nhiễu'], answer: 1, why: 'Khớp rất tốt dữ liệu đã thấy nhưng dự đoán kém dữ liệu chưa thấy là định nghĩa của quá khớp.' },
-        { q: 'Bạn chuẩn hoá toàn bộ 400 khu vực rồi mới chia 5 phần cho cross-validation. Có vấn đề gì?', options: ['Không có vấn đề', 'Thông tin của phần kiểm định đã lọt vào bước chuẩn hoá', 'Chuẩn hoá làm sai giá trị y'], answer: 1, why: 'Trung bình và độ lệch chuẩn đã tính cả trên phần kiểm định. Ảnh hưởng thường nhỏ nhưng có thật; với các bước như chọn đặc trưng, nó có thể rất lớn.' },
-        { q: 'Mô hình A có AUC 0,92, mô hình B có AUC 0,75. Điều nào chắc chắn đúng?', options: ['A có độ chính xác cao hơn B ở ngưỡng 0,5', 'A nhìn chung xếp hạng ca dương trên ca âm tốt hơn B', 'A tốt hơn B ở mọi ngưỡng'], answer: 1, why: 'AUC đo khả năng xếp hạng trên mọi ngưỡng. Ở một ngưỡng cụ thể, B vẫn có thể thắng; hai đường ROC có thể cắt nhau.' },
-      ]} />
-      <p class="src">Nguồn dữ liệu: California Housing (U.S. Census 1990) và Breast Cancer Wisconsin (UCI), như ở chương 1 và chương 2.</p>
+
     </div>
   </section>
-</Lesson>
 
-<style>
-  .src { font-size: 0.82rem; color: var(--pencil); margin-top: 2rem; }
-</style>
+  <WrapUp spec={L} source={"Nguồn dữ liệu: California Housing (U.S. Census 1990) và Breast Cancer Wisconsin (UCI), như ở chương 1 và chương 2."} />
+</Lesson>

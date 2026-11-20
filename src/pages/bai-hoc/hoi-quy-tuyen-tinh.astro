@@ -4,11 +4,17 @@ import Tex from '../../components/Tex.svelte';
 import CalcCard from '../../components/CalcCard.svelte';
 import LinRegLab from '../../components/linreg/LinRegLab.svelte';
 import PyCell from '../../components/PyCell.svelte';
-import Quiz from '../../components/Quiz.svelte';
 import housing from '../../data/housing.json';
 import { ols, linearRegressionGD, fmt, tex } from '../../lib/ml-core';
 import housingUrl from '../../data/housing.json?url';
 import Lazy from '../../components/Lazy.svelte';
+import Goals from '../../components/hoc/Goals.astro';
+import Mission from '../../components/hoc/Mission.svelte';
+import Debrief from '../../components/hoc/Debrief.svelte';
+import Checkpoint from '../../components/hoc/Checkpoint.astro';
+import Exercises from '../../components/hoc/Exercises.astro';
+import WrapUp from '../../components/hoc/WrapUp.astro';
+import { linregLearn as L } from '../../lib/hoc/hoi-quy-tuyen-tinh';
 
 const sample = housing.sample;
 const mini = housing.mini;
@@ -65,8 +71,11 @@ pred = model.predict(X_te)
 print("w =", round(model.coef_[0], 4), " b =", round(model.intercept_, 4))
 print("MSE test =", round(mean_squared_error(y_te, pred), 4))
 print("R² test  =", round(r2_score(y_te, pred), 4))`;
+const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 ---
 <Lesson slug="hoi-quy-tuyen-tinh" data="400 khu vực ngẫu nhiên trong bộ California Housing (20.640 khu vực)" lead="Bài trước ta chỉ có một núm vặn w. Bài này thêm núm thứ hai — hệ số chặn b — và dùng 400 khu vực thật thay vì 5. Ta sẽ thấy hai cách tìm đường thẳng tốt nhất (Gradient Descent và công thức đóng) cho cùng một đáp số, rồi đo xem mô hình dự đoán tốt đến đâu trên dữ liệu chưa từng thấy.">
+
+  <Goals spec={L} />
 
   <section id="bai-toan">
     <div class="prose">
@@ -109,7 +118,10 @@ print("R² test  =", round(r2_score(y_te, pred), 4))`;
       <h2><span class="step-no">3</span>Trực giác</h2>
       <p>Hãy thử tự đặt đường thẳng. Bạn sẽ thấy chỉnh <span class="v-w">w</span> và <span class="v-b">b</span> không độc lập: tăng độ dốc thường phải hạ hệ số chặn để đường thẳng vẫn đi qua giữa đám mây điểm.</p>
     </div>
+    <div class="prose"><Mission client:visible slug={L.slug} m={M["keo"]} /></div>
     <div class="wide"><Lazy client:visible view="linreg/LineGuess" data={{ sample: `${housingUrl}#sample` }} /></div>
+    <div class="prose"><Debrief client:visible slug={L.slug} m={M["keo"]} /></div>
+    <div class="prose"><Checkpoint q={L.checkpoints["truc-giac"]} /></div>
   </section>
 
   <section id="tinh-tay">
@@ -122,10 +134,13 @@ print("R² test  =", round(r2_score(y_te, pred), 4))`;
       </ul>
       <p>Cả hai đều âm, nên cả <span class="v-w">w</span> và <span class="v-b">b</span> cùng tăng. Bấm vào từng số trong bảng để xem phép tính đầy đủ.</p>
     </div>
+    <div class="prose"><Mission client:visible slug={L.slug} m={M["buoc"]} /></div>
     <div class="wide"><LinRegLab client:visible houses={mini} /></div>
+    <div class="prose"><Debrief client:visible slug={L.slug} m={M["buoc"]} /></div>
     <div class="prose">
       <p>Để ý biểu đồ mất mát: giảm rất nhanh trong vài vòng đầu, rồi gần như nằm ngang. Nhưng <span class="v-w">w</span> và <span class="v-b">b</span> vẫn còn đang thay đổi chậm — phần 5 sẽ giải thích vì sao.</p>
     </div>
+    <div class="prose"><Checkpoint q={L.checkpoints["tinh-tay"]} /></div>
   </section>
 
   <section id="ly-thuyet">
@@ -149,11 +164,14 @@ print("R² test  =", round(r2_score(y_te, pred), 4))`;
       <h3>Hình học của bài toán và vì sao phải chuẩn hoá</h3>
       <p>Với hai tham số, mất mát là một mặt cong hình cái bát trong không gian ba chiều. Nhìn từ trên xuống, ta thấy các đường đồng mức:</p>
     </div>
+    <div class="prose"><Mission client:visible slug={L.slug} m={M["chuanhoa"]} /></div>
     <div class="wide"><Lazy client:visible view="linreg/LossContour" data={{ sample: `${housingUrl}#sample` }} /></div>
+    <div class="prose"><Debrief client:visible slug={L.slug} m={M["chuanhoa"]} /></div>
     <div class="prose">
       <p>Khi x có giá trị lớn (trung bình khoảng {fmt(housing.stats.incomeMean, 1)}), mất mát nhạy với <span class="v-w">w</span> hơn nhiều so với <span class="v-b">b</span>, nên cái bát bị kéo dẹt. Tốc độ học phải đủ nhỏ cho hướng dốc nhất, nên hướng thoải bị bò rất chậm. <b>Chuẩn hoá</b> — trừ trung bình rồi chia độ lệch chuẩn — làm cái bát tròn lại:</p>
       <Tex tex={String.raw`\cx{x'} = \frac{\cx{x} - \mu}{\sigma}`} display />
     </div>
+    <div class="prose"><Checkpoint q={L.checkpoints["ly-thuyet"]} /></div>
   </section>
 
   <section id="ma-nguon">
@@ -164,6 +182,12 @@ print("R² test  =", round(r2_score(y_te, pred), 4))`;
       <p>Trong thực tế, ta dùng scikit-learn. Ba dòng là đủ, và kết quả trùng với phần 7 bên dưới:</p>
       <PyCell client:visible code={pySklearn} packages={['numpy', 'scikit-learn']} title="hoi_quy_sklearn.py" />
     </div>
+    <div class="prose">
+      <h3>Thử sửa mã</h3>
+      <p>Sửa trực tiếp trong ô trên rồi bấm Chạy; bấm "Khôi phục" để quay về mã gốc. Đoán kết quả trước khi mở phần kỳ vọng.</p>
+      <Exercises items={L.codeTasks} kind="code" />
+    </div>
+    <div class="prose"><Checkpoint q={L.checkpoints["ma-nguon"]} /></div>
   </section>
 
   <section id="danh-gia">
@@ -171,7 +195,9 @@ print("R² test  =", round(r2_score(y_te, pred), 4))`;
       <h2><span class="step-no">7</span>Toàn bộ dữ liệu và đánh giá</h2>
       <p>Một mô hình chỉ có giá trị nếu dự đoán tốt trên dữ liệu <b>mới</b>. Vì thế ta tách 400 khu vực thành 320 để huấn luyện (train) và 80 để kiểm tra (test). Mô hình không được nhìn thấy tập test khi học.</p>
     </div>
+    <div class="prose"><Mission client:visible slug={L.slug} m={M["danhgia"]} /></div>
     <div class="wide"><Lazy client:visible view="linreg/FullEval" data={{ sample: `${housingUrl}#sample`, testIds: `${housingUrl}#testIds` }} /></div>
+    <div class="prose"><Debrief client:visible slug={L.slug} m={M["danhgia"]} /></div>
     <div class="prose">
       <h3>Đọc các chỉ số</h3>
       <ul>
@@ -186,15 +212,11 @@ print("R² test  =", round(r2_score(y_te, pred), 4))`;
         <li><b>Bỏ qua dữ liệu bị chặn trần.</b> Biểu đồ phần dư có một vệt chéo: đó là các khu vực giá 5,0. Mô hình tuyến tính không thể biết giá thật cao hơn.</li>
         <li><b>Ngoại suy.</b> Dự đoán ở vùng thu nhập rất cao, nơi gần như không có dữ liệu, là không đáng tin.</li>
       </ul>
-      <h3>Kiểm tra nhanh</h3>
-      <Quiz client:visible questions={[
-        { q: 'Đạo hàm ∂L/∂b bằng gì?', options: ['(2/n)·Σ eᵢ·xᵢ', '(2/n)·Σ eᵢ', '(1/n)·Σ eᵢ²'], answer: 1, why: 'Đạo hàm của (w·xᵢ + b − yᵢ) theo b bằng 1, nên chỉ còn lại 2·eᵢ, lấy trung bình.' },
-        { q: 'Vì sao chuẩn hoá x giúp Gradient Descent hội tụ nhanh hơn?', options: ['Vì nó làm dữ liệu ít nhiễu hơn', 'Vì nó làm các đường đồng mức tròn hơn, gradient chỉ thẳng về đáy', 'Vì nó làm giảm số dòng dữ liệu'], answer: 1, why: 'Chuẩn hoá cân bằng độ nhạy của mất mát theo từng tham số. Cái bát tròn nên một tốc độ học phù hợp với mọi hướng.' },
-        { q: 'Mô hình có R² = 0,62 trên tập train và 0,20 trên tập test. Điều này cho thấy gì?', options: ['Mô hình tổng quát hoá tốt', 'Mô hình hoạt động kém hơn nhiều trên dữ liệu mới', 'Tập test bị lỗi'], answer: 1, why: 'Khoảng cách lớn giữa train và test là dấu hiệu mô hình không tổng quát hoá tốt, hoặc hai tập có phân phối khác nhau.' },
-      ]} />
-      <p class="src">Nguồn dữ liệu: California Housing, U.S. Census 1990 (Pace & Barry, 1997), bản CSV trong kho <a href="https://github.com/ageron/handson-ml2">ageron/handson-ml2</a>.</p>
+
     </div>
   </section>
+
+  <WrapUp spec={L} source={"Nguồn dữ liệu: California Housing, U.S. Census 1990 (Pace & Barry, 1997), bản CSV trong kho <a href=\"https://github.com/ageron/handson-ml2\">ageron/handson-ml2</a>."} />
 </Lesson>
 
 <style>
