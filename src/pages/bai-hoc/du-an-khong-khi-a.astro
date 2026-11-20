@@ -1,0 +1,214 @@
+---
+import Lesson from '../../layouts/Lesson.astro';
+import Tex from '../../components/Tex.svelte';
+import PyCell from '../../components/PyCell.svelte';
+import Lazy from '../../components/Lazy.svelte';
+import Goals from '../../components/hoc/Goals.astro';
+import Mission from '../../components/hoc/Mission.svelte';
+import Debrief from '../../components/hoc/Debrief.svelte';
+import Checkpoint from '../../components/hoc/Checkpoint.astro';
+import Exercises from '../../components/hoc/Exercises.astro';
+import WrapUp from '../../components/hoc/WrapUp.astro';
+import airUrl from '../../data/hanoi-air.json?url';
+import hourlyUrl from '../../data/hanoi-hourly.json?url';
+import resUrl from '../../data/hanoi-results.json?url';
+import res from '../../data/hanoi-results.json';
+import { duAnALearn as L } from '../../lib/hoc/du-an-khong-khi-a';
+
+const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const ch = (slug: string, label: string) => `<a href="${base}/bai-hoc/${slug}">${label}</a>`;
+const partA = ['persist', 'clim', 'ols1', 'ols', 'logreg', 'knn', 'nb', 'tree', 'rf', 'gb', 'svm'];
+const pyCode = `import json, numpy as np, pandas as pd
+from pyodide.http import open_url
+from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.metrics import mean_absolute_error
+
+d = json.loads(open_url("${airUrl}").read())
+D = pd.DataFrame(d["days"]).set_index("d")
+D.index = pd.to_datetime(D.index)
+
+# Đặc trưng cho ngày dự báo d+1, chỉ dùng số liệu đến hết ngày d
+F = pd.DataFrame(index=D.index)
+F["pm0"] = D.pm
+F["pm1"] = D.pm.shift(1)
+F["pm7"] = D.pm.rolling(7, min_periods=1).mean()
+mai = D.shift(-1)                       # thời tiết ngày mai (thay cho bản tin dự báo)
+for c in ["ws", "rh", "t", "rain", "blh", "north"]:
+    F[c] = mai[c]
+F["dp"] = mai.p - D.p
+doy = (D.index + pd.Timedelta(days=1)).dayofyear
+F["sin"], F["cos"] = np.sin(2 * np.pi * doy / 365.25), np.cos(2 * np.pi * doy / 365.25)
+F["y"] = D.pm.shift(-1)
+F["target"] = D.index + pd.Timedelta(days=1)
+F = F.dropna()
+
+feats = ["pm0", "pm1", "pm7", "ws", "rh", "t", "rain", "blh", "north", "dp", "sin", "cos"]
+tr = F[F.target < "2025-11-01"]
+te = F[(F.target >= "2025-11-01") & (F.target < "2026-04-01")]
+print(len(tr), "ngày học,", len(te), "ngày kiểm tra")
+
+print("ngày mai = hôm nay:", round(mean_absolute_error(te.y, te.pm0), 2))
+m = GradientBoostingRegressor(n_estimators=300, learning_rate=0.03, max_depth=3, subsample=0.8, random_state=0).fit(tr[feats], tr.y)
+print("gradient boosting: ", round(mean_absolute_error(te.y, m.predict(te[feats])), 2))`;
+---
+<Lesson slug="du-an-khong-khi-a" data="PM2.5 đo theo giờ ở 7 trạm quan trắc Hà Nội (1/2023 – 15/11/2026, kho mở OpenAQ) và thời tiết ERA5 theo giờ (Open-Meteo)" lead="Mười ba bài trước, mỗi bài dạy một công cụ trên một bộ dữ liệu riêng. Bài này đi theo chiều ngược lại: một vấn đề thật của Việt Nam, đang diễn ra ngay lúc này, và ta lần lượt lấy ra từng công cụ đã học để xem nó giúp được gì, ở bước nào, và khi nào nó không đáng dùng.">
+
+  <Goals spec={L} />
+
+  <section id="bai-toan">
+    <div class="prose">
+      <h2><span class="step-no">1</span>Bài toán</h2>
+      <p>Tháng 1/2026, Hà Nội có 21 trên 30 ngày đủ số liệu với bụi mịn PM2.5 trung bình vượt 50 µg/m³. Ngày tệ nhất của mùa đông, 12/12/2025, chỉ số lên tới 171 µg/m³. Trường học phải cân nhắc cho học sinh nghỉ hoạt động ngoài trời, người bệnh hen và tim mạch được khuyên ở trong nhà. Muốn khuyên được, cần biết <b>trước một ngày</b>.</p>
+      <p>Câu hỏi của dự án: <i>từ số liệu đến hết hôm nay, PM2.5 trung bình của ngày mai ở Hà Nội là bao nhiêu, và có nên phát cảnh báo không?</i> Đây vừa là bài toán <b>hồi quy</b> (dự báo một con số, chương 1) vừa là bài toán <b>phân loại</b> (vượt hay không vượt ngưỡng, chương 2).</p>
+      <p>Ta chọn ngưỡng cảnh báo 50 µg/m³ trung bình 24 giờ, mức giới hạn của QCVN 05:2023/BTNMT. Báo chí năm 2026 dẫn mức 45 µg/m³ theo lộ trình siết dần; nếu cần độ chính xác pháp lý, hãy đối chiếu văn bản gốc. Mọi lab dưới đây đều cho phép đổi ngưỡng trong mã.</p>
+      <div class="note">
+        <p><b>Quy ước của cả dự án.</b> Mô hình học trên những ngày trước 1/11/2025 ({res.nTrain} ngày). Tập kiểm tra cố định là <b>mùa đông 2025–2026</b>: {res.nTest} ngày dự báo từ 1/11/2025 đến 31/3/2026, gồm {res.alertsTest} ngày vượt ngưỡng. Không mô hình nào được nhìn thấy tập này khi học hay khi chọn tham số. Số liệu từ 1/4/2026 trở đi để dành cho phần "sau triển khai" ở bài 12B.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="kham-pha">
+    <div class="prose">
+      <h2><span class="step-no">2</span>Khám phá dữ liệu</h2>
+      <h3>Chặng 1 · Phiếu khám từng trạm đo <span class="rv" set:html={`ôn ${ch('kham-pha-du-lieu', 'chương 3A')}`} /></h3>
+      <p>Kho mở OpenAQ lưu số đo của hàng chục nghìn trạm trên thế giới. Để tìm đủ trạm ở Hà Nội, ta quét cả 56.516 mã trạm của kho và giữ những trạm có số liệu tháng 1/2026 nằm trong khung toạ độ của thành phố. Kết quả là 6 trạm. Cộng thêm trạm 7441, trạm duy nhất có số liệu từ 2022, ta có 7 trạm. Không trạm nào hoàn hảo.</p>
+      <Mission client:visible slug={L.slug} m={M.tram} />
+    </div>
+    <div class="wide"><Lazy client:visible view="ch12/StationLab" data={{ air: airUrl }} minHeight="32rem" /></div>
+    <div class="prose">
+      <Debrief client:visible slug={L.slug} m={M.tram} />
+      <p>Một quy tắc kiểm soát chất lượng là một quyết định, và quyết định nào cũng có thể sai. Ngưỡng "tương quan với các trạm khác ít nhất 0,7" là lựa chọn của người làm dự án: nếu đặt 0,5 thì Minh Khai được giữ lại, nếu đặt 0,75 thì trạm 46 Lưu Quang Vũ bị loại. Điều quan trọng là quy tắc được viết thành mã, áp dụng đều cho mọi trạm, và được công bố kèm kết quả.</p>
+      <h3>Chặng 1b · Hà Nội từng giờ</h3>
+      <Mission client:visible slug={L.slug} m={M.gio} />
+    </div>
+    <div class="wide"><Lazy client:visible view="ch12/CalendarLab" data={{ hourly: hourlyUrl }} props={{ thr: 50 }} /></div>
+    <div class="prose">
+      <Debrief client:visible slug={L.slug} m={M.gio} />
+      <Checkpoint q={L.checkpoints['kham-pha']} />
+    </div>
+  </section>
+
+  <section id="truc-giac">
+    <div class="prose">
+      <h2><span class="step-no">3</span>Trực giác</h2>
+      <h3>Chặng 2 · Đặt mốc trước khi làm mô hình <span class="rv" set:html={`ôn ${ch('danh-gia-mo-hinh', 'chương 8')}`} /></h3>
+      <p>Trước khi học bất kỳ mô hình nào, ta hỏi: <i>không cần học máy thì làm được đến đâu?</i> Có hai cách dự báo "miễn phí": chép lại số đo hôm nay, hoặc lấy trung bình của cùng tháng trong các năm trước.</p>
+      <Mission client:visible slug={L.slug} m={M.moc} />
+    </div>
+    <div class="wide"><Lazy client:visible view="ch12/BaselineLab" data={{ air: airUrl }} /></div>
+    <div class="prose">
+      <Debrief client:visible slug={L.slug} m={M.moc} />
+      <p>Từ đây, mọi mô hình phải thắng con số 16,3 µg/m³ thì mới đáng bàn tới. Nếu chỉ dùng bụi của những ngày qua thì gần như không thể thắng (bạn sẽ tự kiểm chứng ở bước 6). Thứ giúp được là <b>thời tiết ngày mai</b>: gió, mưa, độ ẩm, độ cao lớp biên. Trong dự án này, ta dùng thời tiết thật của ngày mai (số liệu ERA5) thay cho bản tin dự báo thời tiết. Như vậy là giả định dự báo thời tiết hoàn hảo, nên mọi sai số dưới đây đều lạc quan hơn một chút so với khi dùng thật.</p>
+      <Checkpoint q={L.checkpoints['truc-giac']} />
+    </div>
+  </section>
+
+  <section id="tinh-tay">
+    <div class="prose">
+      <h2><span class="step-no">4</span>Tính tay từng bước</h2>
+      <h3>Chặng 3 · Gradient Descent trên 5 ngày Tết <span class="rv" set:html={`ôn ${ch('gradient-descent', 'chương 0')}, ${ch('hoi-quy-tuyen-tinh', '1')}`} /></h3>
+      <p>Mô hình đơn giản nhất có học: ŷ = w·x + b, với x là PM2.5 hôm nay. Ta lấy 5 ngày liên tiếp quanh Tết Ất Tỵ (29/1 – 2/2/2025), khi bụi giảm đều từ 78 xuống 22 µg/m³. Để dễ tính tay, đơn vị là chục µg/m³.</p>
+      <Mission client:visible slug={L.slug} m={M.tay} />
+    </div>
+    <div class="wide"><Lazy client:visible view="ch12/HandFitLab" data={{ air: airUrl }} props={{ from: '2025-01-30' }} minHeight="30rem" /></div>
+    <div class="prose">
+      <Debrief client:visible slug={L.slug} m={M.tay} />
+      <p>Trên toàn bộ {res.nTrain} ngày huấn luyện, nghiệm đóng cho w = {String(res.ols1.w).replace('.', ',')} và b = {String(res.ols1.b).replace('.', ',')} µg/m³: ngày mai ≈ {Math.round(res.ols1.w * 100)}% hôm nay cộng {Math.round(res.ols1.b)}. Mô hình một biến này có MAE 15,64 trên mùa đông, chỉ hơn mốc 0,7 µg/m³.</p>
+      <Checkpoint q={L.checkpoints['tinh-tay']} />
+    </div>
+  </section>
+
+  <section id="ly-thuyet">
+    <div class="prose">
+      <h2><span class="step-no">5</span>Lý thuyết qua từng chặng</h2>
+      <p>Mỗi chặng dưới đây dùng lại một chương. Không có lý thuyết mới, chỉ có câu hỏi mới: <i>công cụ này giúp được gì cho bài toán bụi mịn?</i></p>
+
+      <h3>Chặng 4 · 12 đặc trưng và rò rỉ từ tương lai <span class="rv" set:html={`ôn ${ch('xu-ly-du-lieu', 'chương 3B')}`} /></h3>
+      <p>Mỗi dòng dữ liệu là một ngày d, nhãn là PM2.5 của ngày d+1. Có 12 đặc trưng: PM2.5 hôm nay, hôm qua và trung bình 7 ngày; 6 biến thời tiết ngày mai (gió, độ ẩm, nhiệt độ, mưa, độ cao lớp biên, thành phần gió bắc); áp suất tăng hay giảm; và mùa, mã hoá thành một điểm trên đường tròn để 31/12 nằm cạnh 1/1:</p>
+      <Tex tex={String.raw`\text{mùa} = \Big(\sin\tfrac{2\pi\,\text{ngày trong năm}}{365{,}25},\; \cos\tfrac{2\pi\,\text{ngày trong năm}}{365{,}25}\Big)`} display />
+      <p>Chỉ số có 185 ngày thiếu, chia thành 30 đoạn. Điền thế nào?</p>
+      <Mission client:visible slug={L.slug} m={M['ro-ri']} />
+    </div>
+    <div class="wide"><Lazy client:visible view="ch12/LeakLab" data={{ air: airUrl }} /></div>
+    <div class="prose">
+      <Debrief client:visible slug={L.slug} m={M['ro-ri']} />
+
+      <h3>Chặng 5 · Phát cảnh báo <span class="rv" set:html={`ôn ${ch('hoi-quy-logistic', 'chương 2')}`} /></h3>
+      <p>Hồi quy logistic ước lượng xác suất ngày mai vượt ngưỡng: p = σ(w·x + b). Còn lại một câu hỏi không thuộc về toán: từ xác suất bao nhiêu thì phát cảnh báo?</p>
+      <Mission client:visible slug={L.slug} m={M['canh-bao']} />
+    </div>
+    <div class="wide"><Lazy client:visible view="ch12/AlertLab" data={{ air: airUrl }} /></div>
+    <div class="prose">
+      <Debrief client:visible slug={L.slug} m={M['canh-bao']} />
+
+      <h3>Chặng 6 · Những ngày tương tự <span class="rv" set:html={`ôn ${ch('knn-naive-bayes', 'chương 4')}`} /></h3>
+      <p>KNN có một tên khác trong khí tượng: dự báo tương tự. Muốn biết ngày mai thế nào, tìm trong quá khứ những ngày giống hôm nay nhất và xem ngày hôm sau của chúng ra sao. Trên mùa đông, KNN với 10 ngày tương tự có MAE 12,35 µg/m³. Nếu quên chuẩn hoá đặc trưng thì MAE là 12,78.</p>
+    </div>
+    <div class="wide"><Lazy client:visible view="ch12/AnalogLab" data={{ air: airUrl }} /></div>
+    <div class="prose">
+      <p>Chương 4 còn có Naive Bayes. Ở đây nó dùng phân phối Gauss cho từng đặc trưng thay vì đếm từ, và đạt AUC 0,914 cho câu hỏi cảnh báo, thấp hơn logistic (0,935). Giả định "các đặc trưng độc lập khi biết nhãn" sai rõ ở đây: PM2.5 hôm nay, hôm qua và trung bình 7 ngày gần như nói cùng một điều.</p>
+
+      <h3>Chặng 7 · Cây, rừng và boosting <span class="rv" set:html={`ôn ${ch('cay-quyet-dinh', 'chương 5')}`} /></h3>
+      <Mission client:visible slug={L.slug} m={M.cay} />
+    </div>
+    <div class="wide"><Lazy client:visible view="ch12/TreeLab" data={{ air: airUrl, imp: `${resUrl}#imp` }} /></div>
+    <div class="prose">
+      <Debrief client:visible slug={L.slug} m={M.cay} />
+
+      <h3>Chặng 8 · SVM <span class="rv" set:html={`ôn ${ch('svm', 'chương 6')}`} /></h3>
+      <Mission client:visible slug={L.slug} m={M.svm} />
+    </div>
+    <div class="wide"><Lazy client:visible view="ch12/SvmLab" data={{ air: airUrl, grid: `${resUrl}#svm` }} /></div>
+    <div class="prose">
+      <Debrief client:visible slug={L.slug} m={M.svm} />
+
+      <h3>Chặng 9 · Kiểu ngày <span class="rv" set:html={`ôn ${ch('khong-giam-sat', 'chương 7')}`} /></h3>
+      <p>Học không giám sát không dự báo gì cả. Nó giúp ta hiểu dữ liệu: có những "kiểu ngày" nào, và chúng xuất hiện vào mùa nào.</p>
+      <Mission client:visible slug={L.slug} m={M['kieu-ngay']} />
+    </div>
+    <div class="wide"><Lazy client:visible view="ch12/DayTypeLab" data={{ kinds: `${resUrl}#kinds` }} props={{ test0: '2025-11-01' }} minHeight="30rem" /></div>
+    <div class="prose">
+      <Debrief client:visible slug={L.slug} m={M['kieu-ngay']} />
+      <Checkpoint q={L.checkpoints['ly-thuyet']} />
+    </div>
+  </section>
+
+  <section id="ma-nguon">
+    <div class="prose">
+      <h2><span class="step-no">6</span>Mã nguồn</h2>
+      <p>Toàn bộ chặng 4 và mô hình mạnh nhất của bài trong khoảng 30 dòng pandas và scikit-learn, chạy ngay trên trình duyệt với đúng dữ liệu của trang. Để ý từng dòng tạo đặc trưng: <code>shift(1)</code> và <code>rolling(7)</code> nhìn về quá khứ, <code>shift(-1)</code> chỉ dùng cho nhãn và thời tiết ngày mai.</p>
+      <PyCell client:visible code={pyCode} packages={['numpy', 'pandas', 'scikit-learn']} title="du_bao_pm25.py" />
+      <h3>Thử sửa mã</h3>
+      <p>Sửa trực tiếp trong ô trên rồi bấm Chạy; bấm "Khôi phục" để quay về mã gốc. Đoán kết quả trước khi mở phần kỳ vọng.</p>
+      <Exercises items={L.codeTasks} kind="code" />
+      <Checkpoint q={L.checkpoints['ma-nguon']} />
+    </div>
+  </section>
+
+  <section id="danh-gia">
+    <div class="prose">
+      <h2><span class="step-no">7</span>Toàn bộ dữ liệu và đánh giá</h2>
+      <p>Mọi mô hình của chương 0–8, cùng 12 đặc trưng (cây và rừng dùng số gốc, các mô hình khác dùng số đã chuẩn hoá), cùng tập kiểm tra. Các mô hình chỉ dùng cho cảnh báo không có MAE.</p>
+      <Mission client:visible slug={L.slug} m={M['bang-a']} />
+    </div>
+    <div class="wide"><Lazy client:visible view="ch12/Leaderboard" data={{ board: `${resUrl}#board` }} props={{ ids: partA, nTest: res.nTest, thr: 50, title: 'Bảng xếp hạng phần A: chương 0–8' }} /></div>
+    <div class="prose">
+      <Debrief client:visible slug={L.slug} m={M['bang-a']} />
+      <h3>Bẫy thường gặp</h3>
+      <ul>
+        <li><b>Không có mốc so sánh.</b> "MAE 12" chỉ có nghĩa khi biết mốc là 16,3.</li>
+        <li><b>Chia ngẫu nhiên dữ liệu có thời gian.</b> Tập test ngẫu nhiên chứa cả mùa hè dễ đoán, nên con số không so được với tập test mùa đông.</li>
+        <li><b>Giả định dự báo thời tiết hoàn hảo.</b> Bảng xếp hạng này dùng thời tiết thật của ngày mai. Khi triển khai, phải thay bằng bản tin dự báo, và sai số sẽ tăng lên.</li>
+        <li><b>Đổi trạm mà không ghi lại.</b> Chỉ số năm 2023 tính từ 1 trạm, năm 2026 trung bình mỗi ngày từ 2–3 trạm, và không phải lúc nào cũng là các trạm đó. So sánh "năm nay sạch hơn năm ngoái" trên chỉ số này phải kèm cảnh báo đó.</li>
+      </ul>
+    </div>
+  </section>
+
+  <WrapUp spec={L} source="Nguồn dữ liệu: PM2.5 theo giờ của các trạm quan trắc tự động tại Hà Nội, lấy từ kho lưu trữ mở của OpenAQ (openaq-data-archive trên AWS), tải ngày 20/11/2026. Thời tiết theo giờ: tái phân tích ERA5 của ECMWF qua Open-Meteo Historical Weather API (CC BY 4.0). PM2.5 mô hình CAMS qua Open-Meteo Air Quality API (CC BY 4.0), chỉ dùng để đối chiếu. Mã tải và xử lý: scripts/fetch_ch12.py, scripts/prep_ch12.py." />
+</Lesson>
+
+<style>
+  .rv { font-size: 0.8rem; font-weight: 400; color: var(--faint); margin-left: 0.4rem; white-space: nowrap; }
+  .rv :global(a) { color: var(--pencil); }
+</style>

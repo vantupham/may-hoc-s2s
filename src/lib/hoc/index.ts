@@ -13,5 +13,7 @@ import { evalLearn } from './danh-gia-mo-hinh';
 import { nnLearn } from './mang-no-ron';
 import { cnnLearn } from './cnn';
 import { attnLearn } from './attention';
+import { duAnALearn } from './du-an-khong-khi-a';
+import { duAnBLearn } from './du-an-khong-khi-b';
 
-export const allLearn: LessonLearn[] = [gdLearn, linregLearn, logregLearn, khamPhaLearn, xuLyLearn, knnNbLearn, treeLearn, svmLearn, unsupLearn, evalLearn, nnLearn, cnnLearn, attnLearn];
+export const allLearn: LessonLearn[] = [gdLearn, linregLearn, logregLearn, khamPhaLearn, xuLyLearn, knnNbLearn, treeLearn, svmLearn, unsupLearn, evalLearn, nnLearn, cnnLearn, attnLearn, duAnALearn, duAnBLearn];

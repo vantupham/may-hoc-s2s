@@ -1,0 +1,180 @@
+---
+import Lesson from '../../layouts/Lesson.astro';
+import Tex from '../../components/Tex.svelte';
+import PyCell from '../../components/PyCell.svelte';
+import Lazy from '../../components/Lazy.svelte';
+import Goals from '../../components/hoc/Goals.astro';
+import Mission from '../../components/hoc/Mission.svelte';
+import Debrief from '../../components/hoc/Debrief.svelte';
+import Checkpoint from '../../components/hoc/Checkpoint.astro';
+import Exercises from '../../components/hoc/Exercises.astro';
+import WrapUp from '../../components/hoc/WrapUp.astro';
+import airUrl from '../../data/hanoi-air.json?url';
+import netsUrl from '../../data/hanoi-nets.json?url';
+import resUrl from '../../data/hanoi-results.json?url';
+import res from '../../data/hanoi-results.json';
+import { duAnBLearn as L } from '../../lib/hoc/du-an-khong-khi-b';
+
+const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const ch = (slug: string, label: string) => `ôn <a href="${base}/bai-hoc/${slug}">${label}</a>`;
+const logregAuc = res.board.find((b) => b.id === 'logreg')!.auc!;
+const pyCode = `import json, numpy as np, pandas as pd
+from pyodide.http import open_url
+from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.neural_network import MLPRegressor
+from sklearn.model_selection import TimeSeriesSplit
+from sklearn.metrics import mean_absolute_error
+
+d = json.loads(open_url("${airUrl}").read())
+D = pd.DataFrame(d["days"]).set_index("d")
+D.index = pd.to_datetime(D.index)
+F = pd.DataFrame(index=D.index)
+F["pm0"], F["pm1"], F["pm7"] = D.pm, D.pm.shift(1), D.pm.rolling(7, min_periods=1).mean()
+mai = D.shift(-1)
+for c in ["ws", "rh", "t", "rain", "blh", "north"]:
+    F[c] = mai[c]
+F["dp"] = mai.p - D.p
+doy = (D.index + pd.Timedelta(days=1)).dayofyear
+F["sin"], F["cos"] = np.sin(2 * np.pi * doy / 365.25), np.cos(2 * np.pi * doy / 365.25)
+F["y"], F["target"] = D.pm.shift(-1), D.index + pd.Timedelta(days=1)
+F = F.dropna()
+feats = ["pm0", "pm1", "pm7", "ws", "rh", "t", "rain", "blh", "north", "dp", "sin", "cos"]
+tr = F[F.target < "2025-11-01"]
+te = F[(F.target >= "2025-11-01") & (F.target < "2026-04-01")]
+
+# Cross-validation theo thời gian trên tập huấn luyện
+gb = lambda: GradientBoostingRegressor(n_estimators=300, learning_rate=0.03, max_depth=3, subsample=0.8, random_state=0)
+for k, (a, b) in enumerate(TimeSeriesSplit(5).split(tr)):
+    m = gb().fit(tr[feats].iloc[a], tr.y.iloc[a])
+    print(f"phần {k + 1}: {tr.target.iloc[b[0]]:%d/%m/%Y} → {tr.target.iloc[b[-1]]:%d/%m/%Y}, MAE {mean_absolute_error(tr.y.iloc[b], m.predict(tr[feats].iloc[b])):.2f}")
+
+# Mạng nơ-ron: chuẩn hoá theo tập huấn luyện, điều chuẩn L2 và dừng sớm
+mu, sd = tr[feats].mean(), tr[feats].std(ddof=0)
+z = lambda X: (X[feats] - mu) / sd
+mlp = MLPRegressor((16,), alpha=1.0, learning_rate_init=0.01, max_iter=3000, early_stopping=True, random_state=0).fit(z(tr), tr.y)
+print("MLP trên mùa đông:", round(mean_absolute_error(te.y, mlp.predict(z(te))), 2))`;
+---
+<Lesson slug="du-an-khong-khi-b" data="Cùng dữ liệu bài 12A, thêm chỉ số PM2.5 theo giờ và thời tiết ERA5 theo giờ cho cửa sổ 72 giờ, cùng số liệu 4–11/2026 sau tập kiểm tra" lead="Bài 12A dừng ở các mô hình nhìn số liệu theo ngày. Bài này mở rộng theo hai hướng: cho mô hình xem từng giờ của ba ngày gần nhất, và hỏi điều xảy ra sau khi mô hình được đưa vào sử dụng. Đó là lúc dữ liệu mới không còn giống dữ liệu đã học.">
+
+  <Goals spec={L} />
+
+  <section id="bai-toan">
+    <div class="prose">
+      <h2><span class="step-no">1</span>Bài toán</h2>
+      <p>Cùng câu hỏi với bài 12A: PM2.5 trung bình ngày mai ở Hà Nội là bao nhiêu, và có nên cảnh báo không? Bảng xếp hạng phần A cho thấy gradient boosting đứng đầu với MAE 11,16 µg/m³, nhưng chỉ hơn hồi quy tuyến tính 0,85. Các mô hình dạng bảng dường như đã chạm trần với 12 đặc trưng theo ngày.</p>
+      <p>Có hai cách đi tiếp: dùng <b>mô hình mạnh hơn</b> trên cùng dữ liệu (mạng nơ-ron MLP, chương 9), hoặc cho mô hình <b>xem dữ liệu chi tiết hơn</b>: 72 giờ gần nhất, mỗi giờ 4 số (PM2.5, gió, độ ẩm, lớp biên), cho CNN 1D (chương 10) và attention (chương 11). Câu hỏi của chương 3 quay lại: cải thiện mô hình hay cải thiện dữ liệu?</p>
+    </div>
+  </section>
+
+  <section id="kham-pha">
+    <div class="prose">
+      <h2><span class="step-no">2</span>Khám phá dữ liệu</h2>
+      <p>Mỗi mẫu đầu vào của CNN và attention là một bảng 72 × 4: 72 giờ, từ 0 giờ hai ngày trước đến 23 giờ hôm nay, với 4 kênh. Mỗi kênh trừ PM2.5 được chuẩn hoá bằng trung bình và độ lệch chuẩn của tập huấn luyện. PM2.5 chỉ chia cho 100, để giữ nguyên ý nghĩa "0,5 là 50 µg/m³". Ngoài bảng này, mô hình nhận thêm 7 số về thời tiết ngày mai và mùa, giống mô hình dạng bảng.</p>
+      <p>Chỉ những ngày có đủ 72 giờ liên tục mới dùng được. Một ô thiếu được điền bằng giờ trước đó (chỉ nhìn quá khứ, tối đa 6 giờ liền). Kết quả: {res.nTest} ngày kiểm tra thì 142 ngày đủ cửa sổ. Đây là cái giá đầu tiên của dữ liệu chi tiết: <b>càng cần nhiều số liệu, càng dễ thiếu</b>.</p>
+      <Checkpoint q={{ q: 'Một ngày thiếu 8 giờ liên tiếp vào đêm hôm qua. Ngày đó có vào được tập dữ liệu của CNN không?', options: ['Không: chỉ điền tối đa 6 giờ liền', 'Có, điền bằng nội suy', 'Có, bỏ qua giờ thiếu'], answer: 0, why: 'Quy tắc chỉ điền bằng giờ trước đó, tối đa 6 giờ. Đoạn thiếu 8 giờ còn lại 2 giờ trống, nên cửa sổ bị loại.' }} />
+    </div>
+  </section>
+
+  <section id="truc-giac">
+    <div class="prose">
+      <h2><span class="step-no">3</span>Trực giác</h2>
+      <h3>Chặng 10 · Đánh giá trung thực theo thời gian <span class="rv" set:html={ch('danh-gia-mo-hinh', 'chương 8')} /></h3>
+      <p>Trước khi so các mô hình mới, cần một cách chọn tham số không đụng tới tập kiểm tra: cross-validation trên tập huấn luyện. Với chuỗi thời gian, k-fold thường có một lỗ hổng.</p>
+      <Mission client:visible slug={L.slug} m={M.cv} />
+    </div>
+    <div class="wide"><Lazy client:visible view="ch12/CVTimeLab" data={{ cvTime: `${resUrl}#cvTime`, cvRand: `${resUrl}#cvRand`, cvRandFold: `${resUrl}#cvRandFold` }} props={{ nTrain: res.nTrain }} /></div>
+    <div class="prose">
+      <Debrief client:visible slug={L.slug} m={M.cv} />
+      <Checkpoint q={L.checkpoints['truc-giac']} />
+    </div>
+  </section>
+
+  <section id="tinh-tay">
+    <div class="prose">
+      <h2><span class="step-no">4</span>Tính tay từng bước</h2>
+      <h3>Chặng 12 · Tích chập 1D <span class="rv" set:html={ch('cnn', 'chương 10')} /></h3>
+      <p>Ở chương 10, bộ lọc 3×3 trượt trên ảnh theo hai chiều. Ở đây bộ lọc dài 6 giờ, phủ cả 4 kênh, và chỉ trượt theo một chiều là thời gian:</p>
+      <Tex tex={String.raw`z_t = \sum_{j=0}^{5}\sum_{c=1}^{4} w_{j,c}\; x_{t+j,\,c} + b, \qquad a_t = \max(0, z_t), \qquad t = 0, 1, \dots, 66`} display />
+      <p>Mạng có 3 bộ lọc như vậy. Từ mỗi bản đồ a, nó lấy hai số: trung bình của cả 67 vị trí (ba ngày qua nhìn chung thế nào) và giá trị ở vị trí cuối (6 giờ cuối của hôm nay thế nào). Sáu số này cộng với 7 số thời tiết ngày mai, qua một lớp tuyến tính, cho ra dự báo. Mạng có tổng cộng 89 tham số, được học bằng NumPy và SciPy (L-BFGS) trên 611 cửa sổ huấn luyện.</p>
+      <Mission client:visible slug={L.slug} m={M['tich-chap']} />
+    </div>
+    <div class="wide"><Lazy client:visible view="ch12/Conv1dLab" data={{ nets: netsUrl }} minHeight="34rem" /></div>
+    <div class="prose">
+      <Debrief client:visible slug={L.slug} m={M['tich-chap']} />
+
+      <h3>Chặng 13 · Attention trên 72 giờ <span class="rv" set:html={ch('attention', 'chương 11')} /></h3>
+      <p>Ở chương 11, mỗi từ trong tin nhắn là một vector, và attention cho mỗi từ "nhìn" sang các từ khác. Ở đây mỗi giờ là một vector 6 số: 4 kênh và giờ trong ngày (sin, cos), đóng vai trò như mã hoá vị trí. Truy vấn là giờ cuối cùng, 23 giờ hôm nay. Nó hỏi cả 72 giờ: "giờ nào có thông tin cho tôi?"</p>
+      <Tex tex={String.raw`\mathbf q = W_q\,\mathbf x_{71},\quad \mathbf k_t = W_k\,\mathbf x_t,\quad s_t = \frac{\mathbf q\cdot \mathbf k_t}{\sqrt{4}},\quad \alpha_t = \frac{e^{s_t}}{\sum_{u} e^{s_u}},\quad \mathbf c = \sum_t \alpha_t\, W_v\,\mathbf x_t`} display />
+      <Mission client:visible slug={L.slug} m={M['chu-y']} />
+    </div>
+    <div class="wide"><Lazy client:visible view="ch12/Attn72Lab" data={{ nets: netsUrl }} minHeight="30rem" /></div>
+    <div class="prose">
+      <Debrief client:visible slug={L.slug} m={M['chu-y']} />
+      <p>Một điều mô hình tự tìm ra: trong cả ba ngày, sự chú ý dồn vào <b>khoảng 11–16 giờ</b>. Sáu giờ này nhận 34% tổng trọng số (nếu chia đều chỉ là 25%), và ở 121 trên 142 ngày kiểm tra, giờ được chú ý nhất rơi vào khung này. Đó là lúc lớp biên dày nhất và bụi loãng nhất trong ngày. Một cách hiểu có thể: số đo buổi chiều phản ánh "mức nền" của ngày, ít bị nhiễu bởi nghịch nhiệt ban đêm và giờ cao điểm. Nhưng đó là giả thuyết của ta về mô hình, không phải điều mô hình chứng minh.</p>
+      <Checkpoint q={L.checkpoints['tinh-tay']} />
+    </div>
+  </section>
+
+  <section id="ly-thuyet">
+    <div class="prose">
+      <h2><span class="step-no">5</span>Lý thuyết</h2>
+      <h3>Chặng 11 · Mạng nơ-ron trên dữ liệu ít <span class="rv" set:html={ch('mang-no-ron', 'chương 9')} /></h3>
+      <p>Trên cùng 12 đặc trưng theo ngày, một mạng MLP có thể học bất kỳ quan hệ phi tuyến nào, với điều kiện có đủ dữ liệu. Ở đây chỉ có 638 ngày, ít hơn số chữ số viết tay của chương 9, và mỗi ngày chỉ có 12 con số. Mạng dưới đây giải câu hỏi cảnh báo và được huấn luyện ngay trên trình duyệt của bạn.</p>
+      <Mission client:visible slug={L.slug} m={M.mlp} />
+    </div>
+    <div class="wide"><Lazy client:visible view="ch12/MlpLab" data={{ air: airUrl }} props={{ logregAuc }} /></div>
+    <div class="prose">
+      <Debrief client:visible slug={L.slug} m={M.mlp} />
+      <p>Trên bảng xếp hạng, MLP hồi quy của scikit-learn (16 nơ-ron ẩn, điều chuẩn L2, dừng sớm) đạt MAE 11,37, ngang gradient boosting (11,16). Cùng dữ liệu thì mô hình mạnh hơn không giúp được bao nhiêu. CNN và attention giúp được vì dữ liệu của chúng khác.</p>
+      <h3>Vì sao dữ liệu theo giờ giúp được?</h3>
+      <p>Hai ngày có cùng PM2.5 trung bình 60 µg/m³ có thể rất khác nhau. Một ngày bụi đang dâng lên vào buổi tối, gió lặng. Ngày kia bụi đang giảm từ trưa vì gió mùa vừa về. Trung bình ngày xoá mất khác biệt đó; 72 giờ thì giữ lại. Đặc trưng "PM2.5 hôm nay" của mô hình dạng bảng tương đương một bộ lọc dài 24 giờ có mọi trọng số bằng 1/24. CNN được phép tự học trọng số khác.</p>
+      <Checkpoint q={L.checkpoints['ly-thuyet']} />
+    </div>
+  </section>
+
+  <section id="ma-nguon">
+    <div class="prose">
+      <h2><span class="step-no">6</span>Mã nguồn</h2>
+      <p>Cross-validation theo thời gian và MLP bằng scikit-learn, trên đúng dữ liệu của trang. CNN 1D và attention được huấn luyện bằng NumPy trong <code>scripts/prep_ch12.py</code>; trang này chỉ chạy lan truyền xuôi với trọng số đã lưu, và kiểm thử tự động xác nhận trình duyệt tính lại đúng từng dự báo.</p>
+      <PyCell client:visible code={pyCode} packages={['numpy', 'pandas', 'scikit-learn']} title="danh_gia_theo_thoi_gian.py" />
+      <h3>Thử sửa mã</h3>
+      <Exercises items={L.codeTasks} kind="code" />
+      <Checkpoint q={L.checkpoints['ma-nguon']} />
+    </div>
+  </section>
+
+  <section id="danh-gia">
+    <div class="prose">
+      <h2><span class="step-no">7</span>Toàn bộ dữ liệu và đánh giá</h2>
+      <h3>Chặng 14 · Bảng xếp hạng cuối cùng</h3>
+      <Mission client:visible slug={L.slug} m={M.bang} />
+    </div>
+    <div class="wide"><Lazy client:visible view="ch12/Leaderboard" data={{ board: `${resUrl}#board` }} props={{ nTest: res.nTest, thr: 50, title: 'Bảng xếp hạng cuối cùng: cả 13 bài, một bài toán' }} /></div>
+    <div class="prose">
+      <Debrief client:visible slug={L.slug} m={M.bang} />
+      <p>CNN và attention được chấm trên 142 ngày có đủ 72 giờ. Trên đúng 142 ngày đó, gradient boosting có MAE {String(res.board.find((b) => b.id === 'gb')!.mae72).replace('.', ',')} và mốc "ngày mai = hôm nay" có MAE {String(res.board.find((b) => b.id === 'persist')!.mae72).replace('.', ',')}, nên thứ tự không đổi.</p>
+      <h3>Sau triển khai</h3>
+      <p>Giả sử ta chốt mô hình vào ngày 1/4/2026 và cho chạy tiếp mà không học lại. Trong lúc đó, Chỉ thị 20/CT-TTg (ký ngày 12/7/2025) đặt lộ trình đến 1/7/2026 không còn xe máy chạy xăng dầu lưu thông trong Vành đai 1 Hà Nội. Bài này không kiểm chứng việc lộ trình đó được thực hiện đến đâu. Câu hỏi của ta hẹp hơn: mô hình có nhận ra dữ liệu đã thay đổi không?</p>
+      <Mission client:visible slug={L.slug} m={M.troi} />
+    </div>
+    <div class="wide"><Lazy client:visible view="ch12/DriftLab" data={{ air: airUrl, live: `${resUrl}#live`, drift: `${resUrl}#drift` }} props={{ nTrain: res.nTrain }} /></div>
+    <div class="prose">
+      <Debrief client:visible slug={L.slug} m={M.troi} />
+      <h3>Bẫy thường gặp</h3>
+      <ul>
+        <li><b>Chọn mô hình chỉ theo MAE.</b> CNN đứng đầu nhưng cần 72 giờ liên tục; một đêm mất tín hiệu là không có dự báo. Luôn cần một mô hình dự phòng đơn giản.</li>
+        <li><b>Coi trọng số attention là lời giải thích.</b> Ở đây sự chú ý dàn khá đều trên 72 giờ, và kể cả khi nó tập trung thì đó cũng không phải là nguyên nhân.</li>
+        <li><b>Đọc sai số giảm như bằng chứng chính sách thành công.</b> Độ lệch sau triển khai trùng với thời điểm một trạm ngừng hoạt động. Khi hai thay đổi xảy ra cùng lúc, dữ liệu dự báo không tách được chúng ra.</li>
+        <li><b>Không học lại.</b> Mùa đông 2026–2027 sẽ khác mùa đông vừa qua. Cần lịch học lại và theo dõi sai số hằng tháng.</li>
+      </ul>
+    </div>
+  </section>
+
+  <WrapUp spec={L} source="Nguồn dữ liệu: như bài 12A (OpenAQ, Open-Meteo ERA5 và CAMS). CNN 1D và attention: huấn luyện bằng NumPy và SciPy (L-BFGS) trong scripts/prep_ch12.py. Lộ trình không còn xe máy chạy xăng dầu trong Vành đai 1 từ 1/7/2026: Chỉ thị 20/CT-TTg ngày 12/7/2025, theo báo chí; mức độ thực hiện chưa được kiểm chứng trong bài." />
+</Lesson>
+
+<style>
+  .rv { font-size: 0.8rem; font-weight: 400; color: var(--faint); margin-left: 0.4rem; white-space: nowrap; }
+  .rv :global(a) { color: var(--pencil); }
+</style>

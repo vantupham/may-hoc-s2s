@@ -11,8 +11,8 @@ const at = Object.fromEntries(lessons.map((l) => [l.slug, l.pos]));
 const nx = (s: string) => PX + at[s][0] * CW;
 const ny = (s: string) => PY + at[s][1] * RH;
 const edges = lessons.flatMap((l) => l.requires.map((r) => [r, l.slug] as const));
-const mapW = PX * 2 + 7 * CW + NW;
-const mapH = PY * 2 + 2.3 * RH + NH;
+const mapW = PX * 2 + Math.max(...lessons.map((l) => l.pos[0])) * CW + NW;
+const mapH = PY * 2 + Math.max(...lessons.map((l) => l.pos[1])) * RH + NH;
 const first = lessons[0];
 ---
 <Base title="Máy học S2S">
@@ -34,7 +34,7 @@ const first = lessons[0];
       <h2>Học ở đây khác gì?</h2>
       <dl>
         <dt>Dữ liệu thật, có nguồn</dt>
-        <dd>Giá nhà California năm 1990, mẫu sinh thiết ung thư vú, hành khách tàu Titanic, chim cánh cụt Nam Cực, tin nhắn SMS, ảnh quần áo của Zalando. Không có con số nào được bịa ra cho đẹp.</dd>
+        <dd>Giá nhà California năm 1990, mẫu sinh thiết ung thư vú, hành khách tàu Titanic, chim cánh cụt Nam Cực, tin nhắn SMS, ảnh quần áo của Zalando, và bụi mịn PM2.5 đo được ở Hà Nội tới tháng 11/2026. Không có con số nào được bịa ra cho đẹp.</dd>
         <dt>Hiểu trên 5 dòng trước, rồi mới chạy trên toàn bộ dữ liệu</dt>
         <dd>Mỗi thuật toán được tính tay trên một mẫu nhỏ, từng phép cộng phép nhân, trước khi áp dụng cho toàn bộ dữ liệu.</dd>
         <dt>Hình, bảng, công thức và mã luôn khớp nhau</dt>
@@ -46,7 +46,7 @@ const first = lessons[0];
 
     <section class="prose toc" id="muc-luc">
       <h2>Mục lục</h2>
-      <p class="sub">Mười hai chương, từ Gradient Descent đến Attention; riêng chương Dữ liệu có hai bài. Nên học theo thứ tự, nhưng bản đồ phía dưới cho biết chương nào thật sự cần học trước.</p>
+      <p class="sub">Mười hai chương, từ Gradient Descent đến Attention, và một chương dự án thực tế để ôn tập; riêng chương Dữ liệu và chương Dự án có hai bài. Nên học theo thứ tự, nhưng bản đồ phía dưới cho biết chương nào thật sự cần học trước.</p>
       <ol class="toc-list">
         {lessons.map((l) => (
           <li class:list={[{ soon: !l.ready }]} data-slug={l.slug}>

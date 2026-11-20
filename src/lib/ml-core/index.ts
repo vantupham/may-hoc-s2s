@@ -17,3 +17,4 @@ export * from './transform';
 export * from './split';
 export * from './labelnoise';
 export * from './regress';
+export * from './timeseries';

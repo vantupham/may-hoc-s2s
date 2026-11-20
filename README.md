@@ -23,6 +23,8 @@ Trang web: https://vantupham.github.io/may-hoc-s2s/
 | 9 | Mạng nơ-ron và lan truyền ngược | Chữ số viết tay 8×8 |
 | 10 | Mạng tích chập (CNN) | Fashion-MNIST |
 | 11 | Chuỗi và Attention | SMS Spam Collection |
+| 12A | Dự án bụi mịn Hà Nội (A): kiểm soát chất lượng trạm đo, mốc so sánh, rò rỉ theo thời gian, ôn lại chương 0–8 | PM2.5 7 trạm Hà Nội (OpenAQ), thời tiết ERA5 (Open-Meteo), 2023–2026 |
+| 12B | Dự án bụi mịn Hà Nội (B): cross-validation theo thời gian, MLP, CNN 1D và attention trên 72 giờ, lệch phân phối sau triển khai | Như 12A, thêm số liệu theo giờ |
 
 ## Nguyên tắc "hộp kính"
 
@@ -50,6 +52,8 @@ Chuẩn bị lại dữ liệu và kết quả tham chiếu (cần Python 3 vớ
 python3 scripts/prepare_data.py   # chương 0–2
 python3 scripts/prep_du_lieu.py   # chương 3A, 3B
 for c in 3 4 5 6 7 8 9 10; do python3 scripts/prep_ch$c.py; done
+python3 scripts/fetch_ch12.py    # chương 12: tải một lần vào data/raw/hanoi/ (đã có sẵn, dữ liệu đóng băng)
+python3 scripts/prep_ch12.py     # chương 12: kiểm soát chất lượng, đặc trưng, mọi mô hình (cần pandas, scipy; khoảng 3 phút)
 ```
 
 Tên tệp `prep_ch3.py` … `prep_ch10.py` và thư mục `components/ch3/` … `ch10/` giữ số cũ, từ trước khi
@@ -62,7 +66,7 @@ trình duyệt chỉ chạy lan truyền xuôi với trọng số đã lưu.
 
 ```text
 src/
-├── lib/ml-core/        # thuật toán TypeScript có ghi trace: hồi quy, KNN, Naive Bayes, cây, SVM,
+├── lib/ml-core/        # thuật toán TypeScript có ghi trace: hồi quy, KNN, Naive Bayes, cây, SVM, chuỗi thời gian,
 │                       #   K-means, DBSCAN, PCA, đánh giá, mạng nơ-ron, CNN, attention,
 │                       #   hồ sơ dữ liệu, điền thiếu, biến đổi, chia dữ liệu, nhãn sai
 ├── lib/katex.ts        # macro màu: \cw{} \cb{} \cx{} \cy{} \cyh{} \ce{} \cL{} \cg{} \ceta{} \cz{} \cp{}
@@ -70,7 +74,8 @@ src/
 ├── components/         # StepDebugger, CalcCard, Axis, PyCell, Quiz, Tex, Lazy
 │   ├── gd/ linreg/ logreg/   # phòng thí nghiệm chương 0–2
 │   ├── dulieu/               # phòng thí nghiệm chương 3A, 3B
-│   └── ch3/ … ch10/          # phòng thí nghiệm chương 4–11 (tên thư mục theo số cũ)
+│   ├── ch3/ … ch10/          # phòng thí nghiệm chương 4–11 (tên thư mục theo số cũ)
+│   └── ch12/                 # phòng thí nghiệm dự án bụi mịn Hà Nội (12A, 12B)
 ├── layouts/            # Base (khung trang), Lesson (7 phần của một bài)
 ├── pages/bai-hoc/      # mỗi bài học một trang
 └── data/               # JSON sinh bởi scripts/, nơi duy nhất chứa dữ liệu của trang
