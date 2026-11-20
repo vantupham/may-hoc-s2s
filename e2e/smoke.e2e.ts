@@ -1,0 +1,87 @@
+/**
+ * Kiểm thử khói: mở từng trang trên bản build, cuộn hết trang để mọi island client:visible
+ * được kích hoạt, rồi kiểm tra không có lỗi JavaScript, không có tệp nào tải hỏng,
+ * và mọi phòng thí nghiệm <Lazy> đã tải xong dữ liệu.
+ */
+import { test, expect, type Page } from '@playwright/test';
+import { lessons } from '../src/lib/lessons';
+
+/** Ghi lại lỗi trang, lỗi console và yêu cầu mạng thất bại (bỏ qua CDN của Pyodide). */
+function watchErrors(page: Page) {
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(`lỗi JS: ${e.message}`));
+  page.on('console', (m) => { if (m.type() === 'error') errors.push(`console: ${m.text()}`); });
+  page.on('requestfailed', (r) => errors.push(`tải hỏng: ${r.url()} (${r.failure()?.errorText})`));
+  page.on('response', (r) => { if (r.status() >= 400) errors.push(`HTTP ${r.status()}: ${r.url()}`); });
+  return errors;
+}
+
+/** Cuộn tới đáy trang. Trang dài thêm khi các phòng thí nghiệm tải xong, nên đọc lại chiều cao mỗi bước. */
+async function scrollThrough(page: Page) {
+  for (let y = 0; y < (await page.evaluate(() => document.body.scrollHeight)); y += 500) {
+    await page.evaluate((y) => window.scrollTo(0, y), y);
+    await page.waitForTimeout(40);
+  }
+  await page.waitForLoadState('networkidle');
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  await page.waitForLoadState('networkidle');
+}
+
+const lazy = (page: Page) => page.locator('astro-island[component-url*="Lazy"]');
+
+for (const path of ['', 've-du-an']) {
+  test(`trang ${path || 'chủ'} mở được, không lỗi`, async ({ page }) => {
+    const errors = watchErrors(page);
+    await page.goto(path);
+    await expect(page.locator('main h1').first()).toBeVisible();
+    await scrollThrough(page);
+    expect(errors).toEqual([]);
+  });
+}
+
+for (const l of lessons.filter((l) => l.ready)) {
+  test(`bài ${l.no}: ${l.short}`, async ({ page }) => {
+    const errors = watchErrors(page);
+    await page.goto(`bai-hoc/${l.slug}`);
+    await expect(page.locator('h1')).toHaveText(l.title);
+    await scrollThrough(page);
+
+    // Mọi <Lazy> đã gắn được phòng thí nghiệm thật: không còn khung "Đang tải" hay thông báo lỗi
+    const isl = lazy(page);
+    const n = await isl.count();
+    for (let i = 0; i < n; i++) await expect(isl.nth(i).locator('.ph')).toHaveCount(0, { timeout: 15_000 });
+
+    // Mọi island đã chạy xong (Astro bỏ thuộc tính ssr sau khi hydrate)
+    await expect(page.locator('astro-island[ssr]')).toHaveCount(0);
+
+    expect(errors).toEqual([]);
+  });
+}
+
+test('mỗi tệp dữ liệu chỉ tải một lần dù nhiều phòng thí nghiệm cùng dùng', async ({ page }) => {
+  const count = new Map<string, number>();
+  page.on('request', (r) => {
+    if (r.url().endsWith('.json')) { const k = r.url().split('/').pop()!; count.set(k, (count.get(k) ?? 0) + 1); }
+  });
+  await page.goto('bai-hoc/hoi-quy-logistic');
+  await scrollThrough(page);
+  await expect(lazy(page).locator('.ph')).toHaveCount(0);
+  const cancer = [...count].filter(([k]) => k.startsWith('cancer.'));
+  expect(cancer).toHaveLength(1);
+  expect(cancer[0][1]).toBe(1);
+});
+
+test('phòng thí nghiệm tải trễ vẫn tương tác được', async ({ page }) => {
+  await page.goto('bai-hoc/hoi-quy-logistic');
+  await scrollThrough(page);
+  // FullLogReg: 569 bệnh nhân được vẽ, kéo ngưỡng thì hình thay đổi
+  const lab = lazy(page).nth(2);
+  await expect(lab.locator('circle')).toHaveCount(569);
+  const slider = lab.locator('input[type=range]').first();
+  const before = await lab.innerHTML();
+  await slider.evaluate((r: HTMLInputElement) => {
+    r.value = r.min;
+    r.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  await expect.poll(() => lab.innerHTML()).not.toBe(before);
+});

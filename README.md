@@ -40,6 +40,8 @@ npm install
 npm run dev        # http://localhost:4321/may-hoc-s2s/
 npm test           # kiểm thử ml-core
 npm run build      # xuất trang tĩnh ra dist/
+npm run check      # kiểm tra kiểu TypeScript, Svelte, Astro
+npm run test:e2e   # kiểm thử khói trên bản build (lần đầu: npx playwright install chromium)
 ```
 
 Chuẩn bị lại dữ liệu và kết quả tham chiếu (cần Python 3 với numpy, scikit-learn):
@@ -65,15 +67,14 @@ src/
 │                       #   hồ sơ dữ liệu, điền thiếu, biến đổi, chia dữ liệu, nhãn sai
 ├── lib/katex.ts        # macro màu: \cw{} \cb{} \cx{} \cy{} \cyh{} \ce{} \cL{} \cg{} \ceta{} \cz{} \cp{}
 ├── lib/lessons.ts      # danh sách chương cho trang chủ và điều hướng
-├── components/         # StepDebugger, CalcCard, Axis, PyCell, Quiz, Tex
+├── components/         # StepDebugger, CalcCard, Axis, PyCell, Quiz, Tex, Lazy
 │   ├── gd/ linreg/ logreg/   # phòng thí nghiệm chương 0–2
 │   ├── dulieu/               # phòng thí nghiệm chương 3A, 3B
 │   └── ch3/ … ch10/          # phòng thí nghiệm chương 4–11 (tên thư mục theo số cũ)
 ├── layouts/            # Base (khung trang), Lesson (7 phần của một bài)
 ├── pages/bai-hoc/      # mỗi bài học một trang
-└── data/               # JSON sinh bởi scripts/prepare_data.py
+└── data/               # JSON sinh bởi scripts/, nơi duy nhất chứa dữ liệu của trang
 data/raw/               # dữ liệu gốc
-public/data/            # JSON tải khi cần: bản sao cho ô Python, California đầy đủ, Breast Cancer 30 đặc trưng
 scripts/                # tiền xử lý và sinh kết quả tham chiếu
 tests/                  # kiểm thử và fixtures
 ```
@@ -86,6 +87,18 @@ tests/                  # kiểm thử và fixtures
 4. Tạo trang `src/pages/bai-hoc/<slug>.astro` dùng layout `Lesson` với 7 phần:
    bài toán · khám phá dữ liệu · trực giác · tính tay · lý thuyết · mã nguồn · toàn bộ dữ liệu.
 5. Đặt `ready: true` cho chương trong `src/lib/lessons.ts`.
+
+Dữ liệu lớn không nhúng vào HTML. Trang lấy URL bằng `import url from '../../data/x.json?url'`
+(Vite xuất tệp vào `_astro/` kèm mã băm), rồi bọc phòng thí nghiệm trong `Lazy`:
+
+```astro
+<Lazy client:visible view="logreg/FullLogReg"
+      data={{ patients: `${cancerUrl}#patients`, testIds: `${cancerUrl}#testIds` }} />
+```
+
+`Lazy` chỉ tải mã và JSON khi phòng thí nghiệm sắp hiện lên màn hình, mỗi URL một lần cho cả trang,
+rồi truyền vào như props bình thường. Ô Python dùng chung URL đó: `open_url("${cancerUrl}")`.
+Dữ liệu nhỏ (vài KB) vẫn có thể truyền thẳng qua props.
 
 Quy ước màu: mỗi đại lượng một màu cố định (CSS `--c-w`, `--c-b`, … trong `src/styles/global.css`),
 dùng chung cho hình, công thức, bảng và lời giảng.
