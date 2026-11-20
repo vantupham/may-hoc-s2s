@@ -198,6 +198,16 @@ table.data tr.on td { background: var(--tim-soft); }
 .note.warn { border-color: var(--c-L); }
 .note > :last-child { margin-bottom: 0; }
 
+/* Tô màu cú pháp Python (src/lib/pyhl.ts) — dùng lại màu đại lượng để hợp cả nền sáng lẫn tối */
+.tok-kw { color: var(--tim); font-weight: 600; }
+.tok-str { color: var(--c-y); }
+.tok-num { color: var(--c-yh); }
+.tok-com { color: var(--faint); font-style: italic; }
+.tok-fn { color: var(--c-w); }
+.tok-def { color: var(--c-w); font-weight: 600; }
+.tok-bi { color: var(--c-x); }
+.tok-op { color: var(--c-g); }
+
 /* Đồ thị SVG */
 svg.chart { display: block; width: 100%; height: auto; overflow: visible; font-family: var(--serif); }
 svg.chart .tick text { fill: var(--faint); font-size: 11px; font-family: var(--mono); }
