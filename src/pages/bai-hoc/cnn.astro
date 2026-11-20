@@ -1,17 +1,16 @@
 ---
 import Lesson from '../../layouts/Lesson.astro';
 import Tex from '../../components/Tex.svelte';
-import ConvLab from '../../components/ch9/ConvLab.svelte';
-import PipelineLab from '../../components/ch9/PipelineLab.svelte';
 import DigitImg from '../../components/DigitImg.svelte';
 import PyCell from '../../components/PyCell.svelte';
 import Quiz from '../../components/Quiz.svelte';
 import data from '../../data/fashion-cnn.json';
 import { decodeImage, fmt } from '../../lib/ml-core';
+import cnnUrl from '../../data/fashion-cnn.json?url';
+import Lazy from '../../components/Lazy.svelte';
 
 const names = data.names;
 const examples = names.map((_, k) => data.images.find((im) => im.y === k)).filter(Boolean) as { y: number; b64: string }[];
-const net = { Wc: data.Wc, bc: data.bc, Wd: data.Wd, bd: data.bd };
 
 const pyCode = `import numpy as np
 
@@ -65,7 +64,7 @@ print("Sau max-pool 2×2:"); print(pool)`;
     <div class="prose">
       <h2><span class="step-no">4</span>Tính tay từng bước</h2>
     </div>
-    <div class="wide"><ConvLab client:visible images={data.images} names={names} Wc={data.Wc} bc={data.bc} /></div>
+    <div class="wide"><Lazy client:visible view="ch9/ConvLab" data={{ images: `${cnnUrl}#images`, Wc: `${cnnUrl}#Wc`, bc: `${cnnUrl}#bc` }} props={{ names }} /></div>
     <div class="prose">
       <p>So sánh bộ lọc "cạnh dọc" tự đặt với các bộ lọc học được: nhiều bộ lọc học được cũng là bộ dò cạnh hoặc bộ dò vùng sáng — mạng tự khám phá lại những gì con người từng thiết kế bằng tay.</p>
     </div>
@@ -99,7 +98,7 @@ print("Sau max-pool 2×2:"); print(pool)`;
     <div class="prose">
       <h2><span class="step-no">7</span>Toàn bộ dữ liệu và đánh giá</h2>
     </div>
-    <div class="wide"><PipelineLab client:visible net={net} images={data.images} names={names} testAcc={data.testAcc} confusion={data.confusion} nTest={data.nTest} /></div>
+    <div class="wide"><Lazy client:visible view="ch9/PipelineLab" data={{ net: cnnUrl, images: `${cnnUrl}#images`, confusion: `${cnnUrl}#confusion` }} props={{ names, testAcc: data.testAcc, nTest: data.nTest }} /></div>
     <div class="prose">
       <p>Với chỉ 6 bộ lọc và một tầng tích chập, mạng đạt {fmt(data.testAcc * 100, 1)}% trên tập test. Các CNN sâu hơn đạt trên 93% trên Fashion-MNIST.</p>
       <h3>Bẫy thường gặp</h3>

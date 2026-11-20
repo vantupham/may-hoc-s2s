@@ -1,21 +1,19 @@
 ---
 import Lesson from '../../layouts/Lesson.astro';
 import Tex from '../../components/Tex.svelte';
-import CancerScatter from '../../components/logreg/CancerScatter.svelte';
 import SigmoidExplorer from '../../components/logreg/SigmoidExplorer.svelte';
-import BoundaryGuess from '../../components/logreg/BoundaryGuess.svelte';
 import LogRegLab from '../../components/logreg/LogRegLab.svelte';
-import FullLogReg from '../../components/logreg/FullLogReg.svelte';
 import PyCell from '../../components/PyCell.svelte';
 import Quiz from '../../components/Quiz.svelte';
 import cancer from '../../data/cancer.json';
 import { logisticRegressionGD, fmt, tex } from '../../lib/ml-core';
+import cancerUrl from '../../data/cancer.json?url';
+import Lazy from '../../components/Lazy.svelte';
 
 const mini = cancer.mini;
 const t = logisticRegressionGD(mini.map((p) => [p.x1, p.x2] as [number, number]), mini.map((p) => p.y), { lr: 1, epochs: 2 });
 const s0 = t.steps[0].state;
 const s1 = t.steps[1].state;
-const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
 const pyScratch = `import numpy as np
 
@@ -44,7 +42,7 @@ from pyodide.http import open_url
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import confusion_matrix, recall_score, precision_score
 
-data = json.loads(open_url("${base}/data/cancer.json").read())
+data = json.loads(open_url("${cancerUrl}").read())
 test = set(data["testIds"])
 P = data["patients"]
 X_tr = np.array([[p["x1"], p["x2"]] for p in P if p["id"] not in test])
@@ -84,7 +82,7 @@ for nguong in (0.5, 0.2):
     <div class="prose">
       <h2><span class="step-no">2</span>Khám phá dữ liệu</h2>
     </div>
-    <div class="wide"><CancerScatter client:visible patients={cancer.patients} /></div>
+    <div class="wide"><Lazy client:visible view="logreg/CancerScatter" data={{ patients: `${cancerUrl}#patients` }} /></div>
     <div class="prose">
       <p>Hai nhóm tách khá rõ theo bán kính, độ nhám giúp thêm một chút. Nhưng vùng giữa chồng lấn: sẽ có ca khó. Mô hình tốt không chỉ nói "ác" hay "lành", mà nói <b>chắc chắn bao nhiêu</b>.</p>
       <div class="note warn"><p>Đây là bài học về thuật toán, không phải công cụ chẩn đoán. Chẩn đoán thật dựa trên nhiều xét nghiệm và đánh giá của bác sĩ.</p></div>
@@ -101,7 +99,7 @@ for nguong in (0.5, 0.2):
     <div class="prose">
       <p>Tập hợp các điểm có z = 0 (tức p = 0,5) là một đường thẳng trên mặt phẳng (x₁, x₂): đó là <b>ranh giới quyết định</b>. Hãy thử tự đặt nó:</p>
     </div>
-    <div class="wide"><BoundaryGuess client:visible patients={cancer.patients} /></div>
+    <div class="wide"><Lazy client:visible view="logreg/BoundaryGuess" data={{ patients: `${cancerUrl}#patients` }} /></div>
   </section>
 
   <section id="tinh-tay">
@@ -150,7 +148,7 @@ for nguong in (0.5, 0.2):
       <h2><span class="step-no">7</span>Toàn bộ dữ liệu và đánh giá</h2>
       <p>Tách 569 bệnh nhân thành 455 để huấn luyện và 114 để kiểm tra. Mô hình xuất ra xác suất; quyết định cuối cùng phụ thuộc vào <b>ngưỡng</b> ta chọn. Ngưỡng không phải chuyện toán học — nó là chuyện cái giá của từng loại sai lầm.</p>
     </div>
-    <div class="wide"><FullLogReg client:visible patients={cancer.patients} testIds={cancer.testIds} /></div>
+    <div class="wide"><Lazy client:visible view="logreg/FullLogReg" data={{ patients: `${cancerUrl}#patients`, testIds: `${cancerUrl}#testIds` }} /></div>
     <div class="prose">
       <h3>Bẫy thường gặp</h3>
       <ul>

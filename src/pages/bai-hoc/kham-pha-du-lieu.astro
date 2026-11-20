@@ -12,9 +12,9 @@ import PyCell from '../../components/PyCell.svelte';
 import Quiz from '../../components/Quiz.svelte';
 import titanic from '../../data/titanic.json';
 import { permutation } from '../../lib/ml-core';
+import californiaUrl from '../../data/california.json?url';
 
-const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-const cal = JSON.parse(readFileSync('public/data/california.json', 'utf8'));
+const cal = JSON.parse(readFileSync('src/data/california.json', 'utf8'));
 // 9 khu vực ngẫu nhiên và khu vực đầu tiên có thu nhập bị chặn ở 15,0001
 const ids = [...permutation(cal.n, 3).slice(0, 9), cal.income.indexOf(15.0001)];
 const rows = ids.map((i: number) => ({ id: i, income: cal.income[i], value: cal.value[i] }));
@@ -29,7 +29,7 @@ const pyCode = `import json
 import pandas as pd
 from pyodide.http import open_url
 
-raw = json.loads(open_url("${base}/data/california.json").read())
+raw = json.loads(open_url("${californiaUrl}").read())
 cot = ["lon", "lat", "age", "rooms", "bedrooms", "pop", "hh", "income", "value"]
 df = pd.DataFrame({k: raw[k] for k in cot})
 df["ocean"] = [raw["cats"][c] for c in raw["ocean"]]

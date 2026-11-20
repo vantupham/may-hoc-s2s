@@ -157,10 +157,3 @@ dump(FIX / "reference.json", {
     "logreg": gd_logreg(Xb, yb, 0.5, 300),
     "sklearnLogreg": {"w": sk_log.coef_[0].tolist(), "b": float(sk_log.intercept_[0])},
 })
-
-# Bản sao công khai để ô mã Python (Pyodide) có thể tải dữ liệu từ trang web
-PUB = ROOT / "public" / "data"
-PUB.mkdir(parents=True, exist_ok=True)
-for name in ("housing.json", "cancer.json"):
-    (PUB / name).write_bytes((OUT / name).read_bytes())
-    print("copied", f"public/data/{name}")

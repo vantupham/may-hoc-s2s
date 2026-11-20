@@ -1,13 +1,14 @@
 ---
 import Lesson from '../../layouts/Lesson.astro';
 import Tex from '../../components/Tex.svelte';
-import AttnLab from '../../components/ch10/AttnLab.svelte';
-import AttnFull from '../../components/ch10/AttnFull.svelte';
 import PyCell from '../../components/PyCell.svelte';
 import Quiz from '../../components/Quiz.svelte';
 import model from '../../data/attention.json';
 import sms from '../../data/sms.json';
 import { fmt } from '../../lib/ml-core';
+import attentionUrl from '../../data/attention.json?url';
+import smsUrl from '../../data/sms.json?url';
+import Lazy from '../../components/Lazy.svelte';
 
 const pick = (s: string) => sms.test.find((t) => t.text.startsWith(s))!;
 const samples = [pick('You have won ?1,000'), pick('Is that seriously how'), pick('You have an important customer'), pick('Ahhh. Work.')];
@@ -63,7 +64,7 @@ print("Đầu ra H:"); print(H)`;
     <div class="prose">
       <h2><span class="step-no">4</span>Tính tay từng bước</h2>
     </div>
-    <div class="wide"><AttnLab client:visible model={model} samples={samples} /></div>
+    <div class="wide"><Lazy client:visible view="ch10/AttnLab" data={{ model: attentionUrl }} props={{ samples }} /></div>
     <div class="prose">
       <p>Mô hình này học cách chú ý rất "gắt": gần như mọi token dồn toàn bộ sự chú ý vào một hoặc hai token. Ở tin rác phía trên, đó là "claim" — từ đáng ngờ nhất. Các điểm số s rất lớn (hàng chục), nên softmax gần như chọn hẳn một token. Gõ thử tin của bạn để xem mô hình chọn từ nào làm "tâm điểm".</p>
     </div>
@@ -100,7 +101,7 @@ print("Đầu ra H:"); print(H)`;
     <div class="prose">
       <h2><span class="step-no">7</span>Toàn bộ dữ liệu và đánh giá</h2>
     </div>
-    <div class="wide"><AttnFull client:visible model={model} sms={sms} /></div>
+    <div class="wide"><Lazy client:visible view="ch10/AttnFull" data={{ model: attentionUrl, sms: smsUrl }} /></div>
     <div class="prose">
       <p>Trên bài toán này, mô hình attention và Naive Bayes đạt độ chính xác gần như nhau (khoảng {fmt(model.testAcc * 100, 1)}%). Tin rác trong bộ dữ liệu này dễ nhận ra chỉ từ từ vựng, nên ngữ cảnh không giúp thêm nhiều. Sức mạnh của attention lộ rõ ở những bài toán mà thứ tự và quan hệ giữa các từ là then chốt: dịch máy, trả lời câu hỏi, viết tiếp văn bản.</p>
       <h3>Bẫy thường gặp</h3>

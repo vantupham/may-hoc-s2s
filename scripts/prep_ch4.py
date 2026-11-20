@@ -10,7 +10,7 @@ import numpy as np
 from sklearn.tree import DecisionTreeClassifier
 
 ROOT = Path(__file__).resolve().parent.parent
-OUT, FIX, PUB = ROOT / "src/data", ROOT / "tests/fixtures", ROOT / "public/data"
+OUT, FIX = ROOT / "src/data", ROOT / "tests/fixtures"
 rng = np.random.default_rng(4)
 
 
@@ -60,4 +60,3 @@ dump(OUT / "titanic.json", {
     "people": people, "testIds": test_ids,
 })
 dump(FIX / "ch4.json", ref)
-(PUB / "titanic.json").write_bytes((OUT / "titanic.json").read_bytes())

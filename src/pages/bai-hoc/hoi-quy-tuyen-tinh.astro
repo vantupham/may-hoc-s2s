@@ -2,15 +2,13 @@
 import Lesson from '../../layouts/Lesson.astro';
 import Tex from '../../components/Tex.svelte';
 import CalcCard from '../../components/CalcCard.svelte';
-import HousingExplore from '../../components/linreg/HousingExplore.svelte';
-import LineGuess from '../../components/linreg/LineGuess.svelte';
 import LinRegLab from '../../components/linreg/LinRegLab.svelte';
-import LossContour from '../../components/linreg/LossContour.svelte';
-import FullEval from '../../components/linreg/FullEval.svelte';
 import PyCell from '../../components/PyCell.svelte';
 import Quiz from '../../components/Quiz.svelte';
 import housing from '../../data/housing.json';
 import { ols, linearRegressionGD, fmt, tex } from '../../lib/ml-core';
+import housingUrl from '../../data/housing.json?url';
+import Lazy from '../../components/Lazy.svelte';
 
 const sample = housing.sample;
 const mini = housing.mini;
@@ -19,13 +17,12 @@ const xs = mini.map((h) => h.income);
 const ys = mini.map((h) => h.value);
 const s0 = linearRegressionGD(xs, ys, { lr: 0.02, epochs: 1 }).steps[0].state;
 const oceanVi: Record<string, string> = { INLAND: 'Nội địa', 'NEAR OCEAN': 'Gần biển', '<1H OCEAN': 'Cách biển < 1 giờ', 'NEAR BAY': 'Gần vịnh', ISLAND: 'Đảo' };
-const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
 const pyScratch = `import numpy as np, json
 from pyodide.http import open_url
 
 # Tải 400 khu vực từ chính trang web này
-data = json.loads(open_url("${base}/data/housing.json").read())
+data = json.loads(open_url("${housingUrl}").read())
 x = np.array([r["income"] for r in data["sample"]])
 y = np.array([r["value"] for r in data["sample"]])
 
@@ -55,7 +52,7 @@ from pyodide.http import open_url
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 
-data = json.loads(open_url("${base}/data/housing.json").read())
+data = json.loads(open_url("${housingUrl}").read())
 test = set(data["testIds"])
 rows = data["sample"]
 X_tr = np.array([[r["income"]] for r in rows if r["id"] not in test])
@@ -97,7 +94,7 @@ print("R² test  =", round(r2_score(y_te, pred), 4))`;
       <h2><span class="step-no">2</span>Khám phá dữ liệu</h2>
       <p>Trước khi huấn luyện bất cứ thứ gì, hãy nhìn dữ liệu. Ba điều quan trọng sẽ ảnh hưởng tới mô hình:</p>
     </div>
-    <div class="wide"><HousingExplore client:visible sample={sample} hist={housing.hist} capped={housing.capped} nTotal={housing.nTotal} /></div>
+    <div class="wide"><Lazy client:visible view="linreg/HousingExplore" data={{ sample: `${housingUrl}#sample`, hist: `${housingUrl}#hist` }} props={{ capped: housing.capped, nTotal: housing.nTotal }} /></div>
     <div class="prose">
       <ul>
         <li><b>Có quan hệ tuyến tính, nhưng không chặt.</b> Hệ số tương quan giữa thu nhập và giá nhà trên toàn bộ dữ liệu là <span class="num">{fmt(housing.stats.corr, 3)}</span>. Một đường thẳng sẽ bắt được xu hướng chung, nhưng còn nhiều yếu tố khác.</li>
@@ -112,7 +109,7 @@ print("R² test  =", round(r2_score(y_te, pred), 4))`;
       <h2><span class="step-no">3</span>Trực giác</h2>
       <p>Hãy thử tự đặt đường thẳng. Bạn sẽ thấy chỉnh <span class="v-w">w</span> và <span class="v-b">b</span> không độc lập: tăng độ dốc thường phải hạ hệ số chặn để đường thẳng vẫn đi qua giữa đám mây điểm.</p>
     </div>
-    <div class="wide"><LineGuess client:visible sample={sample} /></div>
+    <div class="wide"><Lazy client:visible view="linreg/LineGuess" data={{ sample: `${housingUrl}#sample` }} /></div>
   </section>
 
   <section id="tinh-tay">
@@ -152,7 +149,7 @@ print("R² test  =", round(r2_score(y_te, pred), 4))`;
       <h3>Hình học của bài toán và vì sao phải chuẩn hoá</h3>
       <p>Với hai tham số, mất mát là một mặt cong hình cái bát trong không gian ba chiều. Nhìn từ trên xuống, ta thấy các đường đồng mức:</p>
     </div>
-    <div class="wide"><LossContour client:visible sample={sample} /></div>
+    <div class="wide"><Lazy client:visible view="linreg/LossContour" data={{ sample: `${housingUrl}#sample` }} /></div>
     <div class="prose">
       <p>Khi x có giá trị lớn (trung bình khoảng {fmt(housing.stats.incomeMean, 1)}), mất mát nhạy với <span class="v-w">w</span> hơn nhiều so với <span class="v-b">b</span>, nên cái bát bị kéo dẹt. Tốc độ học phải đủ nhỏ cho hướng dốc nhất, nên hướng thoải bị bò rất chậm. <b>Chuẩn hoá</b> — trừ trung bình rồi chia độ lệch chuẩn — làm cái bát tròn lại:</p>
       <Tex tex={String.raw`\cx{x'} = \frac{\cx{x} - \mu}{\sigma}`} display />
@@ -174,7 +171,7 @@ print("R² test  =", round(r2_score(y_te, pred), 4))`;
       <h2><span class="step-no">7</span>Toàn bộ dữ liệu và đánh giá</h2>
       <p>Một mô hình chỉ có giá trị nếu dự đoán tốt trên dữ liệu <b>mới</b>. Vì thế ta tách 400 khu vực thành 320 để huấn luyện (train) và 80 để kiểm tra (test). Mô hình không được nhìn thấy tập test khi học.</p>
     </div>
-    <div class="wide"><FullEval client:visible sample={sample} testIds={housing.testIds} /></div>
+    <div class="wide"><Lazy client:visible view="linreg/FullEval" data={{ sample: `${housingUrl}#sample`, testIds: `${housingUrl}#testIds` }} /></div>
     <div class="prose">
       <h3>Đọc các chỉ số</h3>
       <ul>

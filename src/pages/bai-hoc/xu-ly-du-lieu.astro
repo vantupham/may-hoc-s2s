@@ -4,7 +4,6 @@ import Lesson from '../../layouts/Lesson.astro';
 import Tex from '../../components/Tex.svelte';
 import HandPrep from '../../components/dulieu/HandPrep.svelte';
 import ImputeLab from '../../components/dulieu/ImputeLab.svelte';
-import TitanicAge from '../../components/dulieu/TitanicAge.svelte';
 import EncodeLab from '../../components/dulieu/EncodeLab.svelte';
 import LeakLab from '../../components/dulieu/LeakLab.svelte';
 import SplitLab from '../../components/dulieu/SplitLab.svelte';
@@ -12,13 +11,14 @@ import CurveLab from '../../components/dulieu/CurveLab.svelte';
 import BeforeAfter from '../../components/dulieu/BeforeAfter.svelte';
 import PyCell from '../../components/PyCell.svelte';
 import Quiz from '../../components/Quiz.svelte';
-import titanic from '../../data/titanic.json';
 import { quantileCalc, sortNum, present, imputeGroupMedian, standardize, minMax, tex, fmt } from '../../lib/ml-core';
 import type { Calc } from '../../lib/ml-core';
 import { oceanVi } from '../../lib/dulieu';
+import titanicUrl from '../../data/titanic.json?url';
+import californiaUrl from '../../data/california.json?url';
+import Lazy from '../../components/Lazy.svelte';
 
-const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-const cal = JSON.parse(readFileSync('public/data/california.json', 'utf8'));
+const cal = JSON.parse(readFileSync('src/data/california.json', 'utf8'));
 const groups = cal.ocean.map((o: number) => cal.cats[o]);
 const filled = imputeGroupMedian(cal.bedrooms, groups);
 // Hai khu vực thiếu phòng ngủ ở hai nhóm vị trí khác nhau, và bốn khu vực đủ dữ liệu ở các nhóm còn lại
@@ -49,7 +49,6 @@ const calcs: Calc[] = [
     note: 'Cộng 1 để khu vực có 0 người vẫn tính được (ln 0 không xác định).' },
 ];
 const labels = [`điền ô ${m1}`, `điền ô ${m2}`, 'chuẩn hoá', 'min-max', 'log'];
-const people = titanic.people.map((p) => ({ name: p.name, age: p.age, ageMissing: p.ageMissing, pclass: p.pclass }));
 
 const pyCode = `import json
 import numpy as np, pandas as pd
@@ -61,7 +60,7 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler, FunctionTransfo
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import KFold, GroupKFold, cross_val_score
 
-raw = json.loads(open_url("${base}/data/california.json").read())
+raw = json.loads(open_url("${californiaUrl}").read())
 df = pd.DataFrame({k: raw[k] for k in ["lon", "lat", "age", "rooms", "bedrooms", "pop", "hh", "income"]})
 df["ocean"] = [raw["cats"][c] for c in raw["ocean"]]
 y = np.array(raw["value"])
@@ -115,7 +114,7 @@ for ten, cv, nhom in [("ngẫu nhiên", KFold(5, shuffle=True, random_state=0), 
       <p>Không có cách điền "trung lập". Mỗi cách là một <b>giả định</b> về lý do ô bị trống. Điền trung bình là giả định ô trống trông giống một khu vực điển hình. Điền theo nhóm là giả định nó giống các khu vực cùng nhóm. Điền bằng láng giềng là giả định nó giống những khu vực có số phòng, số hộ, dân số gần nó nhất. Giả định càng sát sự thật, giá trị điền càng đúng.</p>
     </div>
     <div class="wide"><ImputeLab client:visible /></div>
-    <div class="wide"><TitanicAge client:visible people={people} /></div>
+    <div class="wide"><Lazy client:visible view="dulieu/TitanicAge" data={{ people: `${titanicUrl}#people` }} /></div>
   </section>
 
   <section id="tinh-tay">

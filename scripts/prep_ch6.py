@@ -12,7 +12,7 @@ from sklearn.datasets import load_digits
 from sklearn.decomposition import PCA
 
 ROOT = Path(__file__).resolve().parent.parent
-OUT, FIX, PUB = ROOT / "src/data", ROOT / "tests/fixtures", ROOT / "public/data"
+OUT, FIX = ROOT / "src/data", ROOT / "tests/fixtures"
 rng = np.random.default_rng(6)
 
 
@@ -49,8 +49,6 @@ dump(FIX / "ch6.json", {
     "pcaRatio": pca.explained_variance_ratio_.tolist(), "pcaVar": pca.explained_variance_.tolist(),
     "pcaComp": pca.components_[:3].tolist(), "pcaProj": pca.transform(Xd[:5])[:, :3].tolist(),
 })
-for n in ("penguins.json", "digits.json"):
-    (PUB / n).write_bytes((OUT / n).read_bytes())
 print("kmeans iters", km.n_iter_, "dbscan clusters", set(db.labels_), "noise", (db.labels_ == -1).sum())
 from collections import Counter
 print(Counter(zip(km.labels_, [b["species"] for b in birds])))

@@ -9,8 +9,8 @@ import {
   logregL2, flipLabels, oofProba, confidentFlags,
 } from '../src/lib/ml-core';
 
-const cal = JSON.parse(readFileSync('public/data/california.json', 'utf8'));
-const bc = JSON.parse(readFileSync('public/data/cancer30.json', 'utf8'));
+const cal = JSON.parse(readFileSync('src/data/california.json', 'utf8'));
+const bc = JSON.parse(readFileSync('src/data/cancer30.json', 'utf8'));
 const rel = (a: number, b: number) => Math.abs(a - b) / Math.max(1e-12, Math.abs(b));
 const colOf: Record<string, string> = {
   longitude: 'lon', latitude: 'lat', housing_median_age: 'age', total_rooms: 'rooms', total_bedrooms: 'bedrooms',

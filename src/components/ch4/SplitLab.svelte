@@ -6,7 +6,13 @@
   import { splitCandidates, gini, fmt, tex, type Row, type Calc } from '../../lib/ml-core';
   import { featName, condText } from '../../lib/titanic';
 
-  let { rows }: { rows: Row[] } = $props();
+  interface P { id: number; survived: number; [f: string]: unknown }
+  let { people, testIds, features }: { people: P[]; testIds: number[]; features: string[] } = $props();
+  // Chỉ tìm câu hỏi trên tập huấn luyện: mọi hành khách không thuộc tập test
+  const rows: Row[] = $derived.by(() => {
+    const test = new Set(testIds);
+    return people.filter((p) => !test.has(p.id)).map((p) => ({ x: features.map((f) => p[f] as number), y: p.survived }));
+  });
   let f = $state(2);
   const cands = $derived(splitCandidates(rows, f));
   const bestIdx = $derived(cands.reduce((b, c, i) => (c.gini < cands[b].gini - 1e-12 ? i : b), 0));

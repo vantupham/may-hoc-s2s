@@ -3,19 +3,19 @@ import Lesson from '../../layouts/Lesson.astro';
 import Tex from '../../components/Tex.svelte';
 import MarginGuess from '../../components/ch5/MarginGuess.svelte';
 import SVMStepLab from '../../components/ch5/SVMStepLab.svelte';
-import CLab from '../../components/ch5/CLab.svelte';
-import RBFLab from '../../components/ch5/RBFLab.svelte';
 import PyCell from '../../components/PyCell.svelte';
 import Quiz from '../../components/Quiz.svelte';
 import cancer from '../../data/cancer.json';
-import grid from '../../data/svm-rbf.json';
+import cancerUrl from '../../data/cancer.json?url';
+import gridUrl from '../../data/svm-rbf.json?url';
+import Lazy from '../../components/Lazy.svelte';
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const pyCode = `import numpy as np, json
 from pyodide.http import open_url
 from sklearn.svm import SVC
 
-d = json.loads(open_url("${base}/data/cancer.json").read())
+d = json.loads(open_url("${cancerUrl}").read())
 test = set(d["testIds"])
 X = np.array([[p["x1"], p["x2"]] for p in d["patients"]])
 y = np.array([1 if p["y"] else -1 for p in d["patients"]])
@@ -96,8 +96,8 @@ for g in (0.1, 1, 10, 50):
     <div class="prose">
       <h2><span class="step-no">7</span>Toàn bộ dữ liệu và đánh giá</h2>
     </div>
-    <div class="wide"><CLab client:visible patients={cancer.patients} testIds={cancer.testIds} /></div>
-    <div class="wide"><RBFLab client:visible patients={cancer.patients} testIds={cancer.testIds} grid={grid} /></div>
+    <div class="wide"><Lazy client:visible view="ch5/CLab" data={{ patients: `${cancerUrl}#patients`, testIds: `${cancerUrl}#testIds` }} /></div>
+    <div class="wide"><Lazy client:visible view="ch5/RBFLab" data={{ patients: `${cancerUrl}#patients`, testIds: `${cancerUrl}#testIds`, grid: gridUrl }} /></div>
     <div class="prose">
       <h3>Bẫy thường gặp</h3>
       <ul>

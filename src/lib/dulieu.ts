@@ -1,5 +1,8 @@
 /** Dữ liệu lớn của chương 3: chỉ tải khi một phòng thí nghiệm cần, và chỉ tải một lần. */
 import { imputeMedian, standardize } from './ml-core';
+import californiaUrl from '../data/california.json?url';
+import cancer30Url from '../data/cancer30.json?url';
+import { loadJSON } from './data';
 
 export interface Cal {
   n: number; cats: string[];
@@ -8,14 +11,8 @@ export interface Cal {
 }
 export interface Cancer30 { features: string[]; X: number[][]; y: number[]; testIds: number[] }
 
-const base = (import.meta.env.BASE_URL ?? '/').replace(/\/$/, '');
-const cache = new Map<string, Promise<unknown>>();
-function load<T>(file: string): Promise<T> {
-  if (!cache.has(file)) cache.set(file, fetch(`${base}/data/${file}`).then((r) => { if (!r.ok) throw new Error(`Không tải được ${file} (${r.status})`); return r.json(); }));
-  return cache.get(file) as Promise<T>;
-}
-export const loadCalifornia = () => load<Cal>('california.json');
-export const loadCancer30 = () => load<Cancer30>('cancer30.json');
+export const loadCalifornia = () => loadJSON<Cal>(californiaUrl);
+export const loadCancer30 = () => loadJSON<Cancer30>(cancer30Url);
 
 export const oceanVi: Record<string, string> = {
   '<1H OCEAN': 'cách biển dưới 1 giờ', INLAND: 'nội địa', 'NEAR OCEAN': 'gần biển', 'NEAR BAY': 'gần vịnh', ISLAND: 'trên đảo',

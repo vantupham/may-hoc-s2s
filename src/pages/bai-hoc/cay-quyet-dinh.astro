@@ -1,18 +1,15 @@
 ---
 import Lesson from '../../layouts/Lesson.astro';
 import Tex from '../../components/Tex.svelte';
-import SplitLab from '../../components/ch4/SplitLab.svelte';
-import TreeLab from '../../components/ch4/TreeLab.svelte';
-import EnsembleLab from '../../components/ch4/EnsembleLab.svelte';
 import PyCell from '../../components/PyCell.svelte';
 import Quiz from '../../components/Quiz.svelte';
 import data from '../../data/titanic.json';
 import { fmt } from '../../lib/ml-core';
+import titanicUrl from '../../data/titanic.json?url';
+import Lazy from '../../components/Lazy.svelte';
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const P = data.people;
-const test = new Set(data.testIds);
-const trainRows = P.filter((p) => !test.has(p.id)).map((p) => ({ x: data.features.map((f) => (p as any)[f] as number), y: p.survived }));
 const rate = (g: typeof P) => (100 * g.filter((p) => p.survived).length) / g.length;
 const groups = [
   ['Nam', P.filter((p) => !p.sex)], ['Nữ', P.filter((p) => p.sex)],
@@ -26,7 +23,7 @@ from pyodide.http import open_url
 from sklearn.tree import DecisionTreeClassifier, export_text
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 
-d = json.loads(open_url("${base}/data/titanic.json").read())
+d = json.loads(open_url("${titanicUrl}").read())
 F = d["features"]                      # sex, pclass, age, fare, family
 test = set(d["testIds"])
 X = np.array([[p[f] for f in F] for p in d["people"]], dtype=float)
@@ -81,7 +78,7 @@ print("Mức quan trọng của đặc trưng (rừng):", dict(zip(F, rung.featu
       <h2><span class="step-no">4</span>Tính tay từng bước</h2>
       <p>Tìm câu hỏi đầu tiên — gốc của cây. Thử kéo ngưỡng tuổi và xem Gini thay đổi; rồi so sánh câu hỏi tốt nhất của từng đặc trưng ở bảng bên phải.</p>
     </div>
-    <div class="wide"><SplitLab client:visible rows={trainRows} /></div>
+    <div class="wide"><Lazy client:visible view="ch4/SplitLab" data={{ people: `${titanicUrl}#people`, testIds: `${titanicUrl}#testIds`, features: `${titanicUrl}#features` }} /></div>
     <div class="prose">
       <p>Giới tính thắng: Gini sau khi chia thấp nhất. Sau đó cây lặp lại đúng quy trình này riêng cho nhóm nam và riêng cho nhóm nữ, cho đến khi đạt độ sâu tối đa hoặc nhóm đã thuần một loại.</p>
     </div>
@@ -118,8 +115,8 @@ print("Mức quan trọng của đặc trưng (rừng):", dict(zip(F, rung.featu
     <div class="prose">
       <h2><span class="step-no">7</span>Toàn bộ dữ liệu và đánh giá</h2>
     </div>
-    <div class="wide"><TreeLab client:visible people={P} testIds={data.testIds} features={data.features} /></div>
-    <div class="wide"><EnsembleLab client:visible people={P} testIds={data.testIds} features={data.features} /></div>
+    <div class="wide"><Lazy client:visible view="ch4/TreeLab" data={{ people: `${titanicUrl}#people`, testIds: `${titanicUrl}#testIds`, features: `${titanicUrl}#features` }} /></div>
+    <div class="wide"><Lazy client:visible view="ch4/EnsembleLab" data={{ people: `${titanicUrl}#people`, testIds: `${titanicUrl}#testIds`, features: `${titanicUrl}#features` }} /></div>
     <div class="prose">
       <p>Với chỉ 178 hành khách trong tập test, mỗi người đoán đúng hay sai thay đổi độ chính xác hơn nửa điểm phần trăm. Bấm "Trồng lại rừng khác" để thấy kết quả dao động bao nhiêu chỉ vì may rủi.</p>
       <h3>Bẫy thường gặp</h3>

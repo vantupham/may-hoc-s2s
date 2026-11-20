@@ -14,8 +14,8 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.neighbors import KNeighborsClassifier
 
 ROOT = Path(__file__).resolve().parent.parent
-OUT, FIX, PUB = ROOT / "src/data", ROOT / "tests/fixtures", ROOT / "public/data"
-for d in (OUT, FIX, PUB):
+OUT, FIX = ROOT / "src/data", ROOT / "tests/fixtures"
+for d in (OUT, FIX):
     d.mkdir(parents=True, exist_ok=True)
 rng = np.random.default_rng(3)
 
@@ -106,5 +106,3 @@ dump(FIX / "ch3.json", {
     "nbJointLog": jl[:50].tolist(),
     "nbAccuracy": float((nb.predict(Xte) == np.array(yte)).mean()),
 })
-for name in ("iris.json", "sms.json"):
-    (PUB / name).write_bytes((OUT / name).read_bytes())

@@ -15,7 +15,7 @@ from sklearn.model_selection import GroupKFold
 from sklearn.preprocessing import MinMaxScaler, OneHotEncoder, StandardScaler
 
 ROOT = Path(__file__).resolve().parent.parent
-PUB, FIX = ROOT / "public/data", ROOT / "tests/fixtures"
+OUT, FIX = ROOT / "src/data", ROOT / "tests/fixtures"
 CATS = ["<1H OCEAN", "INLAND", "NEAR OCEAN", "NEAR BAY", "ISLAND"]
 
 
@@ -61,12 +61,12 @@ for k, (c, d) in cols.items():
     cal[k] = [r(v, d) if d else (None if np.isnan(v) else int(v)) for v in df[c]]
 cal["value"] = [round(v / 1e5, 5) for v in df["median_house_value"]]
 cal["ocean"] = [CATS.index(v) for v in df["ocean_proximity"]]
-(PUB / "california.json").write_text(json.dumps(cal, separators=(",", ":")))
+(OUT / "california.json").write_text(json.dumps(cal, separators=(",", ":")))
 
 # ---------- Breast Cancer 30 đặc trưng ----------
 bc = load_breast_cancer()
 bc_test = sorted(permutation(569, 2026)[:114])
-(PUB / "cancer30.json").write_text(json.dumps({
+(OUT / "cancer30.json").write_text(json.dumps({
     "source": "Breast Cancer Wisconsin (Diagnostic), UCI; bản có sẵn trong scikit-learn",
     "features": list(bc.feature_names),
     "X": [[float(f"{v:.6g}") for v in row] for row in bc.data],
@@ -135,5 +135,5 @@ flags = sorted([i for i in range(len(yn)) if pj(i, 1 - yn[i]) >= t[1 - yn[i]]])
 ref["noise"] = {"p": 0.2, "seed": 11, "flipped": flipped, "oof": oof.tolist(), "t": t, "flags": flags}
 
 json.dump(ref, open(FIX / "dulieu.json", "w"))
-print("california", (PUB / "california.json").stat().st_size // 1024, "KB; cancer30", (PUB / "cancer30.json").stat().st_size // 1024, "KB")
+print("california", (OUT / "california.json").stat().st_size // 1024, "KB; cancer30", (OUT / "cancer30.json").stat().st_size // 1024, "KB")
 print("flipped", len(flipped), "flags", len(flags), "hit", len(set(flags) & set(flipped)))

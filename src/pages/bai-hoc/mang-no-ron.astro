@@ -2,7 +2,6 @@
 import Lesson from '../../layouts/Lesson.astro';
 import Tex from '../../components/Tex.svelte';
 import BackpropLab from '../../components/ch8/BackpropLab.svelte';
-import DigitTrainer from '../../components/ch8/DigitTrainer.svelte';
 import DigitImg from '../../components/DigitImg.svelte';
 import PyCell from '../../components/PyCell.svelte';
 import Quiz from '../../components/Quiz.svelte';
@@ -10,8 +9,9 @@ import cancer from '../../data/cancer.json';
 import dg from '../../data/digits.json';
 import split from '../../data/digits-split.json';
 import tiny from '../../data/tinynet.json';
+import digitsUrl from '../../data/digits.json?url';
+import Lazy from '../../components/Lazy.svelte';
 
-const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 // Hình nhỏ ba hàm kích hoạt
 const AW = 170, AH = 110;
 const act = [
@@ -28,7 +28,7 @@ const sampleDigits = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => dg.digits.filter(
 const pyCode = `import numpy as np, json
 from pyodide.http import open_url
 
-d = json.loads(open_url("${base}/data/digits.json").read())["digits"]
+d = json.loads(open_url("${digitsUrl}").read())["digits"]
 X = np.array([x["px"] for x in d]) / 16.0
 Y = np.array([x["y"] for x in d])
 rng = np.random.default_rng(0)
@@ -131,7 +131,7 @@ for epoch in range(15):
     <div class="prose">
       <h2><span class="step-no">7</span>Toàn bộ dữ liệu và đánh giá</h2>
     </div>
-    <div class="wide"><DigitTrainer client:visible digits={dg.digits} testIds={split.testIds} /></div>
+    <div class="wide"><Lazy client:visible view="ch8/DigitTrainer" data={{ digits: `${digitsUrl}#digits` }} props={{ testIds: split.testIds }} /></div>
     <div class="prose">
       <p>Sau khoảng 15 epoch, mạng đạt khoảng 95–97% trên tập test, tuỳ khởi tạo. Thử η = 2: mất mát nhảy loạn, giống quả bóng văng khỏi lòng chảo ở chương 0. Thử η = 0,01: học rất chậm.</p>
       <h3>Bẫy thường gặp</h3>

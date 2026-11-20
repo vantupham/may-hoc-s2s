@@ -1,17 +1,16 @@
 ---
 import Lesson from '../../layouts/Lesson.astro';
 import Tex from '../../components/Tex.svelte';
-import KMeansLab from '../../components/ch6/KMeansLab.svelte';
-import ClusterEval from '../../components/ch6/ClusterEval.svelte';
-import PCALab from '../../components/ch6/PCALab.svelte';
 import DigitImg from '../../components/DigitImg.svelte';
 import PyCell from '../../components/PyCell.svelte';
 import Quiz from '../../components/Quiz.svelte';
 import peng from '../../data/penguins.json';
 import dg from '../../data/digits.json';
 import { fmt } from '../../lib/ml-core';
+import penguinsUrl from '../../data/penguins.json?url';
+import digitsUrl from '../../data/digits.json?url';
+import Lazy from '../../components/Lazy.svelte';
 
-const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const sp = peng.species;
 const avg = (k: number, f: 'len' | 'dep') => { const g = peng.birds.filter((b) => b.species === k); return g.reduce((a, b) => a + b[f], 0) / g.length; };
 const sampleDigits = Array.from({ length: 10 }, (_, d) => dg.digits.find((x) => x.y === d)!);
@@ -21,7 +20,7 @@ from pyodide.http import open_url
 from sklearn.cluster import KMeans, DBSCAN
 from sklearn.decomposition import PCA
 
-p = json.loads(open_url("${base}/data/penguins.json").read())
+p = json.loads(open_url("${penguinsUrl}").read())
 Z = np.array([[b["a"], b["b"]] for b in p["birds"]])        # số đo mỏ đã chuẩn hoá
 loai = np.array([b["species"] for b in p["birds"]])
 
@@ -33,7 +32,7 @@ for c in range(3):
 db = DBSCAN(eps=0.28, min_samples=5).fit(Z)
 print("DBSCAN:", len(set(db.labels_)) - 1, "cụm,", (db.labels_ == -1).sum(), "điểm nhiễu")
 
-d = json.loads(open_url("${base}/data/digits.json").read())
+d = json.loads(open_url("${digitsUrl}").read())
 X = np.array([x["px"] for x in d["digits"]], dtype=float)
 pca = PCA().fit(X)
 print("Phương sai giữ lại với 2, 10, 20 thành phần:", pca.explained_variance_ratio_.cumsum()[[1, 9, 19]].round(3))`;
@@ -75,7 +74,7 @@ print("Phương sai giữ lại với 2, 10, 20 thành phần:", pca.explained_v
     <div class="prose">
       <h2><span class="step-no">4</span>Tính tay từng bước</h2>
     </div>
-    <div class="wide"><KMeansLab client:visible birds={peng.birds} initIdx={peng.initIdx} species={sp} mean={peng.mean} std={peng.std} /></div>
+    <div class="wide"><Lazy client:visible view="ch6/KMeansLab" data={{ birds: `${penguinsUrl}#birds` }} props={{ initIdx: peng.initIdx, species: sp, mean: peng.mean, std: peng.std }} /></div>
     <div class="prose">
       <p>Bật "Tô màu theo loài thật" ở vòng cuối: ba cụm khớp ba loài khá tốt, dù thuật toán chưa từng thấy nhãn. Chỗ nhầm nằm ở vùng Chinstrap giáp Gentoo. Bấm "Khởi tạo tâm khác" vài lần — đôi khi K-means kẹt ở một lời giải kém hơn.</p>
     </div>
@@ -108,8 +107,8 @@ print("Phương sai giữ lại với 2, 10, 20 thành phần:", pca.explained_v
       <h2><span class="step-no">7</span>Toàn bộ dữ liệu và đánh giá</h2>
       <p>Học không giám sát khó đánh giá vì không có đáp án. Ở đây ta "gian lận" một chút: có nhãn loài thật để kiểm tra. Trong thực tế, ta dựa vào các chỉ số nội tại và hiểu biết về lĩnh vực.</p>
     </div>
-    <div class="wide"><ClusterEval client:visible birds={peng.birds} species={sp} /></div>
-    <div class="wide"><PCALab client:visible digits={dg.digits} /></div>
+    <div class="wide"><Lazy client:visible view="ch6/ClusterEval" data={{ birds: `${penguinsUrl}#birds` }} props={{ species: sp }} /></div>
+    <div class="wide"><Lazy client:visible view="ch6/PCALab" data={{ digits: `${digitsUrl}#digits` }} /></div>
     <div class="prose">
       <p>Chỉ với 2 thành phần, các chữ số 0, 4, 6 đã tách khá rõ. Khoảng 20 thành phần giữ được gần 90% phương sai: ảnh 64 số có thể nén còn 20 số mà vẫn nhận ra. Chương 9 sẽ dùng chính bộ chữ số này để huấn luyện một mạng nơ-ron.</p>
       <h3>Bẫy thường gặp</h3>
