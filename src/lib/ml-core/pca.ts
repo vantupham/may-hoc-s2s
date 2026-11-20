@@ -27,7 +27,7 @@ export function covariance(X: number[][], mu = mean(X)) {
 export function jacobiEigen(S: number[][], sweeps = 60) {
   const n = S.length;
   const A = S.map((r) => [...r]);
-  const V = Array.from({ length: n }, (_, i) => Array.from({ length: n }, (_, j) => (i === j ? 1 : 0)));
+  const V = Array.from({ length: n }, (_, i) => Array.from({ length: n }, (_, j): number => (i === j ? 1 : 0)));
   for (let s = 0; s < sweeps; s++) {
     let off = 0;
     for (let p = 0; p < n; p++) for (let q = p + 1; q < n; q++) off += A[p][q] ** 2;

@@ -163,7 +163,9 @@ function regTree(rows: RRow[], maxDepth: number, nFeatures: number): TreeNode {
 
 export function gradientBoosting(rows: Row[], o: { nStages: number; lr: number; maxDepth: number; nFeatures: number }) {
   const p0 = rows.reduce((a, r) => a + r.y, 0) / rows.length;
-  const f0 = Math.log(p0 / (1 - p0));
+  // tập chỉ có một lớp: cắt p0 để log-odds ban đầu hữu hạn
+  const q0 = Math.min(1 - 1e-12, Math.max(1e-12, p0));
+  const f0 = Math.log(q0 / (1 - q0));
   const F = rows.map(() => f0);
   const trees: TreeNode[] = [];
   const losses: number[] = [];

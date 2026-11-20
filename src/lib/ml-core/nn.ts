@@ -11,7 +11,9 @@ export function tinyPass(net: Tiny, x: [number, number], y: number) {
   const a1 = z1.map(Math.tanh);
   const z2 = net.w2.reduce((a, w, j) => a + w * a1[j], net.b2);
   const p = 1 / (1 + Math.exp(-z2));
-  const loss = -(y * Math.log(p) + (1 - y) * Math.log(1 - p));
+  // cắt p khỏi 0 và 1 để log không ra −∞ khi mạng quá tự tin
+  const q = Math.min(1 - 1e-12, Math.max(1e-12, p));
+  const loss = -(y * Math.log(q) + (1 - y) * Math.log(1 - q));
   const dz2 = p - y;
   const dw2 = a1.map((a) => dz2 * a);
   const da1 = net.w2.map((w) => dz2 * w);

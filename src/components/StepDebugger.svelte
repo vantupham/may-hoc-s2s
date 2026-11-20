@@ -37,7 +37,7 @@
   }
 </script>
 
-<div class="dbg" role="group" aria-label="Điều khiển từng bước" tabindex="0" onkeydown={onkey}>
+<div class="dbg" role="toolbar" aria-label="Điều khiển từng bước" tabindex="0" onkeydown={onkey}>
   <div class="buttons">
     <button class="btn" type="button" onclick={() => { playing = false; current = 0; }} title="Về bước đầu" aria-label="Về bước đầu">⏮</button>
     <button class="btn" type="button" onclick={() => { playing = false; current = Math.max(0, current - 1); }} disabled={current === 0} title="Lùi một bước" aria-label="Lùi một bước">◀</button>

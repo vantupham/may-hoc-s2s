@@ -87,8 +87,10 @@ export function rocCurve(prob: number[], y: number[]) {
   for (let k = 0; k < idx.length; k++) {
     const i = idx[k];
     if (y[i] === 1) tp++; else fp++;
-    if (k === idx.length - 1 || prob[idx[k + 1]] !== prob[i]) pts.push({ thr: prob[i], fpr: fp / N, tpr: tp / P, tp, fp });
+    if (k === idx.length - 1 || prob[idx[k + 1]] !== prob[i]) pts.push({ thr: prob[i], fpr: N ? fp / N : 0, tpr: P ? tp / P : 0, tp, fp });
   }
+  // Chỉ có một lớp thì AUC không xác định
+  if (P === 0 || N === 0) return { pts, auc: NaN, P, N };
   let auc = 0;
   for (let k = 1; k < pts.length; k++) auc += (pts[k].fpr - pts[k - 1].fpr) * (pts[k].tpr + pts[k - 1].tpr) / 2;
   return { pts, auc, P, N };

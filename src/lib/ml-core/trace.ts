@@ -56,7 +56,7 @@ export function fmt(v: number, digits = 3): string {
   let s: string;
   if (abs !== 0 && (abs >= 1e6 || abs < 1e-4)) s = v.toExponential(2);
   else s = v.toFixed(digits);
-  return s.replace('-', '−').replace('.', ',');
+  return s.replace(/-/g, '−').replace('.', ',');
 }
 
 /** Số trong LaTeX: dùng {,} để KaTeX không chèn khoảng trắng sau dấu phẩy. */
