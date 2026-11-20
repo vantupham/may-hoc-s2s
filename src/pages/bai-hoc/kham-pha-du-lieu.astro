@@ -1,0 +1,189 @@
+---
+import { readFileSync } from 'node:fs';
+import Lesson from '../../layouts/Lesson.astro';
+import Tex from '../../components/Tex.svelte';
+import ProfileLab from '../../components/dulieu/ProfileLab.svelte';
+import CorrLab from '../../components/dulieu/CorrLab.svelte';
+import OutlierLab from '../../components/dulieu/OutlierLab.svelte';
+import HandStats from '../../components/dulieu/HandStats.svelte';
+import NoiseLab from '../../components/dulieu/NoiseLab.svelte';
+import ShiftLab from '../../components/dulieu/ShiftLab.svelte';
+import PyCell from '../../components/PyCell.svelte';
+import Quiz from '../../components/Quiz.svelte';
+import titanic from '../../data/titanic.json';
+import { permutation } from '../../lib/ml-core';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const cal = JSON.parse(readFileSync('public/data/california.json', 'utf8'));
+// 9 khu vực ngẫu nhiên và khu vực đầu tiên có thu nhập bị chặn ở 15,0001
+const ids = [...permutation(cal.n, 3).slice(0, 9), cal.income.indexOf(15.0001)];
+const rows = ids.map((i: number) => ({ id: i, income: cal.income[i], value: cal.value[i] }));
+
+// Titanic: ô tuổi thiếu theo hạng vé, tỷ lệ sống theo giới tính
+const ppl = titanic.people;
+const byClass = [1, 2, 3].map((c) => { const g = ppl.filter((p) => p.pclass === c); return { c, n: g.length, miss: g.filter((p) => p.ageMissing).length }; });
+const pct = (a: number, b: number) => ((100 * a) / b).toFixed(0);
+const surv = (f: (p: (typeof ppl)[number]) => boolean) => { const g = ppl.filter(f); return pct(g.filter((p) => p.survived).length, g.length); };
+
+const pyCode = `import json
+import pandas as pd
+from pyodide.http import open_url
+
+raw = json.loads(open_url("${base}/data/california.json").read())
+cot = ["lon", "lat", "age", "rooms", "bedrooms", "pop", "hh", "income", "value"]
+df = pd.DataFrame({k: raw[k] for k in cot})
+df["ocean"] = [raw["cats"][c] for c in raw["ocean"]]
+
+print(df.describe().round(3).T)                 # phiếu khám từng cột
+print("\\nÔ thiếu:", df.isna().sum()[lambda s: s > 0].to_dict())
+print("Dòng trùng hoàn toàn:", df.duplicated().sum())
+print("Dòng trùng toạ độ:", df.duplicated(["lon", "lat"]).sum())
+print("Số khu vực ở đúng giá trần:", (df.value == df.value.max()).sum())
+print(df.ocean.value_counts())
+
+# Ngoại lai theo quy tắc 1,5·IQR trên "người mỗi hộ"
+nph = df["pop"] / df.hh
+q1, q3 = nph.quantile([0.25, 0.75])
+ngoai_lai = nph[(nph < q1 - 1.5 * (q3 - q1)) | (nph > q3 + 1.5 * (q3 - q1))]
+print("\\nNgoại lai người/hộ:", len(ngoai_lai), "khu vực; lớn nhất", round(nph.max(), 1))
+
+print(df[cot].corr().round(2))`;
+---
+<Lesson slug="kham-pha-du-lieu" data="toàn bộ 20.640 khu vực California Housing với đủ 10 cột, và 569 mẫu sinh thiết Breast Cancer Wisconsin với đủ 30 đặc trưng" lead="Ba chương trước, dữ liệu luôn đến tay ta đã sạch sẽ: đúng hai cột, không ô trống, chia sẵn train và test. Ngoài đời không như vậy. Chương này dạy cách khám một bộ dữ liệu trước khi đưa cho mô hình: thiếu ở đâu, sai ở đâu, và nó có giống thế giới mà mô hình sẽ phải làm việc hay không.">
+
+  <section id="bai-toan">
+    <div class="prose">
+      <h2><span class="step-no">1</span>Bài toán</h2>
+      <p>Một đồng nghiệp gửi bạn một tệp 20.640 dòng về giá nhà ở California và hỏi: <i>"Dữ liệu này dùng để huấn luyện mô hình được chưa?"</i></p>
+      <p>Câu hỏi nghe đơn giản nhưng không có nút bấm nào trả lời thay. Mô hình nào cũng sẽ học <b>mọi thứ</b> có trong dữ liệu, kể cả lỗi nhập liệu, kể cả những thói quen của người thu thập. Nếu 965 căn nhà bị ghi giá "500.001 USD" vì hệ thống không lưu được số lớn hơn, mô hình sẽ học rằng giá nhà California không bao giờ vượt quá 500.001 USD.</p>
+      <p>Cả chương này xoay quanh một câu hỏi: <b>nếu chỉ được cải thiện một thứ, nên cải thiện mô hình hay cải thiện dữ liệu?</b> Bài 3A này dạy cách nhìn và đo. Bài 3B sẽ dạy cách sửa.</p>
+    </div>
+  </section>
+
+  <section id="kham-pha">
+    <div class="prose">
+      <h2><span class="step-no">2</span>Khám phá dữ liệu</h2>
+      <p>Việc đầu tiên là lập một "phiếu khám sức khoẻ" cho từng cột: có bao nhiêu ô, thiếu bao nhiêu, giá trị nằm trong khoảng nào, phân bố ra sao. Hãy bấm qua từng cột và đọc các cờ cảnh báo.</p>
+    </div>
+    <div class="wide"><ProfileLab client:visible /></div>
+    <div class="prose">
+      <p>Chỉ năm phút khám đã thấy bốn vấn đề: cột phòng ngủ thiếu 207 ô; giá nhà, tuổi nhà và thu nhập đều bị chặn trần; các cột đếm lệch phải rất mạnh; và loại "trên đảo" chỉ có 5 khu vực. Không vấn đề nào làm chương trình báo lỗi. Mô hình vẫn sẽ chạy và vẫn cho ra một con số — chỉ là con số đó sai theo những cách khó thấy.</p>
+      <p>Bước tiếp theo: xem các cột liên quan với nhau thế nào.</p>
+    </div>
+    <div class="wide"><CorrLab client:visible /></div>
+  </section>
+
+  <section id="truc-giac">
+    <div class="prose">
+      <h2><span class="step-no">3</span>Trực giác</h2>
+      <p>Người làm học máy có câu "rác vào, rác ra". Mô hình không biết dòng nào là lỗi: nó chỉ cố gắng khớp mọi dòng. Với hồi quy, sai số bị <b>bình phương</b> trước khi cộng lại, nên một điểm sai lệch xa có sức nặng bằng hàng chục điểm bình thường.</p>
+      <p>Nhưng không phải điểm lạ nào cũng là rác. Một khu vực có 1.000 người mà chỉ 4 hộ không phải lỗi gõ phím: đó có thể là một trại lính. Việc của người làm dữ liệu là <b>hỏi vì sao</b> trước khi xoá.</p>
+    </div>
+    <div class="wide"><OutlierLab client:visible /></div>
+  </section>
+
+  <section id="tinh-tay">
+    <div class="prose">
+      <h2><span class="step-no">4</span>Tính tay từng bước</h2>
+      <p>Mọi con số trong phiếu khám đều từ vài công thức đơn giản. Ta tính lại trên 10 khu vực để thấy rõ từng bước, trong đó có một khu vực mang thu nhập lớn nhất bộ dữ liệu.</p>
+    </div>
+    <div class="wide"><HandStats client:visible rows={rows} /></div>
+    <div class="prose">
+      <p>Hãy so trung bình với trung vị: chỉ một khu vực đã kéo trung bình lên rõ rệt, còn trung vị gần như không đổi. Đó là lý do phiếu khám luôn đặt hai con số cạnh nhau. Khi trung bình lệch xa trung vị, dữ liệu có một cái đuôi dài cần xem kỹ.</p>
+    </div>
+  </section>
+
+  <section id="ly-thuyet">
+    <div class="prose">
+      <h2><span class="step-no">5</span>Lý thuyết</h2>
+      <h3>Thế nào là một bộ dữ liệu tốt</h3>
+      <p>Không có bộ dữ liệu "tốt nhất" nói chung, chỉ có bộ dữ liệu tốt nhất <b>cho một bài toán và một nơi sử dụng cụ thể</b>. Tám tiêu chí dưới đây giúp kiểm tra điều đó. Mỗi tiêu chí có một cách đo bằng con số, và đa số đã có phòng thí nghiệm trong hai bài 3A và 3B.</p>
+      <table class="data crit">
+        <thead><tr><th>Tiêu chí</th><th>Câu hỏi kiểm tra</th><th>Đo bằng</th></tr></thead>
+        <tbody>
+          <tr><td>1. Phù hợp bài toán</td><td>Đặc trưng có sẵn vào lúc cần dự đoán không?</td><td>Rà từng cột theo thời điểm thu thập (3B)</td></tr>
+          <tr><td>2. Đại diện</td><td>Dữ liệu huấn luyện có giống dữ liệu dùng thật?</td><td>AUC của mô hình phân biệt hai tập (phần 7)</td></tr>
+          <tr><td>3. Nhãn đúng</td><td>Bao nhiêu nhãn bị sai?</td><td>Số mẫu bị cross-validation "phản đối" (phần 7)</td></tr>
+          <tr><td>4. Đủ nhiều</td><td>Thêm dữ liệu còn giúp không?</td><td>Đường cong học (3B)</td></tr>
+          <tr><td>5. Đầy đủ, nhất quán</td><td>Thiếu, trùng, chặn trần bao nhiêu?</td><td>Phiếu khám (phần 2)</td></tr>
+          <tr><td>6. Cân bằng, công bằng</td><td>Mỗi lớp, mỗi nhóm người có đủ mẫu?</td><td>Tỷ lệ lớp; độ chính xác từng nhóm</td></tr>
+          <tr><td>7. Tách bạch train/test</td><td>Có mẫu gần như giống hệt ở cả hai tập?</td><td>So chia ngẫu nhiên với chia theo nhóm (3B)</td></tr>
+          <tr><td>8. Hợp pháp, có tài liệu</td><td>Được phép dùng không? Ai thu thập, khi nào?</td><td>Giấy phép; phiếu dữ liệu (3B)</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Kiểu dữ liệu</h3>
+      <p><b>Số liên tục</b> (thu nhập, vĩ độ) có thể cộng trừ và lấy trung bình. <b>Số đếm</b> (số phòng, dân số) cũng là số, nhưng thường lệch phải và phụ thuộc vào cỡ của đơn vị đo. <b>Phân loại</b> (vị trí so với biển) chỉ là tên gọi; đánh số 0, 1, 2 cho chúng là tự bịa ra một thứ tự không tồn tại. <b>Phân loại có thứ tự</b> (hạng vé 1, 2, 3 trên Titanic) có thứ tự nhưng khoảng cách giữa các mức không nhất thiết bằng nhau.</p>
+
+      <h3>Ba lý do khiến dữ liệu bị thiếu</h3>
+      <p>Cách xử lý ô thiếu phụ thuộc vào <i>vì sao</i> nó thiếu:</p>
+      <ul>
+        <li><b>Thiếu hoàn toàn ngẫu nhiên</b> (MCAR): việc thiếu không liên quan đến bất cứ thứ gì. Ví dụ phiếu điều tra bị mất ngẫu nhiên. Bỏ dòng thiếu không làm lệch kết quả, chỉ làm mất dữ liệu.</li>
+        <li><b>Thiếu ngẫu nhiên có điều kiện</b> (MAR): việc thiếu phụ thuộc vào các cột khác đã quan sát. Trên Titanic, {pct(byClass[2].miss, byClass[2].n)}% hành khách hạng ba không rõ tuổi, so với {pct(byClass[1].miss, byClass[1].n)}% ở hạng hai. Điền tuổi theo nhóm (ví dụ theo hạng vé hoặc danh xưng) sẽ tốt hơn điền một con số chung.</li>
+        <li><b>Thiếu không ngẫu nhiên</b> (MNAR): việc thiếu phụ thuộc vào chính giá trị bị thiếu. Ví dụ người thu nhập rất cao thường không khai thu nhập. Không cách điền nào sửa được hoàn toàn; ít nhất nên thêm một cột "có bị thiếu không" để mô hình biết.</li>
+      </ul>
+      <p>Bản thân việc thiếu cũng là thông tin: trên Titanic, chỉ {surv((p) => p.ageMissing)}% hành khách không rõ tuổi sống sót, so với {surv((p) => !p.ageMissing)}% hành khách có ghi tuổi.</p>
+
+      <h3>Ngoại lai: hai quy tắc và giới hạn của chúng</h3>
+      <Tex tex={String.raw`x \text{ là ngoại lai} \iff x < Q_1 - k\cdot\text{IQR} \ \text{ hoặc } \ x > Q_3 + k\cdot\text{IQR}, \qquad k = 1{,}5`} display />
+      <Tex tex={String.raw`x \text{ là ngoại lai} \iff \left|\frac{x-\bar x}{\sigma}\right| > 3`} display />
+      <p>Quy tắc IQR dựa trên tứ phân vị nên không bị chính các ngoại lai kéo lệch. Điểm z dựa trên trung bình và độ lệch chuẩn — hai đại lượng mà ngoại lai làm phình to — nên với dữ liệu lệch phải nó đánh dấu quá ít ở đuôi lớn và không bao giờ đánh dấu được đuôi nhỏ. Cả hai chỉ <b>gợi ý</b> nên nhìn vào đâu.</p>
+
+      <h3>Tương quan</h3>
+      <p>Hệ số Pearson r đo mức độ các điểm nằm gần một đường thẳng, từ −1 đến 1. Nó có ba giới hạn cần nhớ: chỉ đo quan hệ <i>tuyến tính</i>; rất nhạy với ngoại lai; và không nói gì về <i>nhân quả</i>. Hai cột có thể tương quan mạnh chỉ vì cùng phụ thuộc vào một biến thứ ba, như số phòng và dân số cùng phụ thuộc vào cỡ khu vực.</p>
+
+      <h3>Lệch phân phối</h3>
+      <p>Mô hình chỉ đảm bảo hoạt động tốt trên dữ liệu <b>giống</b> dữ liệu huấn luyện. Khi phân phối của đặc trưng thay đổi (học ở nội địa, dùng ở ven biển), ta gọi là lệch đặc trưng. Khi tỷ lệ các lớp thay đổi (tập huấn luyện 13,4% tin rác, ngoài đời 40%), ta gọi là lệch nhãn. Khi chính quan hệ giữa đặc trưng và nhãn thay đổi (cùng thu nhập nhưng giá nhà tăng gấp đôi sau 30 năm), ta gọi là lệch khái niệm — loại khó phát hiện nhất.</p>
+
+      <h3>Nhãn sai</h3>
+      <p>Người gán nhãn mệt mỏi, hướng dẫn mơ hồ, ca bệnh khó: nhãn sai có trong mọi bộ dữ liệu thật. Ý tưởng của "confident learning" rất gọn: cho mỗi mẫu một xác suất <i>ngoài tập</i> (từ mô hình không thấy nó khi học), tính ngưỡng tự tin trung bình của từng lớp, rồi nghi những mẫu mà mô hình tin vào lớp khác mạnh hơn ngưỡng đó:</p>
+      <Tex tex={String.raw`t_j = \frac{1}{|\{i: \tilde y_i = j\}|}\sum_{i:\,\tilde y_i = j} \hat p_j(x_i), \qquad \text{nghi sai} \iff \exists\, j \ne \tilde y_i:\ \hat p_j(x_i) \ge t_j`} display />
+      <p>ỹ là nhãn đang ghi (có thể sai), p̂<sub>j</sub> là xác suất ngoài tập của lớp j. Nhóm tác giả của phương pháp này đã dùng nó để tìm ra nhãn sai ngay trong MNIST, bộ dữ liệu từng được coi là không có lỗi.</p>
+
+      <h3>Cân bằng và công bằng</h3>
+      <p>Trên Titanic, {surv((p) => p.sex === 1)}% phụ nữ sống sót so với {surv((p) => p.sex === 0)}% nam giới. Một mô hình học từ đây sẽ dựa rất nhiều vào giới tính — điều đúng với lịch sử năm 1912 nhưng sẽ là phân biệt đối xử nếu dùng cho một quyết định ngày nay. Kiểm tra một bộ dữ liệu luôn gồm câu hỏi: mỗi nhóm người có bao nhiêu mẫu, và mô hình sai nhiều hơn ở nhóm nào?</p>
+    </div>
+  </section>
+
+  <section id="ma-nguon">
+    <div class="prose">
+      <h2><span class="step-no">6</span>Mã nguồn</h2>
+      <p>Toàn bộ phiếu khám ở phần 2 gói gọn trong vài lệnh pandas. Tạo thói quen chạy chúng <b>trước</b> khi viết dòng huấn luyện đầu tiên.</p>
+      <PyCell client:visible code={pyCode} packages={['pandas']} title="kham_du_lieu.py" />
+    </div>
+  </section>
+
+  <section id="danh-gia">
+    <div class="prose">
+      <h2><span class="step-no">7</span>Toàn bộ dữ liệu và đánh giá</h2>
+      <p>Hai lỗi nguy hiểm nhất không lộ ra trong phiếu khám, vì từng cột nhìn vẫn bình thường: <b>nhãn sai</b> và <b>dữ liệu không đại diện</b>. Ta đo cả hai bằng mô hình.</p>
+    </div>
+    <div class="wide"><NoiseLab client:visible /></div>
+    <div class="prose">
+      <p>Hồi quy logistic khá bền với nhãn lật ngẫu nhiên: tới 30%, độ chính xác chỉ giảm vài điểm; đến 40% thì sụp hẳn. Điều đáng chú ý hơn nằm ở bảng dưới: phần lớn các mẫu bị mô hình "phản đối" đúng là những mẫu ta đã lật. Nghĩa là chính mô hình học trên dữ liệu bẩn có thể giúp làm sạch dữ liệu: ta không cần kiểm tra lại cả 455 mẫu, chỉ cần nhờ chuyên gia xem lại vài chục mẫu bị nghi. Ngay cả khi không lật nhãn nào, vẫn có vài mẫu bị nghi: đó là những ca khó, hoặc chính bộ dữ liệu gốc đã có nhãn đáng xem lại.</p>
+    </div>
+    <div class="wide"><ShiftLab client:visible /></div>
+    <div class="prose">
+      <p>Học ở nội địa rồi dùng ở gần vịnh, sai số tăng mạnh, dù trên phần giữ lại của vùng nội địa mô hình trông rất ổn. Con số đánh giá chỉ đáng tin khi tập test giống nơi mô hình sẽ được dùng.</p>
+      <h3>Bẫy thường gặp</h3>
+      <ul>
+        <li><b>Xoá mọi ngoại lai theo quy tắc.</b> Ngoại lai có thể là lỗi, cũng có thể là trường hợp quan trọng nhất. Hãy xem từng nhóm trước khi xoá.</li>
+        <li><b>Không để ý giá trị bị chặn trần.</b> 965 khu vực ghi giá 500.001 USD không phải là giá thật. Mô hình sẽ học một trần giả.</li>
+        <li><b>Tin vào tương quan.</b> Tương quan mạnh không có nghĩa là thay đổi cột này sẽ làm thay đổi cột kia.</li>
+        <li><b>Đánh giá trên tập test lấy từ cùng nơi với tập huấn luyện</b> trong khi mô hình sẽ được dùng ở nơi khác.</li>
+      </ul>
+      <h3>Kiểm tra nhanh</h3>
+      <Quiz client:visible questions={[
+        { q: 'Trung bình dân số mỗi khu vực là 1.425, trung vị là 1.166. Điều đó gợi ý gì?', options: ['Dữ liệu đối xứng', 'Có một đuôi dài về phía giá trị lớn', 'Có nhiều ô thiếu'], answer: 1, why: 'Vài khu vực rất đông dân kéo trung bình lên, còn trung vị gần như không đổi. Độ lệch (skew) của cột này gần 5.' },
+        { q: 'Một mô hình phân biệt "dòng huấn luyện" với "dòng dùng thật" đạt AUC 0,98. Nên kết luận gì?', options: ['Mô hình chính rất tốt', 'Hai tập dữ liệu khác nhau rất nhiều, điểm đánh giá trên tập huấn luyện không đáng tin', 'Cần thêm đặc trưng'], answer: 1, why: 'Nếu hai tập giống nhau, không mô hình nào phân biệt được chúng (AUC khoảng 0,5). AUC gần 1 là dấu hiệu lệch phân phối mạnh.' },
+        { q: 'Vì sao confident learning dùng xác suất ngoài tập (out-of-fold) chứ không dùng xác suất của mô hình học trên toàn bộ dữ liệu?', options: ['Để chạy nhanh hơn', 'Vì mô hình đã thấy một mẫu khi học thì có xu hướng đồng ý với nhãn của mẫu đó, kể cả khi nhãn sai', 'Vì scikit-learn bắt buộc'], answer: 1, why: 'Mô hình có thể "học thuộc" nhãn sai. Chỉ mô hình chưa thấy mẫu đó mới cho ý kiến độc lập về nhãn của nó.' },
+      ]} />
+      <p class="src">Nguồn dữ liệu: California Housing (U.S. Census 1990), Breast Cancer Wisconsin (UCI), Titanic. Phương pháp tìm nhãn sai theo Northcutt, Jiang và Chuang, <a href="https://jair.org/index.php/jair/article/view/12125">Confident Learning</a> (JAIR, 2021).</p>
+    </div>
+  </section>
+</Lesson>
+
+<style>
+  .src { font-size: 0.82rem; color: var(--pencil); margin-top: 2rem; }
+  .crit td { white-space: normal; font-family: var(--serif); font-size: 0.86rem; text-align: left; }
+</style>

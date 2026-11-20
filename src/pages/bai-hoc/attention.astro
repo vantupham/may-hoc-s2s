@@ -1,0 +1,126 @@
+---
+import Lesson from '../../layouts/Lesson.astro';
+import Tex from '../../components/Tex.svelte';
+import AttnLab from '../../components/ch10/AttnLab.svelte';
+import AttnFull from '../../components/ch10/AttnFull.svelte';
+import PyCell from '../../components/PyCell.svelte';
+import Quiz from '../../components/Quiz.svelte';
+import model from '../../data/attention.json';
+import sms from '../../data/sms.json';
+import { fmt } from '../../lib/ml-core';
+
+const pick = (s: string) => sms.test.find((t) => t.text.startsWith(s))!;
+const samples = [pick('You have won ?1,000'), pick('Is that seriously how'), pick('You have an important customer'), pick('Ahhh. Work.')];
+const nParams = model.E.length * model.d + 3 * model.d * model.d + model.d + 1;
+
+const pyCode = `import numpy as np
+
+# Self-attention bằng tay với 3 token, mỗi token 4 chiều (số nhỏ để dễ theo dõi)
+X = np.array([[1.0, 0.0, 1.0, 0.0],    # "call"
+              [0.0, 2.0, 0.0, 2.0],    # "now"
+              [1.0, 1.0, 1.0, 1.0]])   # "free"
+rng = np.random.default_rng(0)
+Wq, Wk, Wv = (rng.normal(0, 0.5, (4, 4)) for _ in range(3))
+
+Q, K, V = X @ Wq, X @ Wk, X @ Wv
+S = Q @ K.T / np.sqrt(4)                       # điểm số: mỗi hàng là một token đặt câu hỏi
+A = np.exp(S - S.max(1, keepdims=True))
+A /= A.sum(1, keepdims=True)                   # softmax theo hàng
+H = A @ V                                      # mỗi token = trung bình có trọng số của các V
+
+np.set_printoptions(precision=3, suppress=True)
+print("Ma trận chú ý A:"); print(A)
+print("Tổng mỗi hàng:", A.sum(1))
+print("Đầu ra H:"); print(H)`;
+---
+<Lesson slug="attention" data={`${sms.nTotal.toLocaleString('vi-VN')} tin nhắn SMS tiếng Anh có nhãn spam/thường (UCI), cùng cách chia train/test như chương 4`} lead="Mọi mô hình ngôn ngữ lớn ngày nay được xây trên một phép tính: attention. Mỗi từ đặt một câu hỏi, so với mọi từ khác trong câu, rồi gom thông tin từ những từ trả lời khớp nhất. Bài này huấn luyện một mô hình attention tí hon để lọc tin rác, rồi mở ra xem từng con số bên trong.">
+
+  <section id="bai-toan">
+    <div class="prose">
+      <h2><span class="step-no">1</span>Bài toán</h2>
+      <p>Cùng bài toán lọc tin rác của chương 4. Naive Bayes coi tin nhắn là một túi từ: "call now for free" và "free for now, call" là như nhau. Nó cũng không biết "free" trong "free prize" khác "free" trong "are you free tonight". Muốn hiểu ngữ cảnh, mỗi từ cần "nhìn" được các từ xung quanh nó.</p>
+      <div class="note warn"><p>Kế hoạch ban đầu dùng câu tiếng Việt. Vì chưa tìm được bộ dữ liệu câu tiếng Việt có giấy phép rõ ràng để đăng lại, bài này dùng tin nhắn tiếng Anh của chương 4. Thuật toán không thay đổi.</p></div>
+    </div>
+  </section>
+
+  <section id="kham-pha">
+    <div class="prose">
+      <h2><span class="step-no">2</span>Khám phá dữ liệu</h2>
+      <p>Mỗi tin nhắn được tách thành từ (token) như chương 4, cắt còn tối đa {model.maxLen} từ đầu tiên. Từ điển gồm 1.500 từ thường gặp nhất trong tập huấn luyện; từ khác được thay bằng ký hiệu &lt;unk&gt; (không rõ). Tin rác có xu hướng dài, nhiều số và từ thương mại; tin thường ngắn, viết tắt kiểu "u", "ur", "lol".</p>
+      <p>Mỗi từ được biểu diễn bằng một vector 8 số gọi là <b>embedding</b>. Ban đầu các vector này là ngẫu nhiên; mô hình tự học chúng trong lúc huấn luyện.</p>
+    </div>
+  </section>
+
+  <section id="truc-giac">
+    <div class="prose">
+      <h2><span class="step-no">3</span>Trực giác</h2>
+      <p>Hình dung một buổi họp lớp. Mỗi học sinh (token) cầm ba tấm thẻ: một <b>câu hỏi</b> (q) — "ai biết về giải thưởng?"; một <b>nhãn tên</b> (k) — "tôi biết về tiền"; và một <b>ghi chú</b> (v) — nội dung thật sự mình biết. Mỗi bạn so câu hỏi của mình với nhãn của mọi bạn khác; bạn nào có nhãn khớp thì được chú ý nhiều hơn. Rồi mỗi bạn tổng hợp ghi chú của cả lớp, theo tỷ lệ chú ý đó.</p>
+      <p>Kết quả: mỗi từ có một biểu diễn mới đã "pha" thông tin từ các từ liên quan. "Free" đứng cạnh "prize" sẽ mang ý nghĩa khác "free" đứng cạnh "tonight".</p>
+    </div>
+  </section>
+
+  <section id="tinh-tay">
+    <div class="prose">
+      <h2><span class="step-no">4</span>Tính tay từng bước</h2>
+    </div>
+    <div class="wide"><AttnLab client:visible model={model} samples={samples} /></div>
+    <div class="prose">
+      <p>Mô hình này học cách chú ý rất "gắt": gần như mọi token dồn toàn bộ sự chú ý vào một hoặc hai token. Ở tin rác phía trên, đó là "claim" — từ đáng ngờ nhất. Các điểm số s rất lớn (hàng chục), nên softmax gần như chọn hẳn một token. Gõ thử tin của bạn để xem mô hình chọn từ nào làm "tâm điểm".</p>
+    </div>
+  </section>
+
+  <section id="ly-thuyet">
+    <div class="prose">
+      <h2><span class="step-no">5</span>Lý thuyết</h2>
+      <h3>Scaled dot-product attention</h3>
+      <Tex tex={String.raw`Q = XW_Q,\quad K = XW_K,\quad V = XW_V`} display />
+      <Tex tex={String.raw`\text{Attention}(Q, K, V) = \operatorname{softmax}\!\left(\frac{QK^\top}{\sqrt{d}}\right) V`} display />
+      <p>X là ma trận L × d: mỗi hàng là embedding của một token cộng với mã hoá vị trí. Tích QKᵀ là ma trận L × L chứa điểm khớp của mọi cặp token. Chia cho √d giữ điểm số không quá lớn khi d tăng — nếu không, softmax sẽ dồn gần hết chú ý vào một token và gradient gần như biến mất.</p>
+      <h3>Mã hoá vị trí</h3>
+      <p>Attention tự nó không biết thứ tự: hoán đổi hai token thì hai hàng của đầu ra cũng hoán đổi theo. Để mô hình biết "now" đứng ở vị trí 2, ta cộng vào embedding một vector cố định phụ thuộc vị trí:</p>
+      <Tex tex={String.raw`PE_{t,\,2i} = \sin\!\left(\frac{t}{10000^{2i/d}}\right), \qquad PE_{t,\,2i+1} = \cos\!\left(\frac{t}{10000^{2i/d}}\right)`} display />
+      <h3>Từ attention đến phân loại</h3>
+      <p>Lấy trung bình các hàng của đầu ra để được một vector h đại diện cho cả tin nhắn, rồi áp hồi quy logistic: p = σ(h·u + c). Toàn bộ mô hình có {nParams.toLocaleString('vi-VN')} tham số, phần lớn nằm trong bảng embedding. Mọi tham số được học bằng Gradient Descent (biến thể Adam) với lan truyền ngược viết tay — kể cả qua softmax:</p>
+      <Tex tex={String.raw`\frac{\partial L}{\partial S_{ij}} = A_{ij}\Big(\frac{\partial L}{\partial A_{ij}} - \sum_t A_{it}\frac{\partial L}{\partial A_{it}}\Big)`} display />
+      <h3>Từ đây đến các mô hình lớn</h3>
+      <p>Transformer, kiến trúc của các mô hình ngôn ngữ lớn, chồng hàng chục tầng attention như thế này, mỗi tầng có nhiều "đầu" chạy song song, d cỡ hàng nghìn, xen kẽ với các mạng dense của chương 9. Bản chất từng phép tính vẫn y như những gì bạn vừa thấy.</p>
+    </div>
+  </section>
+
+  <section id="ma-nguon">
+    <div class="prose">
+      <h2><span class="step-no">6</span>Mã nguồn</h2>
+      <p>Attention chỉ là vài phép nhân ma trận và một softmax. Ví dụ với 3 token, 4 chiều:</p>
+      <PyCell client:visible code={pyCode} title="attention.py" />
+      <p>Mô hình trên trang được huấn luyện bằng NumPy thuần trong <code>scripts/prep_ch10.py</code> của kho mã, với lan truyền ngược viết tay và một bước kiểm tra gradient bằng sai phân hữu hạn trước khi huấn luyện.</p>
+    </div>
+  </section>
+
+  <section id="danh-gia">
+    <div class="prose">
+      <h2><span class="step-no">7</span>Toàn bộ dữ liệu và đánh giá</h2>
+    </div>
+    <div class="wide"><AttnFull client:visible model={model} sms={sms} /></div>
+    <div class="prose">
+      <p>Trên bài toán này, mô hình attention và Naive Bayes đạt độ chính xác gần như nhau (khoảng {fmt(model.testAcc * 100, 1)}%). Tin rác trong bộ dữ liệu này dễ nhận ra chỉ từ từ vựng, nên ngữ cảnh không giúp thêm nhiều. Sức mạnh của attention lộ rõ ở những bài toán mà thứ tự và quan hệ giữa các từ là then chốt: dịch máy, trả lời câu hỏi, viết tiếp văn bản.</p>
+      <h3>Bẫy thường gặp</h3>
+      <ul>
+        <li><b>Coi trọng số attention là lời giải thích.</b> Token được chú ý nhiều chưa chắc là lý do của dự đoán: thông tin còn đi qua V, u và các tầng khác.</li>
+        <li><b>Quên mã hoá vị trí</b> → mô hình thành túi từ có trọng số.</li>
+        <li><b>Chi phí bình phương.</b> Ma trận attention có L × L ô; với văn bản dài hàng nghìn token, bộ nhớ và thời gian tăng rất nhanh.</li>
+        <li><b>Dùng mô hình phức tạp khi không cần.</b> Ở đây Naive Bayes, chỉ là bảng đếm, đã ngang ngửa. Luôn so với một mô hình đơn giản trước.</li>
+      </ul>
+      <h3>Kiểm tra nhanh</h3>
+      <Quiz client:visible questions={[
+        { q: 'Một tin nhắn có 10 token. Ma trận chú ý A có kích thước bao nhiêu?', options: ['10 × 8', '10 × 10', '8 × 8'], answer: 1, why: 'Mỗi token (hàng) có một trọng số cho mỗi token (cột): 10 × 10. Số chiều d = 8 không xuất hiện trong kích thước của A.' },
+        { q: 'Vì sao chia QKᵀ cho √d?', options: ['Để A có tổng bằng 1', 'Để điểm số không quá lớn khiến softmax bão hoà và gradient biến mất', 'Để giảm số tham số'], answer: 1, why: 'Tích vô hướng của hai vector d chiều có độ lớn tăng theo √d. Không chia, softmax trở nên gần như one-hot.' },
+        { q: 'Bỏ mã hoá vị trí, rồi đảo thứ tự các từ trong tin nhắn. Dự đoán của mô hình ở bài này thay đổi thế nào?', options: ['Không đổi', 'Đổi hoàn toàn', 'Chỉ đổi dấu'], answer: 0, why: 'Không có thông tin vị trí, attention hoán đổi các hàng theo đúng thứ tự của token; lấy trung bình các hàng thì kết quả như cũ.' },
+      ]} />
+      <p class="src">Nguồn dữ liệu: SMS Spam Collection — T. A. Almeida &amp; J. M. Gómez Hidalgo (2011), UCI Machine Learning Repository, CC BY 4.0.</p>
+    </div>
+  </section>
+</Lesson>
+
+<style>
+  .src { font-size: 0.82rem; color: var(--pencil); margin-top: 2rem; }
+</style>

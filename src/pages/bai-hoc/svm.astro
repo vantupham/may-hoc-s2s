@@ -1,0 +1,122 @@
+---
+import Lesson from '../../layouts/Lesson.astro';
+import Tex from '../../components/Tex.svelte';
+import MarginGuess from '../../components/ch5/MarginGuess.svelte';
+import SVMStepLab from '../../components/ch5/SVMStepLab.svelte';
+import CLab from '../../components/ch5/CLab.svelte';
+import RBFLab from '../../components/ch5/RBFLab.svelte';
+import PyCell from '../../components/PyCell.svelte';
+import Quiz from '../../components/Quiz.svelte';
+import cancer from '../../data/cancer.json';
+import grid from '../../data/svm-rbf.json';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const pyCode = `import numpy as np, json
+from pyodide.http import open_url
+from sklearn.svm import SVC
+
+d = json.loads(open_url("${base}/data/cancer.json").read())
+test = set(d["testIds"])
+X = np.array([[p["x1"], p["x2"]] for p in d["patients"]])
+y = np.array([1 if p["y"] else -1 for p in d["patients"]])
+te = np.array([p["id"] in test for p in d["patients"]])
+
+for C in (0.01, 1, 100):
+    m = SVC(kernel="linear", C=C).fit(X[~te], y[~te])
+    w = m.coef_[0]
+    print(f"C={C:>6}: w={w.round(3)}, b={m.intercept_[0]:.3f}, "
+          f"lề={2/np.linalg.norm(w):.3f}, vector hỗ trợ={m.n_support_.sum()}, test={m.score(X[te], y[te]):.3f}")
+
+for g in (0.1, 1, 10, 50):
+    m = SVC(kernel="rbf", C=1, gamma=g).fit(X[~te], y[~te])
+    print(f"RBF γ={g:>4}: train={m.score(X[~te], y[~te]):.3f}, test={m.score(X[te], y[te]):.3f}")`;
+---
+<Lesson slug="svm" data="569 mẫu sinh thiết trong bộ Breast Cancer Wisconsin, hai đặc trưng đã chuẩn hoá như chương 2" lead="Chương 2, hồi quy logistic tìm một đường thẳng tách khối u lành và ác. Nhưng có vô số đường thẳng tách được. SVM chọn đường cách xa những ca khó nhất — những ca nằm sát ranh giới — và chỉ để những ca đó quyết định.">
+
+  <section id="bai-toan">
+    <div class="prose">
+      <h2><span class="step-no">1</span>Bài toán</h2>
+      <p>Cùng dữ liệu và cùng câu hỏi với chương 2: từ bán kính và độ nhám của nhân tế bào, khối u lành hay ác? Lần này ta hỏi thêm: trong mọi đường thẳng tách được dữ liệu, đường nào <b>an toàn nhất</b> khi gặp bệnh nhân mới?</p>
+      <p>Trực giác: một đường thẳng sượt sát một ca ác tính rất dễ phân loại sai ca ác tính tiếp theo hơi khác một chút. Đường thẳng cách đều và xa nhất khỏi cả hai nhóm có "khoảng đệm" cho sai số đo đạc.</p>
+    </div>
+  </section>
+
+  <section id="kham-pha">
+    <div class="prose">
+      <h2><span class="step-no">2</span>Khám phá dữ liệu</h2>
+      <p>Ta đã khám phá dữ liệu này ở <a href={`${base}/bai-hoc/hoi-quy-logistic#kham-pha`}>chương 2</a>. Điều quan trọng cho SVM: hai nhóm <b>chồng lấn</b> ở giữa. Không đường thẳng nào tách hoàn hảo 569 bệnh nhân, nên ta sẽ cần một phiên bản SVM "biết chịu" vài vi phạm. Nhưng 6 bệnh nhân của phần tính tay thì tách được hoàn toàn — nơi tốt để bắt đầu.</p>
+    </div>
+  </section>
+
+  <section id="truc-giac">
+    <div class="prose">
+      <h2><span class="step-no">3</span>Trực giác</h2>
+    </div>
+    <div class="wide"><MarginGuess client:visible mini={cancer.mini} /></div>
+    <div class="prose">
+      <p>Để ý: khi đạt lề lớn nhất, có đúng vài bệnh nhân chạm mép dải lề. Dời những người ở xa đi đâu cũng không làm đường thẳng thay đổi. Những người chạm mép gọi là <b>vector hỗ trợ</b> (support vectors) — tên của thuật toán đến từ đó.</p>
+    </div>
+  </section>
+
+  <section id="tinh-tay">
+    <div class="prose">
+      <h2><span class="step-no">4</span>Tính tay từng bước</h2>
+      <p>Thay vì xoay bằng tay, ta tối ưu bằng một biến thể của Gradient Descent. Mất mát của SVM là <b>hinge loss</b> max(0, 1 − m): bằng 0 khi bệnh nhân nằm ngoài dải lề đúng phía, tăng tuyến tính khi họ lấn vào. Vì hàm có một góc gập tại m = 1, ta dùng <i>subgradient</i>: ở mỗi bước, chỉ người vi phạm mới góp vào hướng đi.</p>
+    </div>
+    <div class="wide"><SVMStepLab client:visible mini={cancer.mini} /></div>
+  </section>
+
+  <section id="ly-thuyet">
+    <div class="prose">
+      <h2><span class="step-no">5</span>Lý thuyết</h2>
+      <h3>Lề và độ dài của w</h3>
+      <p>Ranh giới là tập điểm f(x) = w·x + b = 0. Khoảng cách từ một điểm x tới ranh giới là |f(x)| / ‖w‖. Nếu ta quy ước các điểm gần nhất có |f(x)| = 1, thì dải lề có độ rộng</p>
+      <Tex tex={String.raw`\text{độ rộng lề} = \frac{2}{\lVert \cw{\mathbf w} \rVert}`} display />
+      <p>Muốn lề rộng nhất, ta làm ‖w‖ nhỏ nhất, với điều kiện mọi điểm nằm ngoài dải: y<sub>i</sub>(w·x<sub>i</sub> + b) ≥ 1. Đó là <b>SVM lề cứng</b>.</p>
+      <h3>Lề mềm và hệ số C</h3>
+      <p>Khi dữ liệu chồng lấn, điều kiện trên không thể thoả. Ta cho phép vi phạm nhưng phạt chúng:</p>
+      <Tex tex={String.raw`\min_{\cw{\mathbf w},\,\cb{b}}\;\; \frac12\lVert\cw{\mathbf w}\rVert^2 + C\sum_{i=1}^{n}\max\big(0,\; 1 - y_i(\cw{\mathbf w}\cdot\cx{\mathbf x_i} + \cb{b})\big)`} display />
+      <p>Số hạng đầu muốn lề rộng; số hạng sau muốn ít vi phạm. C cân hai mong muốn đó. So với hồi quy logistic: mất mát log không bao giờ bằng 0 — mọi điểm đều góp một chút. Hinge loss bằng 0 với điểm đã an toàn, nên nghiệm chỉ phụ thuộc vào các vector hỗ trợ.</p>
+      <h3>Thủ thuật nhân (kernel trick)</h3>
+      <p>Khi ranh giới thật sự cong, ta có thể ánh xạ dữ liệu sang không gian nhiều chiều hơn — ví dụ thêm x₁², x₂², x₁x₂ — rồi tìm mặt phẳng ở đó. Mặt phẳng trong không gian mới là đường cong trong không gian cũ.</p>
+      <p>Điều kỳ diệu: dạng đối ngẫu của bài toán SVM chỉ cần tích vô hướng giữa các cặp điểm. Thay tích vô hướng bằng một hàm nhân K(x, x′), ta làm việc trong không gian mới mà không bao giờ phải tính toạ độ ở đó. Nhân RBF tương ứng với một không gian vô hạn chiều:</p>
+      <Tex tex={String.raw`K(\mathbf x, \mathbf x') = \exp\big(-\gamma\,\lVert \mathbf x - \mathbf x' \rVert^2\big), \qquad f(\mathbf x) = \sum_{i \in SV} \alpha_i\, y_i\, K(\mathbf x_i, \mathbf x) + b`} display />
+    </div>
+  </section>
+
+  <section id="ma-nguon">
+    <div class="prose">
+      <h2><span class="step-no">6</span>Mã nguồn</h2>
+      <p>scikit-learn giải dạng đối ngẫu bằng thuật toán SMO (thư viện LIBSVM). Kết quả cho nhân tuyến tính trùng với bộ giải subgradient của trang này đến sai số nhỏ hơn 0,5% của hàm mục tiêu — đã được kiểm thử tự động.</p>
+      <PyCell client:visible code={pyCode} packages={['numpy', 'scikit-learn']} title="svm_cancer.py" />
+    </div>
+  </section>
+
+  <section id="danh-gia">
+    <div class="prose">
+      <h2><span class="step-no">7</span>Toàn bộ dữ liệu và đánh giá</h2>
+    </div>
+    <div class="wide"><CLab client:visible patients={cancer.patients} testIds={cancer.testIds} /></div>
+    <div class="wide"><RBFLab client:visible patients={cancer.patients} testIds={cancer.testIds} grid={grid} /></div>
+    <div class="prose">
+      <h3>Bẫy thường gặp</h3>
+      <ul>
+        <li><b>Quên chuẩn hoá.</b> SVM dựa trên khoảng cách: đặc trưng có thang đo lớn sẽ áp đảo. Ở đây hai đặc trưng đã được chuẩn hoá.</li>
+        <li><b>Chọn γ và C bằng tập test.</b> Hai siêu tham số này phải chọn bằng cross-validation trên tập huấn luyện (chương 8). Bảng ở trên dùng tập test chỉ để minh hoạ.</li>
+        <li><b>Hiểu đầu ra như xác suất.</b> f(x) của SVM là khoảng cách có dấu, không phải xác suất. Muốn xác suất cần hiệu chỉnh thêm (Platt scaling).</li>
+        <li><b>Dữ liệu rất lớn.</b> SVM nhân phi tuyến tốn bộ nhớ và thời gian tăng khoảng bình phương theo số mẫu; với hàng triệu mẫu, người ta thường chọn mô hình khác.</li>
+      </ul>
+      <h3>Kiểm tra nhanh</h3>
+      <Quiz client:visible questions={[
+        { q: 'Bỏ đi một bệnh nhân nằm xa ranh giới, ngoài dải lề. Đường ranh giới của SVM thay đổi thế nào?', options: ['Không đổi', 'Dịch về phía bệnh nhân đó', 'Thay đổi hoàn toàn'], answer: 0, why: 'Hinge loss của người đó bằng 0 và họ không phải vector hỗ trợ, nên họ không ảnh hưởng tới nghiệm.' },
+        { q: '‖w‖ = 4. Dải lề rộng bao nhiêu?', options: ['0,25', '0,5', '4'], answer: 1, why: 'Độ rộng lề = 2/‖w‖ = 2/4 = 0,5.' },
+        { q: 'Tăng C từ 0,01 lên 100 thường làm gì?', options: ['Lề rộng ra, nhiều vector hỗ trợ hơn', 'Lề hẹp lại, ít vi phạm hơn trên tập huấn luyện', 'Không ảnh hưởng gì'], answer: 1, why: 'C lớn phạt nặng mỗi vi phạm, nên mô hình hy sinh độ rộng lề để giảm vi phạm.' },
+      ]} />
+      <p class="src">Nguồn dữ liệu: Breast Cancer Wisconsin (Diagnostic), Wolberg, Street &amp; Mangasarian (1995), UCI Machine Learning Repository; bản có sẵn trong scikit-learn.</p>
+    </div>
+  </section>
+</Lesson>
+
+<style>
+  .src { font-size: 0.82rem; color: var(--pencil); margin-top: 2rem; }
+</style>

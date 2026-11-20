@@ -1,0 +1,143 @@
+---
+import Base from '../layouts/Base.astro';
+import HeroSheet from '../components/HeroSheet.svelte';
+import { lessons } from '../lib/lessons';
+import housing from '../data/housing.json';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+// Bản đồ tiên quyết: vị trí (cột, hàng) của từng bài nằm trong lessons.ts
+const CW = 166, RH = 78, NW = 146, NH = 44, PX = 8, PY = 10;
+const at = Object.fromEntries(lessons.map((l) => [l.slug, l.pos]));
+const nx = (s: string) => PX + at[s][0] * CW;
+const ny = (s: string) => PY + at[s][1] * RH;
+const edges = lessons.flatMap((l) => l.requires.map((r) => [r, l.slug] as const));
+const mapW = PX * 2 + 7 * CW + NW;
+const mapH = PY * 2 + 2.3 * RH + NH;
+const first = lessons[0];
+---
+<Base title="Máy học S2S">
+  <div class="book home">
+    <section class="hero">
+      <div class="hero-text">
+        <span class="margin-note hand note-1">tính tay<br />từng bước</span>
+        <h1>Thấy từng con số bên trong một mô hình học máy.</h1>
+        <p class="lead">Các bài học tương tác bằng tiếng Việt. Mỗi bài là một dự án nhỏ với dữ liệu thật. Bạn có thể dừng thuật toán ở bất kỳ vòng lặp nào, bấm vào bất kỳ con số nào, và xem chính xác nó được tính ra như thế nào.</p>
+        <p class="cta">
+          <a class="btn primary" href={`${base}/bai-hoc/${first.slug}`}>Bắt đầu với Gradient Descent</a>
+          <a class="btn" href="#muc-luc">Xem mục lục</a>
+        </p>
+      </div>
+      <div class="hero-sheet"><HeroSheet client:load houses={housing.mini} /></div>
+    </section>
+
+    <section class="prose how">
+      <h2>Học ở đây khác gì?</h2>
+      <dl>
+        <dt>Dữ liệu thật, có nguồn</dt>
+        <dd>Giá nhà California năm 1990, mẫu sinh thiết ung thư vú, hành khách tàu Titanic, chim cánh cụt Nam Cực, tin nhắn SMS, ảnh quần áo của Zalando. Không có con số nào được bịa ra cho đẹp.</dd>
+        <dt>Hiểu trên 5 dòng trước, rồi mới chạy trên toàn bộ dữ liệu</dt>
+        <dd>Mỗi thuật toán được tính tay trên một mẫu nhỏ, từng phép cộng phép nhân, trước khi áp dụng cho toàn bộ dữ liệu.</dd>
+        <dt>Hình, bảng, công thức và mã luôn khớp nhau</dt>
+        <dd>Tất cả cùng đọc từ một bộ máy tính toán, đã được đối chiếu với NumPy và scikit-learn. Mỗi đại lượng giữ một màu trên mọi trang: <span class="v-w">w</span>, <span class="v-b">b</span>, <span class="v-x">x</span>, <span class="v-y">y</span>, <span class="v-yh">ŷ</span>, <span class="v-e">sai số e</span>, <span class="v-L">mất mát L</span>, <span class="v-g">gradient</span>. Di chuột vào một đại lượng để tô sáng mọi chỗ nó xuất hiện.</dd>
+        <dt>Python chạy ngay trên trình duyệt</dt>
+        <dd>Không cần cài đặt. Sửa mã, chạy lại, so kết quả với bảng tính tay.</dd>
+      </dl>
+    </section>
+
+    <section class="prose toc" id="muc-luc">
+      <h2>Mục lục</h2>
+      <p class="sub">Mười hai chương, từ Gradient Descent đến Attention; riêng chương Dữ liệu có hai bài. Nên học theo thứ tự, nhưng bản đồ phía dưới cho biết chương nào thật sự cần học trước.</p>
+      <ol class="toc-list">
+        {lessons.map((l) => (
+          <li class:list={[{ soon: !l.ready }]} data-slug={l.slug}>
+            <span class="margin-note hand tick" aria-hidden="true">đã học ✓</span>
+            <span class="no">{l.no}</span>
+            <span class="body">
+              {l.ready ? <a href={`${base}/bai-hoc/${l.slug}`}>{l.title}</a> : <span class="t">{l.title}</span>}
+              <span class="sum">{l.summary}</span>
+            </span>
+            <span class="leader" aria-hidden="true"></span>
+            <span class="ds">{l.ready ? l.dataset : 'đang viết'}</span>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <section class="wide map-sec">
+      <h3>Chương nào cần học trước?</h3>
+      <p class="sub">Mũi tên đi từ chương cần học trước đến chương học sau.</p>
+      <div class="map-wrap">
+        <svg class="map" viewBox={`0 0 ${mapW} ${mapH}`} role="img" aria-label="Bản đồ các chương và quan hệ tiên quyết">
+          <defs><marker id="map-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--pencil)" /></marker></defs>
+          {edges.map(([a, b]) => {
+            if (at[a][0] === at[b][0]) {
+              const x = nx(a) + NW / 2;
+              return <path d={`M${x} ${ny(a) + NH}V${ny(b) - 2}`} fill="none" stroke="var(--pencil)" stroke-opacity="0.6" stroke-width="1.2" marker-end="url(#map-arrow)" />;
+            }
+            const x1 = nx(a) + NW, y1 = ny(a) + NH / 2, x2 = nx(b), y2 = ny(b) + NH / 2;
+            const mx = (x1 + x2) / 2;
+            return <path d={`M${x1} ${y1}C${mx} ${y1} ${mx} ${y2} ${x2 - 2} ${y2}`} fill="none" stroke="var(--pencil)" stroke-opacity="0.6" stroke-width="1.2" marker-end="url(#map-arrow)" />;
+          })}
+          {lessons.map((l) => (
+            <a href={l.ready ? `${base}/bai-hoc/${l.slug}` : undefined} class:list={['node', { ready: l.ready }]} data-slug={l.slug} aria-label={`Chương ${l.no}: ${l.title}`}>
+              <rect x={nx(l.slug)} y={ny(l.slug)} width={NW} height={NH} rx="2" />
+              <text x={nx(l.slug) + 10} y={ny(l.slug) + 27} class="tt"><tspan class="c">{l.no}</tspan>  {l.short}</text>
+            </a>
+          ))}
+        </svg>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    try {
+      const done: string[] = JSON.parse(localStorage.getItem('s2s-done') || '[]');
+      done.forEach((s) => document.querySelectorAll(`[data-slug="${s}"]`).forEach((el) => el.classList.add('done')));
+    } catch {}
+  </script>
+
+  <style>
+    .hero { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 3rem; align-items: center; padding: 4.5rem 1.25rem 3rem 0; position: relative; z-index: 1; }
+    .hero-text { position: relative; }
+    .note-1 { top: 0.6rem; font-size: 1.35rem; transform: rotate(-5deg); }
+    .hero h1 { font-size: clamp(2.4rem, 4.6vw, 3.7rem); line-height: 1.08; margin: 0 0 1.2rem; max-width: 14ch; }
+    .lead { font-size: 1.2rem; line-height: 1.65; max-width: 34rem; }
+    .cta { display: flex; gap: 0.7rem; flex-wrap: wrap; margin-top: 1.6rem; }
+    .cta .btn { padding: 0.55rem 1.1rem; font-size: 1rem; }
+    @media (max-width: 900px) { .hero { grid-template-columns: minmax(0, 1fr); padding: 2.5rem 1.1rem 2rem; gap: 2rem; } .note-1 { margin-bottom: 0.8rem; transform: rotate(-3deg); } .note-1 br { display: none; } }
+
+    .how h2, .toc h2 { margin-top: 3rem; }
+    dl { margin: 0; }
+    dt { font-weight: 700; margin-top: 1.1rem; }
+    dd { margin: 0.15rem 0 0; color: var(--ink); }
+
+    .sub { color: var(--pencil); font-style: italic; }
+    .toc { position: relative; }
+    .toc-list { list-style: none; padding: 0; margin: 1.2rem 0 0; }
+    .toc-list li { display: grid; grid-template-columns: 2.4rem minmax(0, auto) 1fr auto; align-items: baseline; gap: 0 0.6rem; padding: 0.55rem 0; border-bottom: 1px solid var(--rule); position: relative; }
+    .no { font-family: var(--hand); color: var(--tim); font-size: 1.45rem; line-height: 1; }
+    .body { display: flex; flex-direction: column; }
+    .body a, .body .t { font-weight: 650; font-size: 1.05rem; text-decoration: none; color: var(--ink); }
+    .body a:hover { color: var(--tim); text-decoration: underline; }
+    .sum { font-size: 0.9rem; color: var(--pencil); line-height: 1.5; }
+    .leader { border-bottom: 1.5px dotted var(--rule-2); align-self: center; min-width: 1rem; transform: translateY(-0.45rem); }
+    .ds { font-size: 0.86rem; color: var(--pencil); font-style: italic; white-space: nowrap; }
+    .soon .no, .soon .t, .soon .sum { opacity: 0.5; }
+    .tick { display: none; top: 0.55rem; font-size: 1.15rem; }
+    li.done .tick { display: block; }
+    @media (max-width: 900px) { li.done .tick { position: absolute; right: 0; left: auto; width: auto; top: 0.2rem; font-size: 1rem; } }
+    @media (max-width: 600px) { .toc-list li { grid-template-columns: 2rem minmax(0, 1fr); } .leader, .ds { display: none; } }
+
+    .map-sec h3 { margin-bottom: 0.2rem; }
+    .map-wrap { overflow-x: auto; padding: 0.5rem 0; }
+    .map { width: 100%; min-width: 980px; height: auto; display: block; }
+    .map .node rect { fill: var(--sheet); stroke: var(--rule-2); }
+    .map .node .tt { font: 13px var(--serif); fill: var(--faint); }
+    .map .node .c { font-family: var(--hand); font-size: 18px; }
+    .map .node.ready rect { stroke: var(--ink); stroke-width: 1.3; }
+    .map .node.ready .tt { fill: var(--ink); font-weight: 650; }
+    .map .node.ready .c { fill: var(--tim); }
+    .map .node.ready:hover rect { fill: var(--tim-soft); }
+    .map .node.done rect { fill: var(--hl); }
+  </style>
+</Base>

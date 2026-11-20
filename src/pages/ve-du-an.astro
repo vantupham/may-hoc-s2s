@@ -1,0 +1,50 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="Về dự án" description="Máy học S2S: mục tiêu, cách xây dựng và cách đóng góp.">
+  <div class="book"><article class="prose page">
+    <span class="margin-note hand mn">giới thiệu</span>
+    <h1>Về dự án</h1>
+    <p class="lead">Máy học S2S (step-to-step) là một website mã nguồn mở giúp người học tiếng Việt hiểu bản chất tính toán bên trong các mô hình học máy, qua các dự án nhỏ với dữ liệu thật.</p>
+
+    <h2>Nguyên tắc "hộp kính"</h2>
+    <p>Không có bước nào bị ẩn. Mọi con số trên trang — trong hình vẽ, bảng, công thức — đều do cùng một bộ máy tính toán sinh ra. Bộ máy này (<code>ml-core</code>, viết bằng TypeScript) vừa chạy thuật toán vừa ghi lại từng phép tính trung gian, gọi là <i>trace</i>. Giao diện chỉ đọc từ trace, nên các cách biểu diễn luôn khớp nhau.</p>
+
+    <h2>Toán có đúng không?</h2>
+    <p>Mỗi lần cập nhật mã, 51 bài kiểm thử tự động chạy lại các thuật toán của <code>ml-core</code> và so sánh với kết quả của NumPy và scikit-learn, phần lớn tới 9 chữ số thập phân. Nếu lệch, trang sẽ không được phát hành.</p>
+
+    <h2>Cấu trúc một bài học</h2>
+    <ol>
+      <li><b>Bài toán</b> — một câu hỏi cụ thể trên dữ liệu thật.</li>
+      <li><b>Khám phá dữ liệu</b> — phân phối, tương quan, dữ liệu thiếu, ngoại lai.</li>
+      <li><b>Trực giác</b> — tự làm "máy học" bằng tay trước khi có công thức.</li>
+      <li><b>Tính tay</b> — 5–10 dòng dữ liệu, từng phép tính, chạy từng bước.</li>
+      <li><b>Lý thuyết</b> — dẫn xuất công thức, mỗi ký hiệu một màu.</li>
+      <li><b>Mã nguồn</b> — NumPy tự viết và scikit-learn, chạy ngay trên trình duyệt.</li>
+      <li><b>Toàn bộ dữ liệu</b> — huấn luyện, đánh giá, bẫy thường gặp, câu hỏi kiểm tra.</li>
+    </ol>
+
+    <h2>Công nghệ</h2>
+    <p>Astro (trang tĩnh), Svelte (thành phần tương tác), D3 (thang đo), KaTeX (công thức), Pyodide (Python trên trình duyệt), Vitest (kiểm thử), GitHub Actions và GitHub Pages (phát hành).</p>
+
+    <h2>Đóng góp</h2>
+    <p>Mã nguồn tại <a href="https://github.com/vantupham/may-hoc-s2s">github.com/vantupham/may-hoc-s2s</a>. Báo lỗi sai số liệu, lỗi chính tả hay đề xuất bài mới đều rất quý.</p>
+
+    <h2>Giấy phép và nguồn dữ liệu</h2>
+    <ul>
+      <li>Mã nguồn: MIT. Nội dung bài học: CC BY-SA 4.0.</li>
+      <li>California Housing — U.S. Census 1990, Pace &amp; Barry (1997), bản CSV trong kho ageron/handson-ml2.</li>
+      <li>Breast Cancer Wisconsin (Diagnostic) — Wolberg, Street &amp; Mangasarian (1995), UCI Machine Learning Repository.</li>
+      <li>Iris — R. A. Fisher (1936), UCI. Chữ số viết tay 8×8 — Alpaydin &amp; Kaynak (1998), UCI, CC BY 4.0.</li>
+      <li>SMS Spam Collection — Almeida &amp; Gómez Hidalgo (2011), UCI, CC BY 4.0.</li>
+      <li>Titanic — danh sách hành khách (Encyclopedia Titanica), bản CSV trong datasciencedojo/datasets.</li>
+      <li>Palmer Penguins — Gorman, Williams &amp; Fraser (2014), Palmer Station LTER, CC0.</li>
+      <li>Fashion-MNIST — Xiao, Rasul &amp; Vollgraf (2017), Zalando Research, giấy phép MIT.</li>
+    </ul>
+  </article></div>
+  <style>
+    .page { padding-top: 3rem; }
+    .mn { top: 3.4rem; font-size: 1.3rem; transform: rotate(-4deg); }
+    .lead { font-size: 1.15rem; color: var(--pencil); }
+  </style>
+</Base>

@@ -1,0 +1,161 @@
+---
+import Lesson from '../../layouts/Lesson.astro';
+import Tex from '../../components/Tex.svelte';
+import BackpropLab from '../../components/ch8/BackpropLab.svelte';
+import DigitTrainer from '../../components/ch8/DigitTrainer.svelte';
+import DigitImg from '../../components/DigitImg.svelte';
+import PyCell from '../../components/PyCell.svelte';
+import Quiz from '../../components/Quiz.svelte';
+import cancer from '../../data/cancer.json';
+import dg from '../../data/digits.json';
+import split from '../../data/digits-split.json';
+import tiny from '../../data/tinynet.json';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+// Hình nhỏ ba hàm kích hoạt
+const AW = 170, AH = 110;
+const act = [
+  { name: 'sigmoid', f: (z: number) => 1 / (1 + Math.exp(-z)), lo: -0.1, hi: 1.1 },
+  { name: 'tanh', f: Math.tanh, lo: -1.1, hi: 1.1 },
+  { name: 'ReLU', f: (z: number) => Math.max(0, z), lo: -0.5, hi: 4 },
+].map((a) => ({
+  ...a,
+  d: Array.from({ length: 81 }, (_, i) => -4 + i * 0.1).map((z, i) => `${i ? 'L' : 'M'}${((z + 4) / 8) * (AW - 20) + 10},${AH - 12 - ((a.f(z) - a.lo) / (a.hi - a.lo)) * (AH - 24)}`).join(''),
+  zero: AH - 12 - ((0 - a.lo) / (a.hi - a.lo)) * (AH - 24),
+}));
+const sampleDigits = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => dg.digits.filter((x) => x.y === d).slice(0, 3)).flat();
+
+const pyCode = `import numpy as np, json
+from pyodide.http import open_url
+
+d = json.loads(open_url("${base}/data/digits.json").read())["digits"]
+X = np.array([x["px"] for x in d]) / 16.0
+Y = np.array([x["y"] for x in d])
+rng = np.random.default_rng(0)
+idx = rng.permutation(len(Y)); te, tr = idx[:360], idx[360:]
+
+H = 32
+W1 = rng.normal(0, np.sqrt(2 / 64), (H, 64)); b1 = np.zeros(H)
+W2 = rng.normal(0, np.sqrt(2 / H), (10, H)); b2 = np.zeros(10)
+
+for epoch in range(15):
+    rng.shuffle(tr)
+    for s in range(0, len(tr), 32):
+        i = tr[s:s + 32]; x, y = X[i], Y[i]
+        z1 = x @ W1.T + b1; a1 = np.maximum(0, z1)             # xuôi: lớp ẩn ReLU
+        z2 = a1 @ W2.T + b2; z2 -= z2.max(1, keepdims=True)
+        p = np.exp(z2); p /= p.sum(1, keepdims=True)           # softmax
+        g2 = p.copy(); g2[np.arange(len(i)), y] -= 1; g2 /= len(i)   # ngược: ∂L/∂z2 = p − y
+        g1 = (g2 @ W2) * (z1 > 0)                              # qua ReLU
+        W2 -= 0.1 * g2.T @ a1; b2 -= 0.1 * g2.sum(0)
+        W1 -= 0.1 * g1.T @ x;  b1 -= 0.1 * g1.sum(0)
+    acc = ((np.maximum(0, X[te] @ W1.T + b1) @ W2.T + b2).argmax(1) == Y[te]).mean()
+    print(f"epoch {epoch + 1:2d}: độ chính xác test {acc:.3f}")`;
+---
+<Lesson slug="mang-no-ron" data="Chữ số viết tay 8×8 điểm ảnh (1.797 ảnh, UCI) và 6 bệnh nhân của bộ Breast Cancer Wisconsin" lead="Một nơ-ron nhân tạo chỉ là hồi quy logistic của chương 2. Xếp nhiều nơ-ron thành tầng, nối tầng này vào tầng kia, ta có mạng nơ-ron: thứ đứng sau nhận dạng ảnh, dịch máy và các mô hình ngôn ngữ. Bài này mổ xẻ cách mạng học — lan truyền ngược — trên một mạng đủ nhỏ để nhìn thấy mọi con số.">
+
+  <section id="bai-toan">
+    <div class="prose">
+      <h2><span class="step-no">1</span>Bài toán</h2>
+      <p>Cho ảnh 8×8 điểm ảnh của một chữ số viết tay, đó là số mấy? Đầu vào là 64 con số, đầu ra là một trong 10 lớp. Hồi quy logistic vẽ được một ranh giới thẳng; với ảnh, ranh giới giữa "3" và "8" phức tạp hơn nhiều.</p>
+      <p>Ảnh do 43 người viết, được quét và thu nhỏ bởi Alpaydin và Kaynak năm 1998. Ba mẫu đầu tiên của mỗi chữ số:</p>
+      <div class="digits">{sampleDigits.map((d) => <DigitImg px={d.px} size={40} label={`Chữ số ${d.y}`} />)}</div>
+    </div>
+  </section>
+
+  <section id="kham-pha">
+    <div class="prose">
+      <h2><span class="step-no">2</span>Khám phá dữ liệu</h2>
+      <p>Mỗi lớp có khoảng 180 ảnh, khá cân bằng. Độ đậm mỗi ô từ 0 đến 16; ta chia cho 16 để đưa về khoảng 0–1. Chương 7 đã chiếu bộ dữ liệu này xuống 2 chiều bằng PCA: các chữ số 0, 4, 6 tách rõ, nhưng 1, 7, 8, 9 chồng lấn. Một mô hình tuyến tính sẽ vất vả ở những chỗ đó.</p>
+      <p>Để hiểu cơ chế học, ta bắt đầu với một mạng tí hon trên dữ liệu quen thuộc: 6 bệnh nhân ung thư vú, 2 đặc trưng. Sau đó áp dụng đúng thuật toán đó cho chữ số.</p>
+    </div>
+  </section>
+
+  <section id="truc-giac">
+    <div class="prose">
+      <h2><span class="step-no">3</span>Trực giác</h2>
+      <p>Mỗi nơ-ron làm hai việc: tính tổng có trọng số của đầu vào, rồi đưa tổng đó qua một <b>hàm kích hoạt</b> phi tuyến.</p>
+      <div class="acts">
+        {act.map((a) => (
+          <figure>
+            <svg width={AW} height={AH} viewBox={`0 0 ${AW} ${AH}`} role="img" aria-label={`Hàm ${a.name}`}>
+              <line x1="10" x2={AW - 10} y1={a.zero} y2={a.zero} stroke="var(--rule-2)" />
+              <line x1={AW / 2} x2={AW / 2} y1="6" y2={AH - 8} stroke="var(--rule-2)" />
+              <path d={a.d} fill="none" stroke="var(--tim)" stroke-width="2.5" />
+            </svg>
+            <figcaption>{a.name}</figcaption>
+          </figure>
+        ))}
+      </div>
+      <p>Nếu không có hàm kích hoạt, ghép bao nhiêu tầng tuyến tính lại vẫn chỉ là một hàm tuyến tính. Chính các "khúc gập" của tanh hay ReLU cho phép mạng uốn ranh giới theo hình dạng tuỳ ý.</p>
+      <p>Học là chỉnh mọi trọng số để giảm mất mát — vẫn là Gradient Descent. Câu hỏi khó là: với hàng nghìn trọng số nằm ở các tầng khác nhau, làm sao biết mỗi trọng số góp bao nhiêu vào sai số ở đầu ra? <b>Lan truyền ngược</b> trả lời bằng cách đi ngược từ đầu ra, áp dụng quy tắc dây chuyền từng tầng một.</p>
+    </div>
+  </section>
+
+  <section id="tinh-tay">
+    <div class="prose">
+      <h2><span class="step-no">4</span>Tính tay từng bước</h2>
+    </div>
+    <div class="wide"><BackpropLab client:visible patients={cancer.mini} init={tiny} /></div>
+    <div class="prose">
+      <p>Để ý gradient của trọng số ở tầng đầu: nó bằng gradient ở đầu ra nhân với trọng số v nối tới, nhân với đạo hàm tanh, nhân với đầu vào. Mỗi tầng đi lùi thêm một thừa số. Bấm "Áp dụng cập nhật" vài lần và xem mất mát của bệnh nhân này giảm dần.</p>
+    </div>
+  </section>
+
+  <section id="ly-thuyet">
+    <div class="prose">
+      <h2><span class="step-no">5</span>Lý thuyết</h2>
+      <h3>Lan truyền xuôi</h3>
+      <Tex tex={String.raw`\mathbf a^{(0)} = \cx{\mathbf x}, \qquad \cz{\mathbf z^{(l)}} = \cw{W^{(l)}}\,\mathbf a^{(l-1)} + \cb{\mathbf b^{(l)}}, \qquad \mathbf a^{(l)} = g\big(\cz{\mathbf z^{(l)}}\big)`} display />
+      <p>Với phân loại 10 lớp, tầng cuối dùng <b>softmax</b> để biến 10 điểm số thành 10 xác suất cộng lại bằng 1, và mất mát là cross-entropy:</p>
+      <Tex tex={String.raw`\cp{p_k} = \frac{e^{\cz{z_k}}}{\sum_{j} e^{\cz{z_j}}}, \qquad \cL{L} = -\ln \cp{p_{\cy{y}}}`} display />
+      <h3>Lan truyền ngược</h3>
+      <p>Đặt δ<sup>(l)</sup> = ∂L/∂z<sup>(l)</sup>. Ở tầng cuối, giống hệt hồi quy logistic, δ = p − y (với y viết dạng one-hot). Lùi một tầng:</p>
+      <Tex tex={String.raw`\cg{\boldsymbol\delta^{(l)}} = \big(\cw{W^{(l+1)}}\big)^{\!\top}\cg{\boldsymbol\delta^{(l+1)}} \odot g'\big(\cz{\mathbf z^{(l)}}\big), \qquad \cg{\frac{\partial L}{\partial W^{(l)}}} = \cg{\boldsymbol\delta^{(l)}}\,\big(\mathbf a^{(l-1)}\big)^{\!\top}`} display />
+      <p>⊙ là nhân từng phần tử. Với tanh, g′(z) = 1 − tanh²(z); với ReLU, g′(z) = 1 nếu z &gt; 0, ngược lại bằng 0. Mỗi gradient chỉ cần một phép nhân ma trận, nên tính gradient của mọi trọng số tốn chừng ấy công như một lần lan truyền xuôi — đó là lý do mạng hàng tỷ tham số vẫn huấn luyện được.</p>
+      <h3>Gradient Descent theo lô</h3>
+      <p>Thay vì tính gradient trên toàn bộ 1.437 ảnh, ta lấy trung bình trên một lô nhỏ (32 ảnh) rồi cập nhật ngay. Gradient của lô bị nhiễu một chút, nhưng mỗi epoch có tới 45 bước cập nhật thay vì 1, và nhiễu đó còn giúp tránh kẹt ở cực tiểu kém.</p>
+    </div>
+  </section>
+
+  <section id="ma-nguon">
+    <div class="prose">
+      <h2><span class="step-no">6</span>Mã nguồn</h2>
+      <p>Toàn bộ mạng và lan truyền ngược bằng NumPy, khoảng 20 dòng. Mỗi dòng trong vòng lặp ứng với một công thức ở phần 5.</p>
+      <PyCell client:visible code={pyCode} title="mlp_chu_so.py" />
+      <p>Trong thực tế, người ta dùng PyTorch hoặc JAX: chúng tự động tính lan truyền ngược (automatic differentiation) cho bất kỳ mạng nào bạn viết.</p>
+    </div>
+  </section>
+
+  <section id="danh-gia">
+    <div class="prose">
+      <h2><span class="step-no">7</span>Toàn bộ dữ liệu và đánh giá</h2>
+    </div>
+    <div class="wide"><DigitTrainer client:visible digits={dg.digits} testIds={split.testIds} /></div>
+    <div class="prose">
+      <p>Sau khoảng 15 epoch, mạng đạt khoảng 95–97% trên tập test, tuỳ khởi tạo. Thử η = 2: mất mát nhảy loạn, giống quả bóng văng khỏi lòng chảo ở chương 0. Thử η = 0,01: học rất chậm.</p>
+      <h3>Bẫy thường gặp</h3>
+      <ul>
+        <li><b>Khởi tạo mọi trọng số bằng 0.</b> Mọi nơ-ron ẩn nhận cùng gradient và mãi mãi giống nhau. Phải khởi tạo ngẫu nhiên.</li>
+        <li><b>Gradient biến mất.</b> Với sigmoid hoặc tanh, đạo hàm gần 0 khi z lớn; nhân qua nhiều tầng, gradient ở các tầng đầu gần bằng 0. ReLU giảm bớt vấn đề này.</li>
+        <li><b>Không chuẩn hoá đầu vào.</b> Đầu vào 0–16 thay vì 0–1 làm tổng có trọng số lớn và quá trình học kém ổn định.</li>
+        <li><b>Quá khớp.</b> Mạng có nhiều tham số dễ học thuộc. Theo dõi độ chính xác test; dùng dừng sớm hoặc điều chuẩn khi khoảng cách train–test lớn dần.</li>
+      </ul>
+      <h3>Kiểm tra nhanh</h3>
+      <Quiz client:visible questions={[
+        { q: 'Bỏ hết hàm kích hoạt khỏi một mạng 5 tầng. Mạng mới tương đương với gì?', options: ['Một mạng 5 tầng yếu hơn một chút', 'Một mô hình tuyến tính duy nhất', 'Một cây quyết định'], answer: 1, why: 'Tích của các ma trận vẫn là một ma trận: W⁵W⁴W³W²W¹x = Wx. Không có phi tuyến thì độ sâu vô nghĩa.' },
+        { q: 'Ở tầng đầu ra softmax với cross-entropy, ∂L/∂z bằng gì?', options: ['p − y (y viết dạng one-hot)', 'p(1 − p)', '−ln p'], answer: 0, why: 'Giống hồi quy logistic, đạo hàm của softmax và cross-entropy triệt tiêu nhau thành dạng gọn p − y.' },
+        { q: 'Một nơ-ron ReLU có z < 0 với mọi ảnh huấn luyện. Điều gì xảy ra với trọng số vào nơ-ron đó?', options: ['Chúng được cập nhật rất nhanh', 'Chúng không bao giờ được cập nhật, vì gradient qua ReLU bằng 0', 'Chúng bị đặt lại ngẫu nhiên'], answer: 1, why: 'Đạo hàm của ReLU bằng 0 khi z < 0, nên δ của nơ-ron đó luôn bằng 0. Đây gọi là nơ-ron "chết".' },
+      ]} />
+      <p class="src">Nguồn dữ liệu: Optical Recognition of Handwritten Digits — E. Alpaydin &amp; C. Kaynak (1998), UCI Machine Learning Repository, CC BY 4.0; bản 8×8 trong scikit-learn. Breast Cancer Wisconsin (Diagnostic), UCI.</p>
+    </div>
+  </section>
+</Lesson>
+
+<style>
+  .src { font-size: 0.82rem; color: var(--pencil); margin-top: 2rem; }
+  .digits { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0.5rem 0 1.2rem; }
+  .acts { display: flex; gap: 1.2rem; flex-wrap: wrap; margin: 0.6rem 0 1rem; }
+  .acts figure { margin: 0; }
+  .acts figcaption { text-align: center; font-style: italic; color: var(--pencil); font-size: 0.9rem; }
+</style>

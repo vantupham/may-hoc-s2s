@@ -1,0 +1,127 @@
+---
+import Lesson from '../../layouts/Lesson.astro';
+import Tex from '../../components/Tex.svelte';
+import ConvLab from '../../components/ch9/ConvLab.svelte';
+import PipelineLab from '../../components/ch9/PipelineLab.svelte';
+import DigitImg from '../../components/DigitImg.svelte';
+import PyCell from '../../components/PyCell.svelte';
+import Quiz from '../../components/Quiz.svelte';
+import data from '../../data/fashion-cnn.json';
+import { decodeImage, fmt } from '../../lib/ml-core';
+
+const names = data.names;
+const examples = names.map((_, k) => data.images.find((im) => im.y === k)).filter(Boolean) as { y: number; b64: string }[];
+const net = { Wc: data.Wc, bc: data.bc, Wd: data.Wd, bd: data.bd };
+
+const pyCode = `import numpy as np
+
+# Tích chập bằng tay: ảnh 6×6 có một vạch dọc sáng, bộ lọc "cạnh dọc"
+anh = np.zeros((6, 6)); anh[:, 3] = 1.0
+loc = np.array([[-1, 0, 1],
+                [-1, 0, 1],
+                [-1, 0, 1]])
+
+ra = np.zeros((4, 4))
+for r in range(4):
+    for c in range(4):
+        cua_so = anh[r:r + 3, c:c + 3]          # cửa sổ 3×3
+        ra[r, c] = (cua_so * loc).sum()         # nhân từng cặp, cộng lại
+print("Ảnh:"); print(anh)
+print("Bản đồ đặc trưng (trước ReLU):"); print(ra)
+print("Sau ReLU:"); print(np.maximum(0, ra))
+
+# Max-pool 2×2
+pool = np.maximum(0, ra).reshape(2, 2, 2, 2).max(axis=(1, 3))
+print("Sau max-pool 2×2:"); print(pool)`;
+---
+<Lesson slug="cnn" data={`Fashion-MNIST: 10.000 ảnh xám 28×28 của 10 loại quần áo, giày, túi do Zalando Research công bố`} lead="Mạng ở chương 9 coi ảnh là một hàng 64 con số, bỏ qua chuyện điểm ảnh nào nằm cạnh điểm ảnh nào. Mạng tích chập (CNN) giữ nguyên cấu trúc lưới: một bộ lọc nhỏ trượt khắp ảnh, tìm cùng một hoạ tiết ở mọi vị trí. Bài này cho bạn xem từng phép nhân trong đó.">
+
+  <section id="bai-toan">
+    <div class="prose">
+      <h2><span class="step-no">1</span>Bài toán</h2>
+      <p>Năm 2017, Zalando — một cửa hàng thời trang trực tuyến ở Đức — công bố Fashion-MNIST: ảnh sản phẩm thật, thu nhỏ còn 28×28 điểm ảnh xám, thuộc 10 loại. Cho một ảnh, đó là loại gì?</p>
+      <div class="ex">{examples.map((im) => <figure><DigitImg px={decodeImage(im.b64)} side={28} max={1} size={64} label={names[im.y]} /><figcaption>{names[im.y]}</figcaption></figure>)}</div>
+    </div>
+  </section>
+
+  <section id="kham-pha">
+    <div class="prose">
+      <h2><span class="step-no">2</span>Khám phá dữ liệu</h2>
+      <p>Mỗi ảnh có 784 điểm ảnh, giá trị 0 (đen) đến 255 (trắng); ta chia cho 255. Mười lớp có số ảnh bằng nhau. Trang này dùng {fmt(data.nTrain, 0)} ảnh để huấn luyện và {fmt(data.nTest, 0)} ảnh để kiểm tra, lấy từ 10.000 ảnh của tập t10k.</p>
+      <p>Áo phông, áo sơ mi, áo len và áo khoác trông rất giống nhau ở 28×28. Đây sẽ là chỗ khó của mọi mô hình.</p>
+      <p>Nếu dùng mạng của chương 9 cho ảnh này, tầng đầu với 32 nơ-ron sẽ cần 784 × 32 = 25.088 trọng số, và mỗi trọng số gắn với đúng một vị trí: học được "có cạnh ở góc trái trên" không giúp gì cho việc nhận ra cùng cạnh đó ở góc phải dưới.</p>
+    </div>
+  </section>
+
+  <section id="truc-giac">
+    <div class="prose">
+      <h2><span class="step-no">3</span>Trực giác</h2>
+      <p>Hãy tưởng tượng một con tem 3×3 ô có in sẵn các con số. Ta đặt con tem lên góc trái trên của ảnh, nhân từng số trên tem với điểm ảnh bên dưới, cộng 9 tích lại — được một con số. Dịch tem sang phải một ô, lặp lại. Quét hết ảnh, ta được một ảnh mới gọi là <b>bản đồ đặc trưng</b>.</p>
+      <p>Nếu tem có dạng "âm bên trái, dương bên phải", con số sẽ lớn ở những chỗ ảnh chuyển từ tối sang sáng theo chiều ngang: tem đó là một <b>bộ dò cạnh dọc</b>. CNN không cần ai thiết kế tem — nó tự học các con số trên tem bằng lan truyền ngược.</p>
+    </div>
+  </section>
+
+  <section id="tinh-tay">
+    <div class="prose">
+      <h2><span class="step-no">4</span>Tính tay từng bước</h2>
+    </div>
+    <div class="wide"><ConvLab client:visible images={data.images} names={names} Wc={data.Wc} bc={data.bc} /></div>
+    <div class="prose">
+      <p>So sánh bộ lọc "cạnh dọc" tự đặt với các bộ lọc học được: nhiều bộ lọc học được cũng là bộ dò cạnh hoặc bộ dò vùng sáng — mạng tự khám phá lại những gì con người từng thiết kế bằng tay.</p>
+    </div>
+  </section>
+
+  <section id="ly-thuyet">
+    <div class="prose">
+      <h2><span class="step-no">5</span>Lý thuyết</h2>
+      <h3>Phép tích chập</h3>
+      <Tex tex={String.raw`\cz{z^{(f)}_{r,c}} = \sum_{i=0}^{2}\sum_{j=0}^{2} \cx{x_{r+i,\;c+j}}\;\cw{k^{(f)}_{i,j}} + \cb{b^{(f)}}, \qquad a^{(f)}_{r,c} = \max\big(0, \cz{z^{(f)}_{r,c}}\big)`} display />
+      <p>Không đệm viền, ảnh 28×28 cho bản đồ 26×26. Mỗi bộ lọc chỉ có 9 trọng số và 1 bias, dùng chung cho mọi vị trí — gọi là <b>chia sẻ trọng số</b>. Sáu bộ lọc chỉ tốn 60 tham số, so với 25.088 của một tầng dense.</p>
+      <h3>Max-pool</h3>
+      <Tex tex={String.raw`p_{r,c} = \max\big(a_{2r,2c},\; a_{2r,2c+1},\; a_{2r+1,2c},\; a_{2r+1,2c+1}\big)`} display />
+      <p>Giữ giá trị lớn nhất trong mỗi ô 2×2: bản đồ nhỏ đi 4 lần, và mạng ít nhạy với việc hoạ tiết dịch đi một điểm ảnh. Khi lan truyền ngược, gradient chỉ chảy về đúng ô đã thắng trong mỗi cửa sổ.</p>
+      <h3>Gradient của bộ lọc</h3>
+      <p>Vì một trọng số k<sub>i,j</sub> được dùng ở mọi vị trí, gradient của nó là tổng đóng góp từ mọi vị trí:</p>
+      <Tex tex={String.raw`\cg{\frac{\partial L}{\partial k_{i,j}}} = \sum_{r,c} \cg{\frac{\partial L}{\partial z_{r,c}}}\; \cx{x_{r+i,\;c+j}}`} display />
+      <p>Bản thân phép tính này cũng là một phép tích chập — giữa ảnh đầu vào và bản đồ gradient. Mạng trên trang được huấn luyện bằng đúng công thức này, viết bằng NumPy trong <code>scripts/prep_ch9.py</code> của kho mã.</p>
+    </div>
+  </section>
+
+  <section id="ma-nguon">
+    <div class="prose">
+      <h2><span class="step-no">6</span>Mã nguồn</h2>
+      <p>Tích chập và max-pool viết tay trên một ảnh 6×6 có vạch sáng dọc. Chạy rồi thử đổi bộ lọc thành bộ dò cạnh ngang.</p>
+      <PyCell client:visible code={pyCode} title="tich_chap.py" />
+    </div>
+  </section>
+
+  <section id="danh-gia">
+    <div class="prose">
+      <h2><span class="step-no">7</span>Toàn bộ dữ liệu và đánh giá</h2>
+    </div>
+    <div class="wide"><PipelineLab client:visible net={net} images={data.images} names={names} testAcc={data.testAcc} confusion={data.confusion} nTest={data.nTest} /></div>
+    <div class="prose">
+      <p>Với chỉ 6 bộ lọc và một tầng tích chập, mạng đạt {fmt(data.testAcc * 100, 1)}% trên tập test. Các CNN sâu hơn đạt trên 93% trên Fashion-MNIST.</p>
+      <h3>Bẫy thường gặp</h3>
+      <ul>
+        <li><b>Quên chuẩn hoá điểm ảnh</b> về 0–1 → tổng có trọng số rất lớn ở lần chạy đầu, học không ổn định.</li>
+        <li><b>Nhầm thứ tự chiều</b> (cao, rộng, kênh) giữa các thư viện. Rất nhiều lỗi CNN trong thực tế là lỗi sắp xếp mảng.</li>
+        <li><b>Kết luận "mạng hiểu quần áo".</b> Mạng chỉ học thống kê điểm ảnh của 8.000 ảnh nền đen, sản phẩm đặt giữa. Ảnh chụp thật ngoài đời sẽ làm nó lúng túng.</li>
+      </ul>
+      <h3>Kiểm tra nhanh</h3>
+      <Quiz client:visible questions={[
+        { q: 'Áp một bộ lọc 3×3 (không đệm viền) lên ảnh 28×28. Bản đồ đặc trưng có kích thước bao nhiêu?', options: ['28 × 28', '26 × 26', '25 × 25'], answer: 1, why: 'Cửa sổ 3×3 có 28 − 3 + 1 = 26 vị trí theo mỗi chiều.' },
+        { q: 'Vì sao CNN cần ít tham số hơn nhiều so với mạng dense cho ảnh?', options: ['Vì nó bỏ bớt điểm ảnh', 'Vì cùng một bộ lọc nhỏ được dùng chung ở mọi vị trí', 'Vì nó không có bias'], answer: 1, why: 'Chia sẻ trọng số: 9 trọng số của bộ lọc được dùng lại ở 676 vị trí, thay vì mỗi vị trí một bộ trọng số riêng.' },
+        { q: 'Bộ lọc [[−1, 0, 1], [−1, 0, 1], [−1, 0, 1]] cho giá trị lớn ở đâu?', options: ['Chỗ ảnh đồng màu', 'Chỗ ảnh chuyển từ tối sang sáng theo chiều ngang (cạnh dọc)', 'Chỗ ảnh chuyển từ tối sang sáng theo chiều dọc (cạnh ngang)'], answer: 1, why: 'Cột trái nhân −1, cột phải nhân +1: tổng lớn khi bên phải sáng hơn bên trái, tức có một cạnh dọc.' },
+      ]} />
+      <p class="src">Nguồn dữ liệu: Fashion-MNIST — H. Xiao, K. Rasul &amp; R. Vollgraf (2017), Zalando Research, giấy phép MIT; tập t10k trong kho <a href="https://github.com/zalandoresearch/fashion-mnist">zalandoresearch/fashion-mnist</a>.</p>
+    </div>
+  </section>
+</Lesson>
+
+<style>
+  .src { font-size: 0.82rem; color: var(--pencil); margin-top: 2rem; }
+  .ex { display: flex; flex-wrap: wrap; gap: 0.6rem; margin: 0.6rem 0 1.2rem; }
+  .ex figure { margin: 0; }
+  .ex figcaption { font-size: 0.74rem; color: var(--pencil); max-width: 64px; line-height: 1.3; margin-top: 0.2rem; }
+</style>

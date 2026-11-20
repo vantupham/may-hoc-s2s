@@ -1,0 +1,235 @@
+---
+import { readFileSync } from 'node:fs';
+import Lesson from '../../layouts/Lesson.astro';
+import Tex from '../../components/Tex.svelte';
+import HandPrep from '../../components/dulieu/HandPrep.svelte';
+import ImputeLab from '../../components/dulieu/ImputeLab.svelte';
+import TitanicAge from '../../components/dulieu/TitanicAge.svelte';
+import EncodeLab from '../../components/dulieu/EncodeLab.svelte';
+import LeakLab from '../../components/dulieu/LeakLab.svelte';
+import SplitLab from '../../components/dulieu/SplitLab.svelte';
+import CurveLab from '../../components/dulieu/CurveLab.svelte';
+import BeforeAfter from '../../components/dulieu/BeforeAfter.svelte';
+import PyCell from '../../components/PyCell.svelte';
+import Quiz from '../../components/Quiz.svelte';
+import titanic from '../../data/titanic.json';
+import { quantileCalc, sortNum, present, imputeGroupMedian, standardize, minMax, tex, fmt } from '../../lib/ml-core';
+import type { Calc } from '../../lib/ml-core';
+import { oceanVi } from '../../lib/dulieu';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const cal = JSON.parse(readFileSync('public/data/california.json', 'utf8'));
+const groups = cal.ocean.map((o: number) => cal.cats[o]);
+const filled = imputeGroupMedian(cal.bedrooms, groups);
+// Hai khu vực thiếu phòng ngủ ở hai nhóm vị trí khác nhau, và bốn khu vực đủ dữ liệu ở các nhóm còn lại
+const missIdx: number[] = cal.bedrooms.map((v: number | null, i: number) => (v === null ? i : -1)).filter((i: number) => i >= 0);
+const m1 = missIdx.find((i) => cal.ocean[i] === 1)!, m2 = missIdx.find((i) => cal.ocean[i] === 0)!;
+const others = [3, 2, 0, 1].map((o) => cal.ocean.findIndex((v: number, i: number) => v === o && cal.bedrooms[i] !== null && i > 1000));
+const ids = [m1, others[0], m2, others[1], others[2], others[3]];
+const rows = ids.map((i) => ({ id: i, rooms: cal.rooms[i], bedrooms: cal.bedrooms[i], filled: filled[i], pop: cal.pop[i], income: cal.income[i], ocean: cal.ocean[i] }));
+
+const groupCalc = (i: number): Calc => {
+  const g = groups[i];
+  const vals = sortNum(present(cal.bedrooms.filter((_: unknown, j: number) => groups[j] === g)));
+  return { ...quantileCalc(vals, 0.5, `Trung vị phòng ngủ của nhóm "${oceanVi[g]}" (${vals.length.toLocaleString('vi-VN')} khu vực có số liệu)`), key: `g${i}` };
+};
+const r0 = ids[1];
+const st = standardize(cal.income), mm = minMax(cal.income);
+const z = (cal.income[r0] - st.mu) / st.sd, mmv = (cal.income[r0] - mm.lo) / (mm.hi - mm.lo);
+const calcs: Calc[] = [
+  groupCalc(m1), groupCalc(m2),
+  { key: 'z', name: `Chuẩn hoá thu nhập của khu vực ${r0}`, value: z, formula: String.raw`z = \frac{x - \mu}{\sigma}`,
+    substituted: String.raw`z = \frac{${tex(cal.income[r0], 4)} - ${tex(st.mu, 4)}}{${tex(st.sd, 4)}} = ${tex(z, 4)}`,
+    note: `μ và σ ở đây tính trên cả 20.640 khu vực cho gọn. Trong một mô hình thật, chúng phải được tính trên riêng tập huấn luyện (xem phòng thí nghiệm rò rỉ).` },
+  { key: 'mm', name: `Min-max cho thu nhập của khu vực ${r0}`, value: mmv, formula: String.raw`x' = \frac{x - x_{\min}}{x_{\max} - x_{\min}}`,
+    substituted: String.raw`x' = \frac{${tex(cal.income[r0], 4)} - ${tex(mm.lo, 4)}}{${tex(mm.hi, 4)} - ${tex(mm.lo, 4)}} = ${tex(mmv, 4)}`,
+    note: 'Một giá trị cực lớn duy nhất (15,0001) quyết định cả thang đo: mọi khu vực khác bị ép vào khoảng hẹp gần 0.' },
+  { key: 'log', name: `Biến đổi log cho dân số của khu vực ${r0}`, value: Math.log1p(cal.pop[r0]), formula: String.raw`x' = \ln(1 + x)`,
+    substituted: String.raw`x' = \ln(1 + ${cal.pop[r0]}) = ${tex(Math.log1p(cal.pop[r0]), 4)}`,
+    note: 'Cộng 1 để khu vực có 0 người vẫn tính được (ln 0 không xác định).' },
+];
+const labels = [`điền ô ${m1}`, `điền ô ${m2}`, 'chuẩn hoá', 'min-max', 'log'];
+const people = titanic.people.map((p) => ({ name: p.name, age: p.age, ageMissing: p.ageMissing, pclass: p.pclass }));
+
+const pyCode = `import json
+import numpy as np, pandas as pd
+from pyodide.http import open_url
+from sklearn.pipeline import make_pipeline
+from sklearn.compose import ColumnTransformer
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import OneHotEncoder, StandardScaler, FunctionTransformer
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import KFold, GroupKFold, cross_val_score
+
+raw = json.loads(open_url("${base}/data/california.json").read())
+df = pd.DataFrame({k: raw[k] for k in ["lon", "lat", "age", "rooms", "bedrooms", "pop", "hh", "income"]})
+df["ocean"] = [raw["cats"][c] for c in raw["ocean"]]
+y = np.array(raw["value"])
+
+so = ["lon", "lat", "age", "rooms", "bedrooms", "pop", "hh", "income"]
+xu_ly = ColumnTransformer([
+    # Mọi bước học tham số (trung vị, trung bình, độ lệch chuẩn) nằm TRONG pipeline,
+    # nên mỗi lần chia, chúng chỉ được học từ phần huấn luyện: không rò rỉ.
+    ("so", make_pipeline(SimpleImputer(strategy="median"), StandardScaler()), so),
+    ("log", make_pipeline(SimpleImputer(strategy="median"), FunctionTransformer(np.log1p), StandardScaler()), ["income", "pop"]),
+    ("vi_tri", OneHotEncoder(handle_unknown="ignore"), ["ocean"]),
+])
+mo_hinh = make_pipeline(xu_ly, LinearRegression())
+
+o_dia_ly = np.floor(df.lat).astype(int) * 1000 + np.floor(df.lon).astype(int)
+for ten, cv, nhom in [("ngẫu nhiên", KFold(5, shuffle=True, random_state=0), None),
+                      ("theo vùng", GroupKFold(5), o_dia_ly)]:
+    rmse = -cross_val_score(mo_hinh, df, y, cv=cv, groups=nhom, scoring="neg_root_mean_squared_error")
+    print(f"Chia {ten}: RMSE từng phần {rmse.round(3)}, trung bình {rmse.mean():.4f}")`;
+---
+<Lesson slug="xu-ly-du-lieu" data="toàn bộ 20.640 khu vực California Housing, 891 hành khách Titanic, 569 mẫu sinh thiết Breast Cancer Wisconsin" lead="Bài 3A tìm ra các vấn đề. Bài này sửa chúng: điền giá trị thiếu, mã hoá, đưa về cùng thang đo, chặn rò rỉ, chia train/test cho đúng — và đo xem mỗi bước thật sự đáng giá bao nhiêu. Cuối bài là câu hỏi lớn của chương: nên thu thập thêm dữ liệu, hay làm cho dữ liệu đang có tốt hơn?">
+
+  <section id="bai-toan">
+    <div class="prose">
+      <h2><span class="step-no">1</span>Bài toán</h2>
+      <p>Ta đã biết dữ liệu California có những vấn đề gì. Giờ cần sửa chúng để mô hình dự đoán giá nhà tốt nhất có thể, <b>với cùng một mô hình hồi quy tuyến tính</b>. Không đổi thuật toán, không tăng độ phức tạp: chỉ dữ liệu thay đổi.</p>
+      <p>Có một luật xuyên suốt bài: mọi bước xử lý có "học" một con số từ dữ liệu (trung vị để điền, trung bình để chuẩn hoá) đều chỉ được học từ <b>tập huấn luyện</b>. Phá luật này là rò rỉ dữ liệu — lỗi khiến điểm đánh giá đẹp hơn sự thật.</p>
+    </div>
+  </section>
+
+  <section id="kham-pha">
+    <div class="prose">
+      <h2><span class="step-no">2</span>Khám phá dữ liệu</h2>
+      <p>Nhắc lại phiếu khám của bài 3A, xếp theo việc cần làm:</p>
+      <table class="data plan">
+        <thead><tr><th>Vấn đề</th><th>Quy mô</th><th>Cách xử lý trong bài này</th></tr></thead>
+        <tbody>
+          <tr><td>Thiếu số phòng ngủ</td><td>207 khu vực (1%)</td><td>So 5 cách điền (phần 3)</td></tr>
+          <tr><td>Cột vị trí là chữ</td><td>5 loại, 1 loại chỉ có 5 khu vực</td><td>Mã hoá one-hot (phần 4)</td></tr>
+          <tr><td>Các cột có thang đo chênh nhau hàng nghìn lần, lệch phải</td><td>Số phòng tới 39.320, thu nhập tới 15</td><td>Chuẩn hoá, log (phần 4)</td></tr>
+          <tr><td>Giá bị chặn trần</td><td>965 khu vực ở đúng 500.001 USD</td><td>Quyết định phạm vi (phần 7)</td></tr>
+          <tr><td>Nhiều khu vực trùng toạ độ</td><td>8.050 dòng</td><td>Chia train/test theo vùng (phần 7)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="truc-giac">
+    <div class="prose">
+      <h2><span class="step-no">3</span>Trực giác</h2>
+      <p>Không có cách điền "trung lập". Mỗi cách là một <b>giả định</b> về lý do ô bị trống. Điền trung bình là giả định ô trống trông giống một khu vực điển hình. Điền theo nhóm là giả định nó giống các khu vực cùng nhóm. Điền bằng láng giềng là giả định nó giống những khu vực có số phòng, số hộ, dân số gần nó nhất. Giả định càng sát sự thật, giá trị điền càng đúng.</p>
+    </div>
+    <div class="wide"><ImputeLab client:visible /></div>
+    <div class="wide"><TitanicAge client:visible people={people} /></div>
+  </section>
+
+  <section id="tinh-tay">
+    <div class="prose">
+      <h2><span class="step-no">4</span>Tính tay từng bước</h2>
+      <p>Mỗi bước xử lý là một phép tính nhỏ. Sáu khu vực dưới đây đi qua cả dây chuyền.</p>
+    </div>
+    <div class="wide"><HandPrep client:visible rows={rows} cats={cal.cats} calcs={calcs} labels={labels} /></div>
+    <div class="prose">
+      <p>Ba phép biến đổi thang đo có ba tính chất khác nhau. Chuẩn hoá z đưa trung bình về 0, độ lệch chuẩn về 1, nhưng giữ nguyên hình dạng phân phối. Min-max ép mọi giá trị vào [0, 1] nên rất nhạy với một giá trị cực lớn. Log thay đổi hình dạng: kéo đuôi dài vào gần. Tác động của từng cách lên mô hình được đo dưới đây.</p>
+    </div>
+    <div class="wide"><EncodeLab client:visible /></div>
+  </section>
+
+  <section id="ly-thuyet">
+    <div class="prose">
+      <h2><span class="step-no">5</span>Lý thuyết</h2>
+      <h3>Thiết kế đặc trưng</h3>
+      <p>Mô hình tuyến tính chỉ cộng các cột với trọng số. Nó không tự nghĩ ra được "số phòng chia số hộ" hay "log thu nhập". Thiết kế đặc trưng là đưa hiểu biết về bài toán vào dữ liệu: tỷ lệ thay cho số đếm khi cỡ đơn vị không quan trọng, log khi tác động là tương đối (thêm 1 phòng cho căn hộ 2 phòng khác hẳn thêm 1 phòng cho biệt thự 20 phòng), one-hot cho loại không có thứ tự.</p>
+
+      <h3>Rò rỉ dữ liệu</h3>
+      <p>Rò rỉ xảy ra khi mô hình được huấn luyện hoặc đánh giá với thông tin mà lúc dùng thật nó không có. Ba dạng hay gặp:</p>
+      <ul>
+        <li><b>Rò rỉ từ nhãn:</b> một đặc trưng được tính từ chính đáp án, hoặc chỉ có sau khi biết đáp án (số tiền bồi thường khi dự đoán ai sẽ nộp đơn bảo hiểm).</li>
+        <li><b>Rò rỉ từ tập test:</b> bước xử lý học tham số trên cả tập test (chuẩn hoá, điền thiếu, chọn đặc trưng trên toàn bộ dữ liệu trước khi chia).</li>
+        <li><b>Rò rỉ qua bản sao:</b> cùng một đối tượng, hoặc gần như giống hệt, nằm ở cả hai tập (cùng bệnh nhân chụp hai lần, cùng toạ độ, cùng một người viết).</li>
+      </ul>
+      <p>Cách phòng chung: đặt mọi bước xử lý vào một pipeline, chỉ gọi <code>fit</code> trên phần huấn luyện; và với từng cột, hỏi "lúc cần dự đoán, cột này đã có giá trị chưa?".</p>
+
+      <h3>Chia train/test thế nào</h3>
+      <p>Tập test phải mô phỏng đúng tình huống mô hình sẽ gặp:</p>
+      <ul>
+        <li><b>Ngẫu nhiên</b> khi các dòng độc lập với nhau và dữ liệu dùng thật đến từ cùng nguồn.</li>
+        <li><b>Phân tầng</b> khi có lớp hiếm (13,4% tin rác): giữ đúng tỷ lệ lớp ở mỗi tập để tập test nhỏ không thiếu hẳn lớp hiếm.</li>
+        <li><b>Theo nhóm</b> khi các dòng trong cùng nhóm giống nhau (cùng vùng, cùng bệnh nhân, cùng người dùng): cả nhóm vào một tập.</li>
+        <li><b>Theo thời gian</b> khi dự báo tương lai: huấn luyện trên quá khứ, kiểm tra trên giai đoạn sau.</li>
+      </ul>
+
+      <h3>Đường cong học</h3>
+      <p>Vẽ sai số huấn luyện và sai số kiểm định theo số mẫu n. Khi hai đường đã gặp nhau và cùng phẳng, mô hình bị giới hạn bởi chính nó (bias cao): thêm dữ liệu vô ích, cần đặc trưng hoặc mô hình tốt hơn. Khi còn khoảng cách lớn giữa hai đường và đường kiểm định vẫn đang đi xuống, thêm dữ liệu sẽ giúp.</p>
+
+      <h3>Dữ liệu tốt hơn, hay dữ liệu nhiều hơn?</h3>
+      <p>Với nhãn bị lật ngẫu nhiên tỷ lệ ε trong bài toán hai lớp, mỗi nhãn chỉ còn mang một phần thông tin:</p>
+      <Tex tex={String.raw`P(\tilde y = y) - P(\tilde y \ne y) = 1 - 2\varepsilon`} display />
+      <p>Ở ε = 30%, khoảng cách giữa "đúng" và "sai" chỉ còn 0,4 thay vì 1. Mô hình cần nhiều mẫu hơn hẳn để lọc ra cùng một tín hiệu, và với nhãn sai có hệ thống (không ngẫu nhiên) thì thêm bao nhiêu mẫu cũng không lọc được. Đó là lý do làm sạch nhãn thường rẻ hơn thu thập thêm.</p>
+
+      <h3>Phiếu dữ liệu</h3>
+      <p>Đề xuất "Datasheets for Datasets" của Gebru và cộng sự gợi ý mỗi bộ dữ liệu đi kèm một phiếu, giống bảng thông số của linh kiện điện tử. Đây là phiếu cho bộ dữ liệu ta đã dùng suốt chương:</p>
+      <dl class="sheet">
+        <dt>Động cơ</dt><dd>Điều tra dân số Mỹ năm 1990; được Pace và Barry dùng năm 1997 để nghiên cứu hồi quy không gian; nay là bộ dữ liệu dạy học phổ biến.</dd>
+        <dt>Thành phần</dt><dd>20.640 khu vực điều tra (block group) ở California, mỗi khu vực vài trăm đến vài nghìn người. 9 cột số, 1 cột phân loại. Mỗi dòng là thống kê <i>tổng hợp</i> của một khu vực, không phải một căn nhà.</dd>
+        <dt>Thu thập</dt><dd>Giá và thu nhập là trung vị do người dân tự khai. Giá nhà bị chặn ở 500.001 USD, tuổi nhà ở 52, thu nhập ở 15,0001. Cột vị trí so với biển được thêm sau (bản của A. Géron), không thuộc dữ liệu gốc.</dd>
+        <dt>Xử lý đã biết</dt><dd>207 ô thiếu phòng ngủ trong bản này là cố ý tạo ra cho mục đích dạy học. 8.050 dòng trùng toạ độ với dòng khác.</dd>
+        <dt>Dùng được cho</dt><dd>Học và minh hoạ hồi quy, xử lý dữ liệu.</dd>
+        <dt>Không nên dùng cho</dt><dd>Định giá nhà hiện nay: giá đã thay đổi rất nhiều sau hơn 30 năm (lệch khái niệm); không có thông tin về từng căn nhà.</dd>
+      </dl>
+    </div>
+  </section>
+
+  <section id="ma-nguon">
+    <div class="prose">
+      <h2><span class="step-no">6</span>Mã nguồn</h2>
+      <p>Trong scikit-learn, <code>ColumnTransformer</code> áp dụng các bước khác nhau cho các nhóm cột khác nhau, và <code>Pipeline</code> nối chúng với mô hình. Cross-validation sẽ gọi <code>fit</code> của cả chuỗi trên từng phần huấn luyện.</p>
+      <PyCell client:visible code={pyCode} packages={['numpy', 'pandas', 'scikit-learn']} title="xu_ly_du_lieu.py" />
+    </div>
+  </section>
+
+  <section id="danh-gia">
+    <div class="prose">
+      <h2><span class="step-no">7</span>Toàn bộ dữ liệu và đánh giá</h2>
+      <p>Ba thí nghiệm cuối trả lời ba câu hỏi: con số đánh giá có bị rò rỉ thổi phồng không, tập test có mô phỏng đúng nơi dùng thật không, và nên đầu tư vào dữ liệu theo hướng nào.</p>
+    </div>
+    <div class="wide"><LeakLab client:visible /></div>
+    <div class="wide"><SplitLab client:visible /></div>
+    <div class="wide"><CurveLab client:visible /></div>
+    <div class="prose">
+      <p>Cuối cùng, gom mọi bước của chương lại:</p>
+    </div>
+    <div class="wide"><BeforeAfter client:visible /></div>
+    <div class="prose">
+      <h3>Danh sách kiểm tra trước khi huấn luyện</h3>
+      <ol class="check">
+        <li>Mỗi cột có sẵn vào lúc cần dự đoán không? Có cột nào tính từ nhãn không?</li>
+        <li>Tập test có giống nơi mô hình sẽ được dùng không? Đo bằng mô hình phân biệt hai tập.</li>
+        <li>Đã ước lượng tỷ lệ nhãn sai và xem lại các mẫu bị nghi chưa?</li>
+        <li>Đường cong học còn đi xuống không? Nếu đã phẳng, đừng đi thu thập thêm.</li>
+        <li>Đã khám thiếu, trùng, chặn trần, ngoại lai cho từng cột chưa?</li>
+        <li>Mỗi lớp, mỗi nhóm người có đủ mẫu? Đã đo sai số riêng từng nhóm?</li>
+        <li>Có đối tượng nào nằm ở cả train và test? Cần chia theo nhóm hay theo thời gian?</li>
+        <li>Đã có phiếu dữ liệu: nguồn, giấy phép, giới hạn, mục đích được phép?</li>
+      </ol>
+      <h3>Bẫy thường gặp</h3>
+      <ul>
+        <li><b>Xử lý trên toàn bộ dữ liệu rồi mới chia.</b> Hãy chia trước, hoặc đặt mọi bước vào pipeline.</li>
+        <li><b>Thêm một cột "rất mạnh" mà không hỏi nó đến từ đâu.</b> Cột tốt đến khó tin thường là rò rỉ.</li>
+        <li><b>Chia ngẫu nhiên dữ liệu có nhóm.</b> Mô hình nhớ "anh em sinh đôi" thay vì học quy luật.</li>
+        <li><b>Thu thập thêm khi đường cong học đã phẳng.</b> Tốn công mà không cải thiện được gì.</li>
+      </ul>
+      <h3>Kiểm tra nhanh</h3>
+      <Quiz client:visible questions={[
+        { q: 'Bạn điền ô thiếu bằng trung vị tính trên toàn bộ dữ liệu, rồi mới chia train/test. Vấn đề là gì?', options: ['Không có vấn đề vì trung vị không bị ngoại lai kéo lệch', 'Trung vị đã dùng thông tin của tập test: một dạng rò rỉ', 'Trung vị làm sai kiểu dữ liệu'], answer: 1, why: 'Mọi tham số của bước xử lý phải học từ tập huấn luyện. Ở đây ảnh hưởng nhỏ, nhưng thói quen này với các bước khác có thể thổi phồng điểm số rất nhiều.' },
+        { q: 'Đường cong học của mô hình: sai số huấn luyện và kiểm định đã gặp nhau và nằm ngang từ 1.000 mẫu. Nên làm gì?', options: ['Thu thập thêm 100.000 mẫu', 'Thêm đặc trưng tốt hơn hoặc dùng mô hình linh hoạt hơn', 'Giảm số mẫu cho nhanh'], answer: 1, why: 'Hai đường gặp nhau và phẳng nghĩa là mô hình bị giới hạn bởi độ phức tạp của nó (bias). Thêm dữ liệu không thay đổi được điều đó.' },
+        { q: 'Dữ liệu ảnh y tế có 3 ảnh cho mỗi bệnh nhân. Chia train/test thế nào?', options: ['Ngẫu nhiên theo ảnh', 'Theo bệnh nhân: cả 3 ảnh của một người vào cùng một tập', 'Phân tầng theo độ sáng ảnh'], answer: 1, why: 'Ba ảnh của cùng một người rất giống nhau. Chia theo ảnh, mô hình có thể nhận ra người thay vì nhận ra bệnh, và điểm test sẽ cao giả tạo.' },
+      ]} />
+      <p class="src">Nguồn dữ liệu: California Housing (U.S. Census 1990; Pace và Barry, 1997), Titanic, Breast Cancer Wisconsin (UCI). Phiếu dữ liệu theo Gebru và cộng sự, <a href="https://arxiv.org/abs/1803.09010">Datasheets for Datasets</a>.</p>
+    </div>
+  </section>
+</Lesson>
+
+<style>
+  .src { font-size: 0.82rem; color: var(--pencil); margin-top: 2rem; }
+  .plan td { white-space: normal; font-family: var(--serif); font-size: 0.86rem; text-align: left; }
+  .sheet { border-top: 1.5px solid var(--ink); border-bottom: 1.5px solid var(--ink); padding: 0.4rem 0 0.8rem; }
+  .sheet dt { font-weight: 700; margin-top: 0.6rem; }
+  .sheet dd { margin: 0.1rem 0 0; }
+  .check li { margin: 0.25rem 0; }
+</style>

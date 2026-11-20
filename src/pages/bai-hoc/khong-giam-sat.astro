@@ -1,0 +1,136 @@
+---
+import Lesson from '../../layouts/Lesson.astro';
+import Tex from '../../components/Tex.svelte';
+import KMeansLab from '../../components/ch6/KMeansLab.svelte';
+import ClusterEval from '../../components/ch6/ClusterEval.svelte';
+import PCALab from '../../components/ch6/PCALab.svelte';
+import DigitImg from '../../components/DigitImg.svelte';
+import PyCell from '../../components/PyCell.svelte';
+import Quiz from '../../components/Quiz.svelte';
+import peng from '../../data/penguins.json';
+import dg from '../../data/digits.json';
+import { fmt } from '../../lib/ml-core';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const sp = peng.species;
+const avg = (k: number, f: 'len' | 'dep') => { const g = peng.birds.filter((b) => b.species === k); return g.reduce((a, b) => a + b[f], 0) / g.length; };
+const sampleDigits = Array.from({ length: 10 }, (_, d) => dg.digits.find((x) => x.y === d)!);
+
+const pyCode = `import numpy as np, json
+from pyodide.http import open_url
+from sklearn.cluster import KMeans, DBSCAN
+from sklearn.decomposition import PCA
+
+p = json.loads(open_url("${base}/data/penguins.json").read())
+Z = np.array([[b["a"], b["b"]] for b in p["birds"]])        # số đo mỏ đã chuẩn hoá
+loai = np.array([b["species"] for b in p["birds"]])
+
+km = KMeans(n_clusters=3, init=Z[p["initIdx"]], n_init=1).fit(Z)
+print("K-means hội tụ sau", km.n_iter_, "vòng")
+for c in range(3):
+    print(f"  cụm {c}:", np.bincount(loai[km.labels_ == c], minlength=3), "(Adelie, Chinstrap, Gentoo)")
+
+db = DBSCAN(eps=0.28, min_samples=5).fit(Z)
+print("DBSCAN:", len(set(db.labels_)) - 1, "cụm,", (db.labels_ == -1).sum(), "điểm nhiễu")
+
+d = json.loads(open_url("${base}/data/digits.json").read())
+X = np.array([x["px"] for x in d["digits"]], dtype=float)
+pca = PCA().fit(X)
+print("Phương sai giữ lại với 2, 10, 20 thành phần:", pca.explained_variance_ratio_.cumsum()[[1, 9, 19]].round(3))`;
+---
+<Lesson slug="khong-giam-sat" data="342 con chim cánh cụt ở quần đảo Palmer, Nam Cực, và 1.797 chữ số viết tay 8×8 điểm ảnh (UCI)" lead="Từ đầu tới giờ, mọi dữ liệu đều có đáp án: giá nhà, chẩn đoán, loài hoa. Nhưng phần lớn dữ liệu trên đời không có nhãn. Học không giám sát tìm cấu trúc ẩn trong dữ liệu không nhãn: các nhóm tự nhiên (phân cụm) và những hướng quan trọng nhất (giảm chiều).">
+
+  <section id="bai-toan">
+    <div class="prose">
+      <h2><span class="step-no">1</span>Bài toán</h2>
+      <p><b>Phân cụm.</b> Từ năm 2007 đến 2009, nhà sinh thái học Kristen Gorman đo đạc chim cánh cụt trên ba hòn đảo ở quần đảo Palmer. Giả sử ta chỉ có chiều dài và độ dày mỏ của {peng.birds.length} con, không biết loài. Liệu máy có tự phát hiện ra rằng có ba nhóm?</p>
+      <p><b>Giảm chiều.</b> Mỗi ảnh chữ số viết tay gồm 64 con số. Không thể vẽ 64 chiều. Có cách nào tóm mỗi ảnh vào 2 con số mà vẫn giữ được phần lớn thông tin?</p>
+    </div>
+  </section>
+
+  <section id="kham-pha">
+    <div class="prose">
+      <h2><span class="step-no">2</span>Khám phá dữ liệu</h2>
+      <div class="table-scroll">
+        <table class="data">
+          <thead><tr><th style="text-align:left">Loài</th><th>Số con</th><th>Mỏ dài TB (mm)</th><th>Mỏ dày TB (mm)</th></tr></thead>
+          <tbody>{sp.map((s, k) => <tr><td class="t"><i>{s}</i></td><td>{peng.birds.filter((b) => b.species === k).length}</td><td>{fmt(avg(k, 'len'), 1)}</td><td>{fmt(avg(k, 'dep'), 1)}</td></tr>)}</tbody>
+        </table>
+      </div>
+      <p>Adelie có mỏ ngắn. Gentoo có mỏ dài nhưng mỏng. Chinstrap mỏ dài và dày. Không đặc trưng nào một mình tách được ba loài, nhưng cả hai cùng nhau thì có thể. Hai đặc trưng khác đơn vị độ lớn (mỏ dài khoảng 44 mm, dày khoảng 17 mm), nên ta chuẩn hoá trước khi đo khoảng cách.</p>
+      <p>Mười ảnh chữ số đầu tiên, mỗi ảnh 8×8 điểm ảnh, độ đậm từ 0 đến 16:</p>
+      <div class="digits">{sampleDigits.map((d) => <DigitImg px={d.px} size={48} label={`Chữ số ${d.y}`} />)}</div>
+    </div>
+  </section>
+
+  <section id="truc-giac">
+    <div class="prose">
+      <h2><span class="step-no">3</span>Trực giác</h2>
+      <p><b>K-means</b> giống trò chơi "đặt K lá cờ": cắm K lá cờ ngẫu nhiên, mỗi con chim chạy về lá cờ gần nhất, rồi dời mỗi lá cờ về giữa đám chim của nó. Lặp lại cho tới khi không ai đổi chỗ.</p>
+      <p><b>PCA</b> giống chụp ảnh một vật thể 3 chiều: bạn xoay vật sao cho bức ảnh 2 chiều cho thấy nhiều chi tiết nhất. PCA tìm góc chụp đó cho dữ liệu 64 chiều.</p>
+    </div>
+  </section>
+
+  <section id="tinh-tay">
+    <div class="prose">
+      <h2><span class="step-no">4</span>Tính tay từng bước</h2>
+    </div>
+    <div class="wide"><KMeansLab client:visible birds={peng.birds} initIdx={peng.initIdx} species={sp} mean={peng.mean} std={peng.std} /></div>
+    <div class="prose">
+      <p>Bật "Tô màu theo loài thật" ở vòng cuối: ba cụm khớp ba loài khá tốt, dù thuật toán chưa từng thấy nhãn. Chỗ nhầm nằm ở vùng Chinstrap giáp Gentoo. Bấm "Khởi tạo tâm khác" vài lần — đôi khi K-means kẹt ở một lời giải kém hơn.</p>
+    </div>
+  </section>
+
+  <section id="ly-thuyet">
+    <div class="prose">
+      <h2><span class="step-no">5</span>Lý thuyết</h2>
+      <h3>K-means tối ưu cái gì?</h3>
+      <Tex tex={String.raw`\cL{J} = \sum_{i=1}^{n} \lVert \mathbf x_i - \boldsymbol\mu_{c(i)} \rVert^2`} display />
+      <p>Pha gán giảm J bằng cách đổi c(i) với tâm cố định; pha cập nhật giảm J bằng cách đổi tâm với phép gán cố định (trung bình là điểm làm tổng bình phương khoảng cách nhỏ nhất). J không bao giờ tăng, nên thuật toán chắc chắn dừng — nhưng chỉ ở một <b>cực tiểu địa phương</b>. Vì vậy người ta chạy nhiều lần với khởi tạo khác nhau và giữ lần tốt nhất.</p>
+      <h3>DBSCAN</h3>
+      <p>Một điểm là <b>lõi</b> nếu trong bán kính eps quanh nó có ít nhất minPts điểm. Các điểm lõi gần nhau nối thành cụm; điểm không lõi nhưng nằm trong bán kính của điểm lõi là <b>biên</b>; còn lại là <b>nhiễu</b>. DBSCAN không cần biết trước số cụm và tìm được cụm có hình dạng bất kỳ, nhưng nhạy với eps.</p>
+      <h3>PCA</h3>
+      <p>Trừ ảnh trung bình, rồi tính ma trận hiệp phương sai 64×64:</p>
+      <Tex tex={String.raw`\Sigma = \frac{1}{n-1}\sum_{i=1}^n (\mathbf x_i - \bar{\mathbf x})(\mathbf x_i - \bar{\mathbf x})^\top, \qquad \Sigma\,\mathbf v_k = \lambda_k \mathbf v_k`} display />
+      <p>Vector riêng v<sub>1</sub> ứng với trị riêng lớn nhất λ<sub>1</sub> là hướng dữ liệu trải rộng nhất; λ<sub>1</sub> chính là phương sai theo hướng đó. Các vector riêng vuông góc với nhau. Toạ độ mới của một ảnh là z<sub>k</sub> = v<sub>k</sub>·(x − x̄). Trang này tìm vector riêng bằng thuật toán Jacobi: xoay ma trận từng cặp hàng cột cho tới khi chỉ còn đường chéo.</p>
+    </div>
+  </section>
+
+  <section id="ma-nguon">
+    <div class="prose">
+      <h2><span class="step-no">6</span>Mã nguồn</h2>
+      <PyCell client:visible code={pyCode} packages={['numpy', 'scikit-learn']} title="khong_giam_sat.py" />
+    </div>
+  </section>
+
+  <section id="danh-gia">
+    <div class="prose">
+      <h2><span class="step-no">7</span>Toàn bộ dữ liệu và đánh giá</h2>
+      <p>Học không giám sát khó đánh giá vì không có đáp án. Ở đây ta "gian lận" một chút: có nhãn loài thật để kiểm tra. Trong thực tế, ta dựa vào các chỉ số nội tại và hiểu biết về lĩnh vực.</p>
+    </div>
+    <div class="wide"><ClusterEval client:visible birds={peng.birds} species={sp} /></div>
+    <div class="wide"><PCALab client:visible digits={dg.digits} /></div>
+    <div class="prose">
+      <p>Chỉ với 2 thành phần, các chữ số 0, 4, 6 đã tách khá rõ. Khoảng 20 thành phần giữ được gần 90% phương sai: ảnh 64 số có thể nén còn 20 số mà vẫn nhận ra. Chương 9 sẽ dùng chính bộ chữ số này để huấn luyện một mạng nơ-ron.</p>
+      <h3>Bẫy thường gặp</h3>
+      <ul>
+        <li><b>Không chuẩn hoá</b> trước K-means hay PCA → đặc trưng có số lớn áp đảo.</li>
+        <li><b>K-means giả định cụm tròn, cỡ tương đương.</b> Cụm dài, cong hoặc lồng nhau sẽ bị cắt sai; khi đó thử DBSCAN.</li>
+        <li><b>Diễn giải cụm như sự thật.</b> K-means luôn trả về đúng K cụm, kể cả khi dữ liệu không có cấu trúc cụm nào.</li>
+        <li><b>Coi thành phần chính là "đặc trưng có ý nghĩa".</b> Thành phần chính là hướng có phương sai lớn, không nhất thiết là hướng quan trọng cho bài toán của bạn.</li>
+      </ul>
+      <h3>Kiểm tra nhanh</h3>
+      <Quiz client:visible questions={[
+        { q: 'Sau pha cập nhật, tâm của một cụm nằm ở đâu?', options: ['Tại điểm dữ liệu gần tâm cũ nhất', 'Tại trung bình cộng các điểm trong cụm', 'Tại trung vị của cụm'], answer: 1, why: 'Trung bình cộng là điểm làm tổng bình phương khoảng cách tới các điểm trong cụm nhỏ nhất.' },
+        { q: 'Chạy K-means hai lần với khởi tạo khác nhau cho kết quả khác nhau. Vì sao?', options: ['Do lỗi làm tròn', 'K-means chỉ đảm bảo tới một cực tiểu địa phương', 'Do dữ liệu thay đổi'], answer: 1, why: 'Hàm mục tiêu có nhiều "thung lũng". Mỗi khởi tạo có thể rơi vào thung lũng khác nhau.' },
+        { q: 'Thành phần chính thứ nhất của PCA là gì?', options: ['Đặc trưng có giá trị lớn nhất', 'Hướng mà dữ liệu có phương sai lớn nhất', 'Hướng phân biệt các lớp tốt nhất'], answer: 1, why: 'PCA không dùng nhãn. Nó chỉ tìm hướng trải rộng nhất — có thể trùng hoặc không trùng với hướng phân biệt lớp.' },
+      ]} />
+      <p class="src">Nguồn dữ liệu: Palmer Penguins — K. B. Gorman, T. D. Williams &amp; W. R. Fraser (2014), Palmer Station LTER, CC0; CSV trong kho <a href="https://github.com/mwaskom/seaborn-data">mwaskom/seaborn-data</a>. Chữ số viết tay — E. Alpaydin &amp; C. Kaynak (1998), UCI, CC BY 4.0; bản 8×8 trong scikit-learn.</p>
+    </div>
+  </section>
+</Lesson>
+
+<style>
+  .src { font-size: 0.82rem; color: var(--pencil); margin-top: 2rem; }
+  .digits { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.5rem 0 1.2rem; }
+</style>

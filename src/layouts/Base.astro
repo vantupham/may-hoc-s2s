@@ -1,0 +1,100 @@
+---
+import '@fontsource-variable/literata/opsz.css';
+import '@fontsource-variable/literata/opsz-italic.css';
+import '@fontsource/patrick-hand/vietnamese-400.css';
+import '@fontsource/patrick-hand/latin-400.css';
+import '@fontsource-variable/jetbrains-mono';
+import 'katex/dist/katex.min.css';
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+const { title, description = 'Học máy trực quan từng bước với dữ liệu thật: thấy mọi con số được tính ra như thế nào.' } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const fullTitle = title === 'Máy học S2S' ? title : `${title} – Máy học S2S`;
+const path = Astro.url.pathname.replace(base, '') || '/';
+---
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta name="theme-color" content="#fbfcff" />
+    <link rel="icon" href={`${base}/favicon.svg`} type="image/svg+xml" />
+    <script is:inline>
+      try { const t = localStorage.getItem('s2s-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Bỏ qua đến nội dung</a>
+    <header class="site">
+      <div class="bar">
+        <a class="brand" href={`${base}/`} aria-label="Máy học S2S, về trang chủ">
+          Máy học <span class="hand s2s">S2S</span>
+        </a>
+        <nav aria-label="Chính">
+          <a href={`${base}/#muc-luc`} aria-current={path === '/' ? 'page' : undefined}>Mục lục</a>
+          <a href={`${base}/ve-du-an`} aria-current={path.startsWith('/ve-du-an') ? 'page' : undefined}>Về dự án</a>
+          <a class="gh" href="https://github.com/vantupham/may-hoc-s2s">GitHub</a>
+          <button class="theme" type="button" aria-label="Đổi giữa giấy trắng và bảng đen"><span class="to-dark">Bảng đen</span><span class="to-light">Giấy trắng</span></button>
+        </nav>
+      </div>
+    </header>
+    <main id="main">
+      <slot />
+    </main>
+    <footer class="site">
+      <div class="prose">
+        <p><b>Máy học S2S</b> — học máy từng bước, với dữ liệu thật. Mã nguồn mở theo giấy phép MIT, nội dung theo CC BY-SA 4.0.</p>
+        <p class="small">Dữ liệu trong mỗi bài đều ghi nguồn ở cuối bài. Thấy một con số sai? <a href="https://github.com/vantupham/may-hoc-s2s/issues">Báo lỗi trên GitHub</a>.</p>
+      </div>
+    </footer>
+    <script>
+      // Di chuột vào một đại lượng (v-w, v-b, …) sẽ tô dạ quang mọi chỗ cùng đại lượng trên trang
+      document.addEventListener('mouseover', (ev) => {
+        const el = (ev.target as Element | null)?.closest?.('[class*="v-"]');
+        const m = el ? [...el.classList].find((c) => /^v-[A-Za-z]+$/.test(c)) : undefined;
+        const key = m ? m.slice(2) : '';
+        if (document.body.dataset.hl !== key) {
+          if (key) document.body.dataset.hl = key;
+          else delete document.body.dataset.hl;
+        }
+      });
+      document.querySelector('button.theme')?.addEventListener('click', () => {
+        const root = document.documentElement;
+        const dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+        root.dataset.theme = dark ? 'light' : 'dark';
+        try { localStorage.setItem('s2s-theme', root.dataset.theme); } catch (e) {}
+      });
+    </script>
+    <style>
+      .skip { position: absolute; left: -999px; }
+      .skip:focus { left: 1rem; top: 1rem; z-index: 99; background: var(--sheet); padding: 0.5rem 1rem; }
+      header.site { position: sticky; top: 0; z-index: 50; background: var(--paper); border-bottom: 1.5px solid var(--ink); }
+      .bar { max-width: var(--wide); margin: 0 auto; padding: 0.55rem 1.25rem; display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+      .brand { color: var(--ink); text-decoration: none; font-size: 1.2rem; font-weight: 800; letter-spacing: -0.015em; font-variation-settings: 'opsz' 36; white-space: nowrap; }
+      .s2s { font-size: 1.35rem; margin-left: 0.1rem; display: inline-block; transform: rotate(-4deg); }
+      nav { display: flex; align-items: baseline; gap: 1.3rem; font-size: 0.95rem; }
+      nav a { color: var(--pencil); text-decoration: none; }
+      nav a:hover, nav a[aria-current='page'] { color: var(--ink); text-decoration: underline; text-decoration-color: var(--le); text-decoration-thickness: 2px; }
+      .theme { background: none; border: 0; padding: 0; cursor: pointer; color: var(--pencil); font-size: 0.95rem; border-bottom: 1px dashed var(--faint); }
+      .theme:hover { color: var(--ink); }
+      .to-light { display: none; }
+      :global(:root[data-theme='dark']) .to-light { display: inline; }
+      :global(:root[data-theme='dark']) .to-dark { display: none; }
+      @media (prefers-color-scheme: dark) {
+        :global(:root:not([data-theme='light'])) .to-light { display: inline; }
+        :global(:root:not([data-theme='light'])) .to-dark { display: none; }
+      }
+      footer.site { border-top: 1.5px solid var(--ink); margin-top: 6rem; padding: 2rem 0 3rem; color: var(--pencil); font-size: 0.92rem; background: var(--paper); position: relative; z-index: 1; }
+      .small { font-size: 0.86rem; }
+      @media (max-width: 600px) { .gh { display: none; } nav { gap: 0.9rem; } }
+    </style>
+  </body>
+</html>

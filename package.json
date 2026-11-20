@@ -1,0 +1,30 @@
+{
+  "name": "may-hoc-s2s",
+  "version": "1.0.0",
+  "description": "Máy học S2S — học máy trực quan từng bước với dữ liệu thật",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "test": "vitest run"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@astrojs/mdx": "^8.1.6",
+    "@astrojs/svelte": "^9.1.6",
+    "@fontsource-variable/jetbrains-mono": "^5.3.0",
+    "@fontsource-variable/literata": "^5.3.0",
+    "@fontsource/patrick-hand": "^5.3.0",
+    "astro": "^7.4.13",
+    "d3": "^7.9.2",
+    "katex": "^0.19.1",
+    "svelte": "^5.58.0"
+  },
+  "devDependencies": {
+    "@types/d3": "^7.4.3",
+    "typescript": "^6.0.3",
+    "vitest": "^5.1.1"
+  },
+  "type": "module",
+  "private": true
+}

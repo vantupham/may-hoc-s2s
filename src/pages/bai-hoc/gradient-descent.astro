@@ -1,0 +1,165 @@
+---
+import Lesson from '../../layouts/Lesson.astro';
+import Tex from '../../components/Tex.svelte';
+import SlopeGuess from '../../components/gd/SlopeGuess.svelte';
+import GDLab from '../../components/gd/GDLab.svelte';
+import PyCell from '../../components/PyCell.svelte';
+import Quiz from '../../components/Quiz.svelte';
+import housing from '../../data/housing.json';
+import { linearRegressionGD, fmt, tex } from '../../lib/ml-core';
+
+const mini = housing.mini;
+const xs = mini.map((h) => h.income);
+const ys = mini.map((h) => h.value);
+// Số liệu thật của vòng lặp đầu tiên, dùng trong lời giảng
+const t = linearRegressionGD(xs, ys, { lr: 0.01, epochs: 300, fitIntercept: false });
+const s0 = t.steps[0].state;
+const s1 = t.steps[1].state;
+const wStar = xs.reduce((a, x, i) => a + x * ys[i], 0) / xs.reduce((a, x) => a + x * x, 0);
+const w25 = t.steps[24].state.wNext;
+const SX = housing.sample.map((s) => s.income);
+const SY = housing.sample.map((s) => s.value);
+const tAll = linearRegressionGD(SX, SY, { lr: 0.01, epochs: 100, fitIntercept: false });
+const wAll = tAll.steps.at(-1)!.state.wNext;
+const oceanVi: Record<string, string> = { INLAND: 'Nội địa', 'NEAR OCEAN': 'Gần biển', '<1H OCEAN': 'Cách biển < 1 giờ', 'NEAR BAY': 'Gần vịnh', ISLAND: 'Đảo' };
+
+const pyCode = `import numpy as np
+
+# 5 khu vực thật trong dữ liệu California Housing
+x = np.array([${xs.join(', ')}])   # thu nhập (×10.000 USD)
+y = np.array([${ys.join(', ')}])   # giá nhà (×100.000 USD)
+
+w = 0.0          # điểm xuất phát
+eta = 0.01       # tốc độ học
+n = len(x)
+
+for k in range(25):
+    y_hat = w * x                 # 1. dự đoán
+    e = y_hat - y                 # 2. sai số
+    L = np.mean(e ** 2)           # 3. mất mát MSE
+    dw = 2 / n * np.sum(e * x)    # 4. đạo hàm (độ dốc)
+    w = w - eta * dw              # 5. bước xuống dốc
+    if k < 3 or k == 24:
+        print(f"vòng {k+1:2d}: L = {L:.4f}  dL/dw = {dw:+.4f}  w mới = {w:.4f}")
+
+print("Nghiệm chính xác w* =", np.sum(x * y) / np.sum(x * x))`;
+---
+<Lesson slug="gradient-descent" data="5 khu vực, rồi 400 khu vực trong bộ California Housing (điều tra dân số Mỹ 1990)" lead="Gần như mọi mô hình học máy đều học bằng cùng một cách: đoán, đo xem sai bao nhiêu, rồi chỉnh một chút theo hướng bớt sai. Bài này mổ xẻ cách đó trên đúng 5 khu dân cư có thật ở California — từng phép cộng, phép nhân.">
+
+  <section id="bai-toan">
+    <div class="prose">
+      <h2><span class="step-no">1</span>Bài toán</h2>
+      <p>Bạn biết <b>thu nhập trung bình</b> của người dân trong một khu vực. Bạn có đoán được <b>giá nhà</b> ở đó không?</p>
+      <p>Dưới đây là 5 khu vực thật, lấy từ bộ dữ liệu California Housing (điều tra dân số Mỹ năm 1990, gồm {housing.nTotal.toLocaleString('vi-VN')} khu vực).</p>
+    </div>
+    <div class="prose">
+      <div class="table-scroll">
+        <table class="data">
+          <thead><tr><th>Căn</th><th style="text-align:left">Vị trí</th><th>Thu nhập <span class="v-x">x</span><br/>(×10.000 USD)</th><th>Giá nhà <span class="v-y">y</span><br/>(×100.000 USD)</th><th>Nghĩa là</th></tr></thead>
+          <tbody>
+            {mini.map((h, i) => (
+              <tr><td>{i + 1}</td><td class="t">{oceanVi[h.ocean] ?? h.ocean}</td><td class="v-x">{fmt(h.income, 4)}</td><td class="v-y">{fmt(h.value, 3)}</td><td>{Math.round(h.value * 100).toLocaleString('vi-VN')}.000 USD</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p>Ta thử mô hình đơn giản nhất có thể: giá nhà tỷ lệ với thu nhập.</p>
+      <Tex tex={String.raw`\cyh{\hat y} = \cw{w} \cdot \cx{x}`} display />
+      <p>Chỉ có <b>một con số</b> cần tìm: hệ số <span class="v-w">w</span>. Dấu mũ trên <span class="v-yh">ŷ</span> (đọc là "y mũ") nghĩa là <i>giá trị dự đoán</i>, để phân biệt với giá thật <span class="v-y">y</span>.</p>
+    </div>
+  </section>
+
+  <section id="kham-pha">
+    <div class="prose">
+      <h2><span class="step-no">2</span>Khám phá dữ liệu</h2>
+      <p>Nhìn bảng, thu nhập tăng dần từ căn 1 đến căn 5, nhưng giá nhà <b>không</b> tăng đều. Căn 4 có thu nhập cao thứ hai mà giá lại thấp thứ hai — nó nằm sâu trong nội địa, còn căn 2 ở gần biển.</p>
+      <p>Vậy sẽ không có đường thẳng nào đi qua cả 5 điểm. Câu hỏi đúng là: đường thẳng nào <b>sai ít nhất</b>? Và "sai ít nhất" đo bằng gì?</p>
+      <div class="note"><p><b>Cách đo sai số.</b> Với mỗi căn, sai số là <span class="v-e">e = ŷ − y</span>. Ta bình phương sai số (để số âm không triệt tiêu số dương, và để sai lớn bị phạt nặng hơn) rồi lấy trung bình. Con số đó gọi là <abbr title="Mean Squared Error">sai số bình phương trung bình</abbr> (MSE) — chính là <span class="v-L">mất mát L</span>.</p></div>
+      <Tex tex={String.raw`\cL{L}(\cw{w}) = \frac{1}{n}\sum_{i=1}^{n}\left(\cw{w}\,\cx{x_i} - \cy{y_i}\right)^2`} display />
+    </div>
+  </section>
+
+  <section id="truc-giac">
+    <div class="prose">
+      <h2><span class="step-no">3</span>Trực giác</h2>
+      <p>Trước khi học thuật toán, hãy tự làm "máy học" bằng tay. Kéo thanh trượt và để ý hai điều: các hình vuông đỏ to lên hay nhỏ đi, và điểm xanh trên đường cong bên phải đi về đâu.</p>
+    </div>
+    <div class="wide"><SlopeGuess client:visible houses={mini} /></div>
+    <div class="prose">
+      <p>Đường cong <span class="v-L">L(w)</span> có hình cái bát. Tìm <span class="v-w">w</span> tốt nhất nghĩa là <b>tìm đáy bát</b>. Với một tham số ta có thể dò bằng mắt, nhưng mô hình thật có hàng nghìn đến hàng tỷ tham số. Ta cần một cách tự động.</p>
+    </div>
+  </section>
+
+  <section id="tinh-tay">
+    <div class="prose">
+      <h2><span class="step-no">4</span>Tính tay từng bước</h2>
+      <p>Ý tưởng của Gradient Descent rất đời thường: đứng trên sườn đồi trong sương mù, bạn không thấy đáy, nhưng cảm được chân mình đang dốc về phía nào. Bước một bước theo hướng xuống dốc. Lặp lại.</p>
+      <p>Độ dốc của đường cong tại điểm đang đứng chính là <b>đạo hàm</b> <span class="v-g">∂L/∂w</span>. Đạo hàm dương nghĩa là đi sang phải thì L tăng — vậy phải đi sang trái, tức là <b>trừ</b> đi.</p>
+      <ol>
+        <li><b>Dự đoán</b> cho từng căn: <span class="v-yh">ŷᵢ = w·xᵢ</span>.</li>
+        <li><b>Sai số</b>: <span class="v-e">eᵢ = ŷᵢ − yᵢ</span>.</li>
+        <li><b>Độ dốc</b>: <span class="v-g">∂L/∂w = (2/n)·Σ eᵢ·xᵢ</span>.</li>
+        <li><b>Bước xuống dốc</b>: <span class="v-w">w mới = w − <span class="v-eta">η</span>·∂L/∂w</span>, với <span class="v-eta">η</span> là <abbr title="Learning rate">tốc độ học</abbr> — độ dài mỗi bước.</li>
+      </ol>
+      <p>Với <span class="v-w">w = 0</span>, mọi dự đoán bằng 0, nên sai số chính là −y. Độ dốc là <span class="num v-g">{fmt(s0.dw, 4)}</span> (âm — đi sang phải sẽ xuống dốc). Với <span class="v-eta">η = 0,01</span>:</p>
+      <Tex tex={String.raw`\cw{w_{\text{mới}}} = 0 - \ceta{0{,}01} \times (\cg{${tex(s0.dw, 4)}}) = \cw{${tex(s0.wNext, 4)}}`} display />
+      <p>Mất mát giảm từ <span class="num v-L">{fmt(s0.loss, 4)}</span> xuống <span class="num v-L">{fmt(s1.loss, 4)}</span> chỉ sau một bước. Giờ hãy tự chạy:</p>
+    </div>
+    <div class="wide"><GDLab client:visible houses={mini} /></div>
+    <div class="prose">
+      <p><b>Thử ngay:</b> chọn <span class="v-eta">η = 0,05</span> và xem quả bóng nhảy qua lại hai bên đáy. Chọn <span class="v-eta">η = 0,07</span> và xem nó văng ra ngoài. Chọn <span class="v-eta">η = 0,002</span> và xem nó bò rất chậm.</p>
+    </div>
+  </section>
+
+  <section id="ly-thuyet">
+    <div class="prose">
+      <h2><span class="step-no">5</span>Lý thuyết</h2>
+      <h3>Đạo hàm của mất mát đến từ đâu?</h3>
+      <p>Mỗi số hạng trong L có dạng (<span class="v-w">w</span><span class="v-x">xᵢ</span> − <span class="v-y">yᵢ</span>)². Áp dụng <abbr title="Chain rule">quy tắc dây chuyền</abbr>: đạo hàm của u² là 2u nhân đạo hàm của u, và đạo hàm của (w·xᵢ − yᵢ) theo w là xᵢ.</p>
+      <Tex tex={String.raw`\frac{d}{d\cw{w}}\left(\cw{w}\cx{x_i} - \cy{y_i}\right)^2 = 2\left(\cw{w}\cx{x_i} - \cy{y_i}\right)\cdot \cx{x_i} = 2\,\ce{e_i}\,\cx{x_i}`} display />
+      <p>Lấy trung bình trên n căn, ta có công thức độ dốc đã dùng ở trên:</p>
+      <Tex tex={String.raw`\cg{\frac{\partial L}{\partial w}} = \frac{2}{n}\sum_{i=1}^{n} \ce{e_i}\,\cx{x_i}`} display />
+      <h3>Quy tắc cập nhật</h3>
+      <Tex tex={String.raw`\cw{w} \leftarrow \cw{w} - \ceta{\eta}\,\cg{\frac{\partial L}{\partial w}}`} display />
+      <p>Dấu trừ đưa ta đi <i>ngược</i> chiều độ dốc. Khi gần đáy, độ dốc gần 0 nên bước tự động ngắn lại — thuật toán "phanh" khi sắp tới nơi.</p>
+      <h3>Khi nào bước quá dài?</h3>
+      <p>Với bài toán này, độ cong của cái bát là <Tex tex={String.raw`L''(w) = \frac{2}{n}\sum \cx{x_i}^2 = ${tex(2 * xs.reduce((a, x) => a + x * x, 0) / xs.length, 2)}`} />. Gradient Descent chỉ hội tụ khi <span class="v-eta">η</span> nhỏ hơn 2 / L'' ≈ <b class="num">{fmt(2 / (2 * xs.reduce((a, x) => a + x * x, 0) / xs.length), 4)}</b>. Đó là lý do η = 0,065 còn hội tụ (chậm, dao động), còn η = 0,07 thì phân kỳ.</p>
+      <h3>Kiểm tra lại bằng nghiệm chính xác</h3>
+      <p>Bài toán một tham số này có thể giải trực tiếp: cho đạo hàm bằng 0, ta được</p>
+      <Tex tex={String.raw`\cw{w^*} = \frac{\sum \cx{x_i}\cy{y_i}}{\sum \cx{x_i}^2} = \cw{${tex(wStar, 4)}}`} display />
+      <p>Sau 25 vòng với η = 0,01, Gradient Descent đạt <span class="num v-w">{fmt(w25, 4)}</span>. Hai cách cho cùng một đáp số. Ở các mô hình lớn không có công thức giải trực tiếp, Gradient Descent là con đường duy nhất.</p>
+    </div>
+  </section>
+
+  <section id="ma-nguon">
+    <div class="prose">
+      <h2><span class="step-no">6</span>Mã nguồn</h2>
+      <p>Toàn bộ thuật toán chỉ khoảng 10 dòng NumPy. Bấm <b>Chạy</b> để chạy Python ngay trên trình duyệt; bạn có thể sửa <code>eta</code> hoặc số vòng lặp rồi chạy lại. Các con số in ra trùng với bảng ở phần 4.</p>
+      <PyCell client:visible code={pyCode} title="gradient_descent.py" />
+    </div>
+  </section>
+
+  <section id="danh-gia">
+    <div class="prose">
+      <h2><span class="step-no">7</span>Toàn bộ dữ liệu và bẫy thường gặp</h2>
+      <p>Cùng thuật toán đó, chạy trên 400 khu vực ngẫu nhiên thay vì 5, sau 100 vòng cho <span class="v-w">w ≈ {fmt(wAll, 3)}</span>: mỗi 10.000 USD thu nhập tương ứng khoảng {(Math.round(wAll * 100) * 1000).toLocaleString('vi-VN')} USD giá nhà. Gradient Descent không quan tâm có 5 hay 5 triệu dòng; chỉ có tổng Σ dài hơn.</p>
+      <h3>Ba bẫy cần nhớ</h3>
+      <ul>
+        <li><b>Tốc độ học quá lớn</b> → dao động hoặc phân kỳ. Dấu hiệu: mất mát tăng hoặc nhảy lên xuống.</li>
+        <li><b>Tốc độ học quá nhỏ</b> → hội tụ rất chậm, tốn thời gian tính toán.</li>
+        <li><b>Mô hình quá đơn giản</b> → dù tối ưu hoàn hảo, đường ŷ = w·x vẫn sai nhiều với căn 4. Thêm hệ số chặn b và thêm đặc trưng (vị trí) là chủ đề của bài sau.</li>
+      </ul>
+      <h3>Kiểm tra nhanh</h3>
+      <Quiz client:visible questions={[
+        { q: 'Tại vị trí hiện tại, đạo hàm ∂L/∂w = +2,5. Bước tiếp theo, w sẽ thay đổi thế nào?', options: ['Tăng lên', 'Giảm xuống', 'Giữ nguyên'], answer: 1, why: 'w mới = w − η × 2,5. Đạo hàm dương nghĩa là đi sang phải thì L tăng, nên ta đi sang trái (giảm w).' },
+        { q: 'Mất mát tăng dần sau mỗi vòng lặp. Nguyên nhân khả dĩ nhất?', options: ['Tốc độ học quá nhỏ', 'Tốc độ học quá lớn', 'Dữ liệu quá ít'], answer: 1, why: 'Bước quá dài sẽ nhảy vượt qua đáy sang sườn bên kia, cao hơn chỗ cũ. Lặp lại thì càng ngày càng xa đáy.' },
+        { q: 'Vì sao bước cập nhật tự ngắn lại khi gần đáy, dù η không đổi?', options: ['Vì máy tính làm tròn số', 'Vì độ dốc ∂L/∂w gần bằng 0 ở gần đáy', 'Vì số vòng lặp tăng'], answer: 1, why: 'Độ dài bước là η × |∂L/∂w|. Ở đáy bát, mặt cong gần như nằm ngang nên đạo hàm nhỏ dần về 0.' },
+      ]} />
+      <p class="src">Nguồn dữ liệu: California Housing, U.S. Census 1990 (Pace & Barry, 1997), bản CSV trong kho <a href="https://github.com/ageron/handson-ml2">ageron/handson-ml2</a>.</p>
+    </div>
+  </section>
+</Lesson>
+
+<style>
+  .src { font-size: 0.82rem; color: var(--faint); margin-top: 2rem; }
+</style>

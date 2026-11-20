@@ -1,0 +1,206 @@
+---
+import Lesson from '../../layouts/Lesson.astro';
+import Tex from '../../components/Tex.svelte';
+import CalcCard from '../../components/CalcCard.svelte';
+import HousingExplore from '../../components/linreg/HousingExplore.svelte';
+import LineGuess from '../../components/linreg/LineGuess.svelte';
+import LinRegLab from '../../components/linreg/LinRegLab.svelte';
+import LossContour from '../../components/linreg/LossContour.svelte';
+import FullEval from '../../components/linreg/FullEval.svelte';
+import PyCell from '../../components/PyCell.svelte';
+import Quiz from '../../components/Quiz.svelte';
+import housing from '../../data/housing.json';
+import { ols, linearRegressionGD, fmt, tex } from '../../lib/ml-core';
+
+const sample = housing.sample;
+const mini = housing.mini;
+const best = ols(sample.map((s) => s.income), sample.map((s) => s.value));
+const xs = mini.map((h) => h.income);
+const ys = mini.map((h) => h.value);
+const s0 = linearRegressionGD(xs, ys, { lr: 0.02, epochs: 1 }).steps[0].state;
+const oceanVi: Record<string, string> = { INLAND: 'Nội địa', 'NEAR OCEAN': 'Gần biển', '<1H OCEAN': 'Cách biển < 1 giờ', 'NEAR BAY': 'Gần vịnh', ISLAND: 'Đảo' };
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+const pyScratch = `import numpy as np, json
+from pyodide.http import open_url
+
+# Tải 400 khu vực từ chính trang web này
+data = json.loads(open_url("${base}/data/housing.json").read())
+x = np.array([r["income"] for r in data["sample"]])
+y = np.array([r["value"] for r in data["sample"]])
+
+# Chuẩn hoá x để Gradient Descent hội tụ nhanh
+mu, sd = x.mean(), x.std()
+xs = (x - mu) / sd
+
+w, b, eta, n = 0.0, 0.0, 0.2, len(x)
+for k in range(50):
+    e = (w * xs + b) - y
+    dw = 2 / n * np.sum(e * xs)
+    db = 2 / n * np.sum(e)
+    w, b = w - eta * dw, b - eta * db
+
+# Đổi ngược về đơn vị gốc: y = w*(x-mu)/sd + b
+w_goc = w / sd
+b_goc = b - w * mu / sd
+print(f"Gradient Descent: w = {w_goc:.4f}, b = {b_goc:.4f}")
+
+# Nghiệm đóng
+w_ols = np.sum((x - x.mean()) * (y - y.mean())) / np.sum((x - x.mean()) ** 2)
+b_ols = y.mean() - w_ols * x.mean()
+print(f"Nghiệm đóng:      w = {w_ols:.4f}, b = {b_ols:.4f}")`;
+
+const pySklearn = `import numpy as np, json
+from pyodide.http import open_url
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, r2_score
+
+data = json.loads(open_url("${base}/data/housing.json").read())
+test = set(data["testIds"])
+rows = data["sample"]
+X_tr = np.array([[r["income"]] for r in rows if r["id"] not in test])
+y_tr = np.array([r["value"] for r in rows if r["id"] not in test])
+X_te = np.array([[r["income"]] for r in rows if r["id"] in test])
+y_te = np.array([r["value"] for r in rows if r["id"] in test])
+
+model = LinearRegression().fit(X_tr, y_tr)
+pred = model.predict(X_te)
+print("w =", round(model.coef_[0], 4), " b =", round(model.intercept_, 4))
+print("MSE test =", round(mean_squared_error(y_te, pred), 4))
+print("R² test  =", round(r2_score(y_te, pred), 4))`;
+---
+<Lesson slug="hoi-quy-tuyen-tinh" data="400 khu vực ngẫu nhiên trong bộ California Housing (20.640 khu vực)" lead="Bài trước ta chỉ có một núm vặn w. Bài này thêm núm thứ hai — hệ số chặn b — và dùng 400 khu vực thật thay vì 5. Ta sẽ thấy hai cách tìm đường thẳng tốt nhất (Gradient Descent và công thức đóng) cho cùng một đáp số, rồi đo xem mô hình dự đoán tốt đến đâu trên dữ liệu chưa từng thấy.">
+
+  <section id="bai-toan">
+    <div class="prose">
+      <h2><span class="step-no">1</span>Bài toán</h2>
+      <p>Cho thu nhập trung bình của một khu vực ở California, dự đoán giá nhà trung vị ở đó. Đây là bài toán <abbr title="Regression">hồi quy</abbr>: đầu ra là một con số liên tục, không phải một nhãn.</p>
+      <p>Tám khu vực đầu tiên trong mẫu 400 khu vực chọn ngẫu nhiên từ {housing.nTotal.toLocaleString('vi-VN')} khu vực:</p>
+      <div class="table-scroll">
+        <table class="data">
+          <thead><tr><th>#</th><th style="text-align:left">Vị trí</th><th>Tuổi nhà</th><th>Dân số</th><th>Thu nhập <span class="v-x">x</span></th><th>Giá nhà <span class="v-y">y</span></th></tr></thead>
+          <tbody>
+            {sample.slice(0, 8).map((r) => (
+              <tr><td>{r.id}</td><td class="t">{oceanVi[r.ocean] ?? r.ocean}</td><td>{r.age}</td><td>{r.population.toLocaleString('vi-VN')}</td><td class="v-x">{fmt(r.income, 4)}</td><td class="v-y">{fmt(r.value, 3)}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p>Mô hình: một đường thẳng với hai tham số.</p>
+      <Tex tex={String.raw`\cyh{\hat y} = \cw{w}\,\cx{x} + \cb{b}`} display />
+      <p><span class="v-w">w</span> cho biết giá tăng bao nhiêu khi thu nhập tăng 1 đơn vị. <span class="v-b">b</span> là giá dự đoán khi thu nhập bằng 0 — nó cho phép đường thẳng không bắt buộc đi qua gốc toạ độ.</p>
+    </div>
+  </section>
+
+  <section id="kham-pha">
+    <div class="prose">
+      <h2><span class="step-no">2</span>Khám phá dữ liệu</h2>
+      <p>Trước khi huấn luyện bất cứ thứ gì, hãy nhìn dữ liệu. Ba điều quan trọng sẽ ảnh hưởng tới mô hình:</p>
+    </div>
+    <div class="wide"><HousingExplore client:visible sample={sample} hist={housing.hist} capped={housing.capped} nTotal={housing.nTotal} /></div>
+    <div class="prose">
+      <ul>
+        <li><b>Có quan hệ tuyến tính, nhưng không chặt.</b> Hệ số tương quan giữa thu nhập và giá nhà trên toàn bộ dữ liệu là <span class="num">{fmt(housing.stats.corr, 3)}</span>. Một đường thẳng sẽ bắt được xu hướng chung, nhưng còn nhiều yếu tố khác.</li>
+        <li><b>Giá bị chặn trần.</b> {housing.capped} khu vực ({fmt((100 * housing.capped) / housing.nTotal, 1)}%) có giá ghi đúng 500.001 USD — giá thật có thể cao hơn nhiều. Mô hình sẽ học sai ở vùng giá cao.</li>
+        <li><b>Có giá trị thiếu.</b> Cột số phòng ngủ thiếu {housing.missingBedrooms} giá trị. Bài này không dùng cột đó, nhưng ở bài nhiều đặc trưng ta sẽ phải xử lý.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="truc-giac">
+    <div class="prose">
+      <h2><span class="step-no">3</span>Trực giác</h2>
+      <p>Hãy thử tự đặt đường thẳng. Bạn sẽ thấy chỉnh <span class="v-w">w</span> và <span class="v-b">b</span> không độc lập: tăng độ dốc thường phải hạ hệ số chặn để đường thẳng vẫn đi qua giữa đám mây điểm.</p>
+    </div>
+    <div class="wide"><LineGuess client:visible sample={sample} /></div>
+  </section>
+
+  <section id="tinh-tay">
+    <div class="prose">
+      <h2><span class="step-no">4</span>Tính tay từng bước</h2>
+      <p>Thuật toán giống hệt bài trước, chỉ thêm một đạo hàm. Với 5 khu vực của bài trước, xuất phát từ <span class="v-w">w = 0</span>, <span class="v-b">b = 0</span>:</p>
+      <ul>
+        <li>Độ dốc theo <span class="v-w">w</span>: <span class="num v-g">{fmt(s0.dw, 4)}</span> — vẫn công thức <span class="v-g">(2/n)·Σ eᵢxᵢ</span>.</li>
+        <li>Độ dốc theo <span class="v-b">b</span>: <span class="num v-g">{fmt(s0.db, 4)}</span> — công thức <span class="v-g">(2/n)·Σ eᵢ</span>, vì đạo hàm của (w·xᵢ + b − yᵢ) theo b bằng 1.</li>
+      </ul>
+      <p>Cả hai đều âm, nên cả <span class="v-w">w</span> và <span class="v-b">b</span> cùng tăng. Bấm vào từng số trong bảng để xem phép tính đầy đủ.</p>
+    </div>
+    <div class="wide"><LinRegLab client:visible houses={mini} /></div>
+    <div class="prose">
+      <p>Để ý biểu đồ mất mát: giảm rất nhanh trong vài vòng đầu, rồi gần như nằm ngang. Nhưng <span class="v-w">w</span> và <span class="v-b">b</span> vẫn còn đang thay đổi chậm — phần 5 sẽ giải thích vì sao.</p>
+    </div>
+  </section>
+
+  <section id="ly-thuyet">
+    <div class="prose">
+      <h2><span class="step-no">5</span>Lý thuyết</h2>
+      <h3>Hàm mất mát và hai đạo hàm riêng</h3>
+      <Tex tex={String.raw`\cL{L}(\cw{w},\cb{b}) = \frac{1}{n}\sum_{i=1}^{n}\big(\underbrace{\cw{w}\cx{x_i} + \cb{b} - \cy{y_i}}_{\ce{e_i}}\big)^2`} display />
+      <Tex tex={String.raw`\cg{\frac{\partial L}{\partial w}} = \frac{2}{n}\sum_{i=1}^{n}\ce{e_i}\,\cx{x_i} \qquad \cg{\frac{\partial L}{\partial b}} = \frac{2}{n}\sum_{i=1}^{n}\ce{e_i}`} display />
+      <p>Hai đạo hàm ghép lại thành một vector gọi là <abbr title="Gradient">gradient</abbr>, ký hiệu ∇L. Gradient chỉ hướng mất mát tăng nhanh nhất; Gradient Descent đi ngược hướng đó.</p>
+
+      <h3>Nghiệm đóng: giải thẳng, không cần lặp</h3>
+      <p>Tại đáy, cả hai đạo hàm bằng 0. Từ <span class="v-g">∂L/∂b = 0</span> suy ra Σeᵢ = 0, tức là b = ȳ − w·x̄: đường thẳng tốt nhất luôn đi qua điểm trung bình (x̄, ȳ). Thay vào <span class="v-g">∂L/∂w = 0</span> và rút gọn, ta được công thức <abbr title="Ordinary Least Squares">bình phương tối thiểu</abbr> (OLS). Với 400 khu vực:</p>
+    </div>
+    <div class="prose calcs">
+      {best.calcs.map((c) => <CalcCard calc={c} />)}
+    </div>
+    <div class="prose">
+      <p>Vậy cứ mỗi 10.000 USD thu nhập trung bình tăng thêm, giá nhà dự đoán tăng khoảng <b>{(Math.round(best.w * 1000) * 100).toLocaleString('vi-VN')} USD</b>.</p>
+      <h3>Vì sao vẫn học Gradient Descent nếu đã có công thức?</h3>
+      <p>Công thức đóng chỉ tồn tại cho vài mô hình đơn giản. Với nhiều đặc trưng, nó cần nghịch đảo ma trận — rất tốn kém khi có hàng triệu đặc trưng. Hồi quy logistic (bài sau) và mạng nơ-ron hoàn toàn không có công thức đóng. Gradient Descent dùng được cho tất cả.</p>
+      <h3>Hình học của bài toán và vì sao phải chuẩn hoá</h3>
+      <p>Với hai tham số, mất mát là một mặt cong hình cái bát trong không gian ba chiều. Nhìn từ trên xuống, ta thấy các đường đồng mức:</p>
+    </div>
+    <div class="wide"><LossContour client:visible sample={sample} /></div>
+    <div class="prose">
+      <p>Khi x có giá trị lớn (trung bình khoảng {fmt(housing.stats.incomeMean, 1)}), mất mát nhạy với <span class="v-w">w</span> hơn nhiều so với <span class="v-b">b</span>, nên cái bát bị kéo dẹt. Tốc độ học phải đủ nhỏ cho hướng dốc nhất, nên hướng thoải bị bò rất chậm. <b>Chuẩn hoá</b> — trừ trung bình rồi chia độ lệch chuẩn — làm cái bát tròn lại:</p>
+      <Tex tex={String.raw`\cx{x'} = \frac{\cx{x} - \mu}{\sigma}`} display />
+    </div>
+  </section>
+
+  <section id="ma-nguon">
+    <div class="prose">
+      <h2><span class="step-no">6</span>Mã nguồn</h2>
+      <p>Phiên bản tự viết bằng NumPy: chuẩn hoá, chạy Gradient Descent, đổi ngược tham số về đơn vị gốc rồi so với nghiệm đóng.</p>
+      <PyCell client:visible code={pyScratch} title="hoi_quy_tu_viet.py" />
+      <p>Trong thực tế, ta dùng scikit-learn. Ba dòng là đủ, và kết quả trùng với phần 7 bên dưới:</p>
+      <PyCell client:visible code={pySklearn} packages={['numpy', 'scikit-learn']} title="hoi_quy_sklearn.py" />
+    </div>
+  </section>
+
+  <section id="danh-gia">
+    <div class="prose">
+      <h2><span class="step-no">7</span>Toàn bộ dữ liệu và đánh giá</h2>
+      <p>Một mô hình chỉ có giá trị nếu dự đoán tốt trên dữ liệu <b>mới</b>. Vì thế ta tách 400 khu vực thành 320 để huấn luyện (train) và 80 để kiểm tra (test). Mô hình không được nhìn thấy tập test khi học.</p>
+    </div>
+    <div class="wide"><FullEval client:visible sample={sample} testIds={housing.testIds} /></div>
+    <div class="prose">
+      <h3>Đọc các chỉ số</h3>
+      <ul>
+        <li><b>RMSE</b> — căn bậc hai của MSE, cùng đơn vị với giá nhà nên dễ hiểu: "thường sai khoảng chừng này".</li>
+        <li><b>R²</b> — tỷ lệ biến động của giá nhà được mô hình giải thích. R² = 0 nghĩa là không tốt hơn việc luôn đoán giá trung bình; R² = 1 là hoàn hảo.</li>
+        <li>So với mốc <b>"luôn đoán trung bình"</b>: luôn có một mô hình ngây thơ để so. Nếu không thắng được nó, mô hình vô dụng.</li>
+      </ul>
+      <h3>Bẫy thường gặp</h3>
+      <ul>
+        <li><b>Đánh giá trên tập train.</b> Con số đẹp hơn thực tế. Luôn báo cáo trên tập test.</li>
+        <li><b>Quên chuẩn hoá</b> khi dùng Gradient Descent → hội tụ chậm hoặc phải dùng tốc độ học rất nhỏ.</li>
+        <li><b>Bỏ qua dữ liệu bị chặn trần.</b> Biểu đồ phần dư có một vệt chéo: đó là các khu vực giá 5,0. Mô hình tuyến tính không thể biết giá thật cao hơn.</li>
+        <li><b>Ngoại suy.</b> Dự đoán ở vùng thu nhập rất cao, nơi gần như không có dữ liệu, là không đáng tin.</li>
+      </ul>
+      <h3>Kiểm tra nhanh</h3>
+      <Quiz client:visible questions={[
+        { q: 'Đạo hàm ∂L/∂b bằng gì?', options: ['(2/n)·Σ eᵢ·xᵢ', '(2/n)·Σ eᵢ', '(1/n)·Σ eᵢ²'], answer: 1, why: 'Đạo hàm của (w·xᵢ + b − yᵢ) theo b bằng 1, nên chỉ còn lại 2·eᵢ, lấy trung bình.' },
+        { q: 'Vì sao chuẩn hoá x giúp Gradient Descent hội tụ nhanh hơn?', options: ['Vì nó làm dữ liệu ít nhiễu hơn', 'Vì nó làm các đường đồng mức tròn hơn, gradient chỉ thẳng về đáy', 'Vì nó làm giảm số dòng dữ liệu'], answer: 1, why: 'Chuẩn hoá cân bằng độ nhạy của mất mát theo từng tham số. Cái bát tròn nên một tốc độ học phù hợp với mọi hướng.' },
+        { q: 'Mô hình có R² = 0,62 trên tập train và 0,20 trên tập test. Điều này cho thấy gì?', options: ['Mô hình tổng quát hoá tốt', 'Mô hình hoạt động kém hơn nhiều trên dữ liệu mới', 'Tập test bị lỗi'], answer: 1, why: 'Khoảng cách lớn giữa train và test là dấu hiệu mô hình không tổng quát hoá tốt, hoặc hai tập có phân phối khác nhau.' },
+      ]} />
+      <p class="src">Nguồn dữ liệu: California Housing, U.S. Census 1990 (Pace & Barry, 1997), bản CSV trong kho <a href="https://github.com/ageron/handson-ml2">ageron/handson-ml2</a>.</p>
+    </div>
+  </section>
+</Lesson>
+
+<style>
+  .calcs { display: grid; gap: 0.6rem; }
+  .src { font-size: 0.82rem; color: var(--faint); margin-top: 2rem; }
+</style>

@@ -1,0 +1,144 @@
+---
+import Lesson from '../../layouts/Lesson.astro';
+import Tex from '../../components/Tex.svelte';
+import SplitLab from '../../components/ch4/SplitLab.svelte';
+import TreeLab from '../../components/ch4/TreeLab.svelte';
+import EnsembleLab from '../../components/ch4/EnsembleLab.svelte';
+import PyCell from '../../components/PyCell.svelte';
+import Quiz from '../../components/Quiz.svelte';
+import data from '../../data/titanic.json';
+import { fmt } from '../../lib/ml-core';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const P = data.people;
+const test = new Set(data.testIds);
+const trainRows = P.filter((p) => !test.has(p.id)).map((p) => ({ x: data.features.map((f) => (p as any)[f] as number), y: p.survived }));
+const rate = (g: typeof P) => (100 * g.filter((p) => p.survived).length) / g.length;
+const groups = [
+  ['Nam', P.filter((p) => !p.sex)], ['Nữ', P.filter((p) => p.sex)],
+  ['Hạng 1', P.filter((p) => p.pclass === 1)], ['Hạng 2', P.filter((p) => p.pclass === 2)], ['Hạng 3', P.filter((p) => p.pclass === 3)],
+  ['Trẻ dưới 13 tuổi (có ghi tuổi)', P.filter((p) => p.age < 13 && !p.ageMissing)],
+] as const;
+const nMissing = P.filter((p) => p.ageMissing).length;
+
+const pyCode = `import numpy as np, json
+from pyodide.http import open_url
+from sklearn.tree import DecisionTreeClassifier, export_text
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+
+d = json.loads(open_url("${base}/data/titanic.json").read())
+F = d["features"]                      # sex, pclass, age, fare, family
+test = set(d["testIds"])
+X = np.array([[p[f] for f in F] for p in d["people"]], dtype=float)
+y = np.array([p["survived"] for p in d["people"]])
+te = np.array([p["id"] in test for p in d["people"]])
+
+cay = DecisionTreeClassifier(max_depth=3, random_state=0).fit(X[~te], y[~te])
+print(export_text(cay, feature_names=F))
+print("Một cây, độ sâu 3:", cay.score(X[te], y[te]))
+
+rung = RandomForestClassifier(n_estimators=100, max_depth=8, max_features=2, random_state=0).fit(X[~te], y[~te])
+print("Random Forest:    ", rung.score(X[te], y[te]))
+
+gb = GradientBoostingClassifier(n_estimators=100, learning_rate=0.1, max_depth=2, random_state=0).fit(X[~te], y[~te])
+print("Gradient Boosting:", gb.score(X[te], y[te]))
+print("Mức quan trọng của đặc trưng (rừng):", dict(zip(F, rung.feature_importances_.round(3))))`;
+---
+<Lesson slug="cay-quyet-dinh" data="891 hành khách tàu Titanic (1912) với giới tính, hạng vé, tuổi, giá vé, số người thân đi cùng" lead="Một cây quyết định là chuỗi câu hỏi có/không, giống trò chơi hai mươi câu hỏi. Máy tự tìm câu hỏi nào nên hỏi trước, bằng một phép đo độ lẫn lộn gọi là Gini. Rồi ta trồng cả một rừng cây, và thử cách cho các cây nhỏ lần lượt sửa lỗi cho nhau.">
+
+  <section id="bai-toan">
+    <div class="prose">
+      <h2><span class="step-no">1</span>Bài toán</h2>
+      <p>Đêm 14 rạng sáng 15 tháng 4 năm 1912, tàu Titanic đâm vào băng trôi và chìm. Bộ dữ liệu dùng phổ biến trong giảng dạy ghi lại {P.length} hành khách, trong đó {P.filter((p) => p.survived).length} người sống sót. Câu hỏi: chỉ từ thông tin trên vé và giấy tờ, có đoán được ai sống sót không — và quan trọng hơn, <b>những yếu tố nào</b> quyết định?</p>
+      <p>Đây là chỗ cây quyết định mạnh hơn hồi quy logistic: kết quả của nó là một sơ đồ mà ai cũng đọc được, không cần biết toán.</p>
+    </div>
+  </section>
+
+  <section id="kham-pha">
+    <div class="prose">
+      <h2><span class="step-no">2</span>Khám phá dữ liệu</h2>
+      <div class="table-scroll">
+        <table class="data">
+          <thead><tr><th style="text-align:left">Nhóm</th><th>Số người</th><th>Tỷ lệ sống sót</th></tr></thead>
+          <tbody>{groups.map(([n, g]) => <tr><td class="t">{n}</td><td>{g.length}</td><td>{fmt(rate(g as any), 1)}%</td></tr>)}</tbody>
+        </table>
+      </div>
+      <p>Quy tắc "phụ nữ và trẻ em lên xuồng cứu sinh trước" hiện rõ trong số liệu, và hạng vé cũng vậy: khoang hạng 3 nằm sâu dưới tàu, xa boong có xuồng cứu sinh.</p>
+      <div class="note warn"><p><b>Dữ liệu thiếu.</b> {nMissing} hành khách ({fmt((100 * nMissing) / P.length, 1)}%) không có tuổi. Ở đây ta điền tuổi trung vị {data.medianAge}. Đây là cách đơn giản nhất nhưng không vô hại: cây có thể học những quy tắc kỳ lạ quanh đúng tuổi 28. Cách tốt hơn là điền theo nhóm (ví dụ theo danh xưng "Master", "Miss" trong tên) — một bài tập hay cho bạn.</p></div>
+    </div>
+  </section>
+
+  <section id="truc-giac">
+    <div class="prose">
+      <h2><span class="step-no">3</span>Trực giác</h2>
+      <p>Nếu chỉ được hỏi một câu để đoán ai sống sót, bạn sẽ hỏi gì? Có lẽ là giới tính. Cây quyết định làm đúng việc đó, nhưng một cách có hệ thống: nó thử <b>mọi</b> câu hỏi có thể, chấm điểm từng câu, và chọn câu tách hai nhóm "sạch" nhất. Rồi lặp lại việc đó trong từng nhóm con.</p>
+      <p>"Sạch" ở đây nghĩa là trong mỗi nhánh, gần như tất cả cùng một kết cục. Một nhánh 50 người sống, 50 người mất là lẫn lộn hoàn toàn. Một nhánh 95 sống, 5 mất là gần sạch.</p>
+    </div>
+  </section>
+
+  <section id="tinh-tay">
+    <div class="prose">
+      <h2><span class="step-no">4</span>Tính tay từng bước</h2>
+      <p>Tìm câu hỏi đầu tiên — gốc của cây. Thử kéo ngưỡng tuổi và xem Gini thay đổi; rồi so sánh câu hỏi tốt nhất của từng đặc trưng ở bảng bên phải.</p>
+    </div>
+    <div class="wide"><SplitLab client:visible rows={trainRows} /></div>
+    <div class="prose">
+      <p>Giới tính thắng: Gini sau khi chia thấp nhất. Sau đó cây lặp lại đúng quy trình này riêng cho nhóm nam và riêng cho nhóm nữ, cho đến khi đạt độ sâu tối đa hoặc nhóm đã thuần một loại.</p>
+    </div>
+  </section>
+
+  <section id="ly-thuyet">
+    <div class="prose">
+      <h2><span class="step-no">5</span>Lý thuyết</h2>
+      <h3>Độ vẩn đục Gini</h3>
+      <Tex tex={String.raw`G = 1 - \sum_{c} p_c^2`} display />
+      <p>p<sub>c</sub> là tỷ lệ của lớp c trong nút. Ý nghĩa: chọn ngẫu nhiên hai hành khách trong nút (có lặp lại), G là xác suất họ có kết cục khác nhau. Nhóm thuần một loại có G = 0; hai lớp chia đôi có G = 0,5.</p>
+      <h3>Chọn câu hỏi</h3>
+      <Tex tex={String.raw`(j^*, t^*) = \arg\min_{j,\,t}\; \frac{n_L}{n}G(L_{j,t}) + \frac{n_R}{n}G(R_{j,t}), \quad L_{j,t} = \{i : x_{ij} \le t\}`} display />
+      <p>Với mỗi đặc trưng j, chỉ cần thử các ngưỡng nằm giữa hai giá trị liên tiếp khác nhau: dịch ngưỡng trong khoảng đó không làm ai đổi nhánh. Đây là thuật toán <b>tham lam</b>: mỗi bước chọn câu hỏi tốt nhất lúc đó, không nhìn trước. Tìm cây tối ưu toàn cục là bài toán NP-khó.</p>
+      <h3>Rừng ngẫu nhiên</h3>
+      <p>Một cây sâu thì thuộc lòng dữ liệu — thay đổi vài hành khách là cây đổi hẳn. Random Forest lợi dụng chính điểm yếu đó: trồng nhiều cây, mỗi cây trên một mẫu lấy có lặp lại (bootstrap) và chỉ được xét vài đặc trưng ngẫu nhiên ở mỗi nút. Các cây khác nhau, sai theo những cách khác nhau, và khi bỏ phiếu thì các lỗi ngẫu nhiên triệt tiêu một phần.</p>
+      <Tex tex={String.raw`\hat p(\mathbf x) = \frac{1}{T}\sum_{t=1}^{T} \hat p_t(\mathbf x)`} display />
+      <h3>Gradient Boosting</h3>
+      <p>Boosting đi theo hướng ngược lại: các cây nhỏ, yếu, được trồng <b>nối tiếp</b>. Cây thứ m học phần dư <i>y − p</i> mà tổng các cây trước còn đoán sai, rồi được cộng vào với hệ số nhỏ η:</p>
+      <Tex tex={String.raw`F_m(\mathbf x) = F_{m-1}(\mathbf x) + \ceta{\eta}\, h_m(\mathbf x), \qquad p = \sigma(F_M(\mathbf x))`} display />
+      <p>Đây chính là Gradient Descent, nhưng thay vì cập nhật tham số, ta cập nhật cả một hàm: phần dư y − p đúng bằng âm gradient của mất mát log theo F.</p>
+    </div>
+  </section>
+
+  <section id="ma-nguon">
+    <div class="prose">
+      <h2><span class="step-no">6</span>Mã nguồn</h2>
+      <p>Ba mô hình với scikit-learn trên đúng cách chia train/test của trang này. Cây độ sâu 3 in ra giống hệt cây bạn thấy ở phần 7.</p>
+      <PyCell client:visible code={pyCode} packages={['numpy', 'scikit-learn']} title="cay_titanic.py" />
+    </div>
+  </section>
+
+  <section id="danh-gia">
+    <div class="prose">
+      <h2><span class="step-no">7</span>Toàn bộ dữ liệu và đánh giá</h2>
+    </div>
+    <div class="wide"><TreeLab client:visible people={P} testIds={data.testIds} features={data.features} /></div>
+    <div class="wide"><EnsembleLab client:visible people={P} testIds={data.testIds} features={data.features} /></div>
+    <div class="prose">
+      <p>Với chỉ 178 hành khách trong tập test, mỗi người đoán đúng hay sai thay đổi độ chính xác hơn nửa điểm phần trăm. Bấm "Trồng lại rừng khác" để thấy kết quả dao động bao nhiêu chỉ vì may rủi.</p>
+      <h3>Bẫy thường gặp</h3>
+      <ul>
+        <li><b>Cây quá sâu.</b> Không giới hạn độ sâu, cây sẽ tạo một lá cho gần như mỗi hành khách. Luôn giới hạn độ sâu hoặc số mẫu tối thiểu ở lá.</li>
+        <li><b>Tin vào "mức quan trọng" một cách máy móc.</b> Đặc trưng có nhiều giá trị khác nhau (như giá vé) có nhiều ngưỡng để thử, nên dễ được chọn hơn dù không thật sự quan trọng hơn.</li>
+        <li><b>Rò rỉ dữ liệu.</b> Nếu điền tuổi thiếu bằng trung vị tính trên toàn bộ dữ liệu (cả tập test), thông tin của tập test đã lọt vào huấn luyện. Ở đây, trung vị {data.medianAge} được tính trên cả 891 người — một sai sót nhỏ cố ý để nhắc bạn: trong dự án thật, hãy tính trên tập huấn luyện. Chương 3B có <a href={`${base}/bai-hoc/xu-ly-du-lieu#truc-giac`}>cách điền tuổi theo danh xưng</a> và <a href={`${base}/bai-hoc/xu-ly-du-lieu#danh-gia`}>thí nghiệm rò rỉ</a>.</li>
+      </ul>
+      <h3>Kiểm tra nhanh</h3>
+      <Quiz client:visible questions={[
+        { q: 'Một nút có 30 người sống và 10 người mất. Gini của nút bằng bao nhiêu?', options: ['0,25', '0,375', '0,5'], answer: 1, why: 'G = 1 − (30/40)² − (10/40)² = 1 − 0,5625 − 0,0625 = 0,375.' },
+        { q: 'Vì sao Random Forest chỉ cho mỗi nút xét vài đặc trưng ngẫu nhiên?', options: ['Để chạy nhanh hơn', 'Để các cây khác nhau hơn, nhờ đó bỏ phiếu triệt tiêu được lỗi', 'Vì các đặc trưng khác không quan trọng'], answer: 1, why: 'Nếu cây nào cũng được xét mọi đặc trưng, chúng sẽ cùng chọn "giới tính" ở gốc và giống nhau. Các cây giống nhau thì sai giống nhau, bỏ phiếu không giúp gì.' },
+        { q: 'Trong Gradient Boosting, cây thứ m học cái gì?', options: ['Nhãn y gốc', 'Phần sai y − p của tổng các cây trước', 'Một mẫu bootstrap ngẫu nhiên'], answer: 1, why: 'Mỗi cây mới sửa phần sai còn lại. Vì vậy các cây phải được trồng tuần tự, không song song như Random Forest.' },
+      ]} />
+      <p class="src">Nguồn dữ liệu: danh sách hành khách Titanic (Encyclopedia Titanica), bản 891 hành khách phổ biến trong giảng dạy, CSV trong kho <a href="https://github.com/datasciencedojo/datasets">datasciencedojo/datasets</a>.</p>
+    </div>
+  </section>
+</Lesson>
+
+<style>
+  .src { font-size: 0.82rem; color: var(--pencil); margin-top: 2rem; }
+</style>
