@@ -9,6 +9,19 @@ import cancer from '../../data/cancer.json';
 import cancerUrl from '../../data/cancer.json?url';
 import gridUrl from '../../data/svm-rbf.json?url';
 import Lazy from '../../components/Lazy.svelte';
+import Goals from '../../components/hoc/Goals.astro';
+import Mission from '../../components/hoc/Mission.svelte';
+import Debrief from '../../components/hoc/Debrief.svelte';
+import Checkpoint from '../../components/hoc/Checkpoint.astro';
+import Exercises from '../../components/hoc/Exercises.astro';
+import Takeaways from '../../components/hoc/Takeaways.astro';
+import SelfCheck from '../../components/hoc/SelfCheck.svelte';
+import { svmLearn as L } from '../../lib/hoc/svm';
+import { lessons, sectionsFor } from '../../lib/lessons';
+
+const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
+const lesson = lessons.find((l) => l.slug === L.slug)!;
+const stepLabels = Object.fromEntries(sectionsFor(lesson).map((s, i) => [s.id, `Bước ${i + 1}. ${s.label}`]));
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const pyCode = `import numpy as np, json
@@ -33,6 +46,8 @@ for g in (0.1, 1, 10, 50):
 ---
 <Lesson slug="svm" data="569 mẫu sinh thiết trong bộ Breast Cancer Wisconsin, hai đặc trưng đã chuẩn hoá như chương 2" lead="Chương 2, hồi quy logistic tìm một đường thẳng tách khối u lành và ác. Nhưng có vô số đường thẳng tách được. SVM chọn đường cách xa những ca khó nhất — những ca nằm sát ranh giới — và chỉ để những ca đó quyết định.">
 
+  <Goals spec={L} />
+
   <section id="bai-toan">
     <div class="prose">
       <h2><span class="step-no">1</span>Bài toán</h2>
@@ -51,10 +66,13 @@ for g in (0.1, 1, 10, 50):
   <section id="truc-giac">
     <div class="prose">
       <h2><span class="step-no">3</span>Trực giác</h2>
+      <Mission client:visible slug={L.slug} m={M.le} />
     </div>
     <div class="wide"><MarginGuess client:visible mini={cancer.mini} /></div>
     <div class="prose">
+      <Debrief client:visible slug={L.slug} m={M.le} />
       <p>Để ý: khi đạt lề lớn nhất, có đúng vài bệnh nhân chạm mép dải lề. Dời những người ở xa đi đâu cũng không làm đường thẳng thay đổi. Những người chạm mép gọi là <b>vector hỗ trợ</b> (support vectors) — tên của thuật toán đến từ đó.</p>
+      <Checkpoint q={L.checkpoints['truc-giac']} />
     </div>
   </section>
 
@@ -62,8 +80,13 @@ for g in (0.1, 1, 10, 50):
     <div class="prose">
       <h2><span class="step-no">4</span>Tính tay từng bước</h2>
       <p>Thay vì xoay bằng tay, ta tối ưu bằng một biến thể của Gradient Descent. Mất mát của SVM là <b>hinge loss</b> max(0, 1 − m): bằng 0 khi bệnh nhân nằm ngoài dải lề đúng phía, tăng tuyến tính khi họ lấn vào. Vì hàm có một góc gập tại m = 1, ta dùng <i>subgradient</i>: ở mỗi bước, chỉ người vi phạm mới góp vào hướng đi.</p>
+      <Mission client:visible slug={L.slug} m={M.buoc} />
     </div>
     <div class="wide"><SVMStepLab client:visible mini={cancer.mini} /></div>
+    <div class="prose">
+      <Debrief client:visible slug={L.slug} m={M.buoc} />
+      <Checkpoint q={L.checkpoints['tinh-tay']} />
+    </div>
   </section>
 
   <section id="ly-thuyet">
@@ -81,6 +104,7 @@ for g in (0.1, 1, 10, 50):
       <p>Khi ranh giới thật sự cong, ta có thể ánh xạ dữ liệu sang không gian nhiều chiều hơn — ví dụ thêm x₁², x₂², x₁x₂ — rồi tìm mặt phẳng ở đó. Mặt phẳng trong không gian mới là đường cong trong không gian cũ.</p>
       <p>Điều kỳ diệu: dạng đối ngẫu của bài toán SVM chỉ cần tích vô hướng giữa các cặp điểm. Thay tích vô hướng bằng một hàm nhân K(x, x′), ta làm việc trong không gian mới mà không bao giờ phải tính toạ độ ở đó. Nhân RBF tương ứng với một không gian vô hạn chiều:</p>
       <Tex tex={String.raw`K(\mathbf x, \mathbf x') = \exp\big(-\gamma\,\lVert \mathbf x - \mathbf x' \rVert^2\big), \qquad f(\mathbf x) = \sum_{i \in SV} \alpha_i\, y_i\, K(\mathbf x_i, \mathbf x) + b`} display />
+      <Checkpoint q={L.checkpoints['ly-thuyet']} />
     </div>
   </section>
 
@@ -89,16 +113,26 @@ for g in (0.1, 1, 10, 50):
       <h2><span class="step-no">6</span>Mã nguồn</h2>
       <p>scikit-learn giải dạng đối ngẫu bằng thuật toán SMO (thư viện LIBSVM). Kết quả cho nhân tuyến tính trùng với bộ giải subgradient của trang này đến sai số nhỏ hơn 0,5% của hàm mục tiêu — đã được kiểm thử tự động.</p>
       <PyCell client:visible code={pyCode} packages={['numpy', 'scikit-learn']} title="svm_cancer.py" />
+      <h3>Thử sửa mã</h3>
+      <p>Sửa trực tiếp trong ô trên rồi bấm Chạy; bấm "Khôi phục" để quay về mã gốc. Đoán kết quả trước khi mở phần kỳ vọng.</p>
+      <Exercises items={L.codeTasks} kind="code" />
+      <Checkpoint q={L.checkpoints['ma-nguon']} />
     </div>
   </section>
 
   <section id="danh-gia">
     <div class="prose">
       <h2><span class="step-no">7</span>Toàn bộ dữ liệu và đánh giá</h2>
+      <Mission client:visible slug={L.slug} m={M.C} />
     </div>
     <div class="wide"><Lazy client:visible view="ch5/CLab" data={{ patients: `${cancerUrl}#patients`, testIds: `${cancerUrl}#testIds` }} /></div>
+    <div class="prose">
+      <Debrief client:visible slug={L.slug} m={M.C} />
+      <Mission client:visible slug={L.slug} m={M.rbf} />
+    </div>
     <div class="wide"><Lazy client:visible view="ch5/RBFLab" data={{ patients: `${cancerUrl}#patients`, testIds: `${cancerUrl}#testIds`, grid: gridUrl }} /></div>
     <div class="prose">
+      <Debrief client:visible slug={L.slug} m={M.rbf} />
       <h3>Bẫy thường gặp</h3>
       <ul>
         <li><b>Quên chuẩn hoá.</b> SVM dựa trên khoảng cách: đặc trưng có thang đo lớn sẽ áp đảo. Ở đây hai đặc trưng đã được chuẩn hoá.</li>
@@ -106,12 +140,20 @@ for g in (0.1, 1, 10, 50):
         <li><b>Hiểu đầu ra như xác suất.</b> f(x) của SVM là khoảng cách có dấu, không phải xác suất. Muốn xác suất cần hiệu chỉnh thêm (Platt scaling).</li>
         <li><b>Dữ liệu rất lớn.</b> SVM nhân phi tuyến tốn bộ nhớ và thời gian tăng khoảng bình phương theo số mẫu; với hàng triệu mẫu, người ta thường chọn mô hình khác.</li>
       </ul>
-      <h3>Kiểm tra nhanh</h3>
-      <Quiz client:visible questions={[
-        { q: 'Bỏ đi một bệnh nhân nằm xa ranh giới, ngoài dải lề. Đường ranh giới của SVM thay đổi thế nào?', options: ['Không đổi', 'Dịch về phía bệnh nhân đó', 'Thay đổi hoàn toàn'], answer: 0, why: 'Hinge loss của người đó bằng 0 và họ không phải vector hỗ trợ, nên họ không ảnh hưởng tới nghiệm.' },
-        { q: '‖w‖ = 4. Dải lề rộng bao nhiêu?', options: ['0,25', '0,5', '4'], answer: 1, why: 'Độ rộng lề = 2/‖w‖ = 2/4 = 0,5.' },
-        { q: 'Tăng C từ 0,01 lên 100 thường làm gì?', options: ['Lề rộng ra, nhiều vector hỗ trợ hơn', 'Lề hẹp lại, ít vi phạm hơn trên tập huấn luyện', 'Không ảnh hưởng gì'], answer: 1, why: 'C lớn phạt nặng mỗi vi phạm, nên mô hình hy sinh độ rộng lề để giảm vi phạm.' },
-      ]} />
+    </div>
+  </section>
+
+  <section id="tong-ket">
+    <div class="prose">
+      <h2><span class="step-no">8</span>Tổng kết và rút kinh nghiệm</h2>
+      <Takeaways t={L.takeaways} />
+      <h3>Kiểm tra</h3>
+      <p>Ba câu nhớ lại, hai câu vận dụng sang tình huống mới.</p>
+      <Quiz client:visible questions={L.quiz} />
+      <SelfCheck client:visible spec={L} title={lesson.title} labels={stepLabels} />
+      <h3>Thử thách</h3>
+      <p>Ba mức: tính tay, sửa mã, và một câu hỏi mở không có đáp án duy nhất.</p>
+      <Exercises items={L.challenges} />
       <p class="src">Nguồn dữ liệu: Breast Cancer Wisconsin (Diagnostic), Wolberg, Street &amp; Mangasarian (1995), UCI Machine Learning Repository; bản có sẵn trong scikit-learn.</p>
     </div>
   </section>

@@ -104,3 +104,32 @@ export function svmTrain(X: [number, number][], y: number[], C: number, T = 3000
   const margins = X.map((x, i) => y[i] * (w[0] * x[0] + w[1] * x[1] + bb));
   return { w, b: bb, margins, obj: svmObjective(X, y, w, bb, C), nSV: margins.filter((m) => m <= 1 + 1e-3).length };
 }
+
+/**
+ * SVM lề cứng chính xác cho dữ liệu 2 chiều tách được: dò mọi hướng pháp tuyến u = (cos θ, sin θ).
+ * Với một hướng, lề tốt nhất là nửa khoảng trống giữa hai nhóm khi chiếu lên u:
+ *   g(θ) = (min_{y=+1} u·x − max_{y=−1} u·x) / 2,   đường thẳng u·x + off = 0 với off = −(min₊ + max₋)/2.
+ * Dò thô từng 0,05° trên (−90°, 90°], rồi thu hẹp quanh điểm tốt nhất. Trả về lề âm nếu không tách được.
+ */
+export function hardMargin2D(X: [number, number][], y: number[]) {
+  const gap = (deg: number) => {
+    const c = Math.cos((deg * Math.PI) / 180), s = Math.sin((deg * Math.PI) / 180);
+    let minPos = Infinity, maxNeg = -Infinity;
+    X.forEach((x, i) => {
+      const p = c * x[0] + s * x[1];
+      if (y[i] > 0) minPos = Math.min(minPos, p); else maxNeg = Math.max(maxNeg, p);
+    });
+    return { margin: (minPos - maxNeg) / 2, off: -(minPos + maxNeg) / 2 };
+  };
+  let ang = -90, best = gap(-90).margin;
+  for (let a = -90; a <= 90; a += 0.05) { const g = gap(a).margin; if (g > best) { best = g; ang = a; } }
+  // g(θ) là cực tiểu của các hàm sin nên lõm quanh đỉnh: chia ba đoạn để thu hẹp
+  let lo = ang - 0.05, hi = ang + 0.05;
+  for (let k = 0; k < 60; k++) {
+    const m1 = lo + (hi - lo) / 3, m2 = hi - (hi - lo) / 3;
+    if (gap(m1).margin < gap(m2).margin) lo = m1; else hi = m2;
+  }
+  ang = (lo + hi) / 2;
+  const g = gap(ang);
+  return { ang, off: g.off, margin: g.margin };
+}

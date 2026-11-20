@@ -1,0 +1,14 @@
+---
+/** Câu chốt một câu ở cuối một bước: kiểm tra nhanh trước khi đi tiếp. */
+import Quiz from '../Quiz.svelte';
+import type { Question } from '../../lib/learn';
+
+interface Props { q?: Question }
+const { q } = Astro.props;
+---
+{q && <div class="cp"><p class="tag hand">Câu chốt trước khi đi tiếp</p><Quiz client:visible questions={[q]} /></div>}
+
+<style>
+  .cp { margin: 2rem 0 0.5rem; }
+  .tag { margin: 0 0 -0.6rem; font-size: 1.1rem; }
+</style>

@@ -1,0 +1,34 @@
+---
+/** Danh sách bài tập gập/mở: đề, gợi ý, lời giải. Dùng cho "Thử sửa mã" (bước 6) và "Thử thách" (bước 8). */
+import type { Exercise } from '../../lib/learn';
+
+interface Props { items: Exercise[]; kind?: 'code' | 'challenge' }
+const { items, kind = 'challenge' } = Astro.props;
+const levelName = ['', '① Tính tay', '② Sửa mã', '③ Câu hỏi mở'];
+---
+<ol class={`ex ${kind}`}>
+  {items.map((x) => (
+    <li>
+      <p class="t">{x.level && <span class="lv">{levelName[x.level]}</span>}<b>{x.title}</b></p>
+      <p class="task" set:html={x.task} />
+      {x.hint && <details><summary>Gợi ý</summary><p set:html={x.hint} /></details>}
+      <details class="sol"><summary>{kind === 'code' ? 'Kết quả kỳ vọng' : 'Lời giải'}</summary>
+        <p set:html={x.answer} />
+        {x.code && <pre><code>{x.code}</code></pre>}
+      </details>
+    </li>
+  ))}
+</ol>
+
+<style>
+  .ex { padding-left: 1.3rem; margin: 1rem 0 1.5rem; }
+  .ex li { margin: 0 0 1.1rem; padding-bottom: 0.9rem; border-bottom: 1px dashed var(--rule-2); }
+  .t { margin: 0 0 0.25rem; }
+  .lv { font-family: var(--hand); color: var(--tim); font-size: 1.15rem; margin-right: 0.5rem; }
+  .task { margin: 0 0 0.4rem; }
+  details { margin: 0.25rem 0; font-size: 0.95rem; }
+  summary { cursor: pointer; color: var(--tim); font-weight: 600; font-size: 0.9rem; }
+  details p { margin: 0.35rem 0; }
+  .sol[open] { background: var(--sheet); border: 1px solid var(--rule-2); border-radius: 3px; padding: 0.4rem 0.8rem; }
+  pre { font-size: 0.78rem; margin: 0.4rem 0; overflow-x: auto; }
+</style>

@@ -1,0 +1,35 @@
+---
+/** Phần "Trước khi học": mục tiêu, thời lượng, bài cần học trước và câu khởi động. */
+import Quiz from '../Quiz.svelte';
+import { lessons } from '../../lib/lessons';
+import type { LessonLearn } from '../../lib/learn';
+
+interface Props { spec: LessonLearn }
+const { spec } = Astro.props;
+const lesson = lessons.find((l) => l.slug === spec.slug)!;
+const req = lesson.requires.map((s) => lessons.find((l) => l.slug === s)!).filter(Boolean);
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+<section id="truoc-khi-hoc" class="prose before">
+  <p class="tag hand">Trước khi học</p>
+  <p class="meta">Khoảng <b>{spec.minutes} phút</b>
+    {req.length > 0 && <> · Cần học trước: {req.map((r, i) => <>{i > 0 && ', '}<a href={`${base}/bai-hoc/${r.slug}`}>chương {r.no} — {r.short}</a></>)}</>}
+  </p>
+  <p class="h">Sau bài này, bạn có thể:</p>
+  <ol class="goals">{spec.goals.map((g) => <li>{g.text}</li>)}</ol>
+  <p class="how">Mỗi phòng thí nghiệm có một khung <b>Trải nghiệm</b>: đoán trước, làm theo nhiệm vụ, rồi đối chiếu và tự giải thích. Cuối bài, bước 8 tổng hợp lại những gì bạn đã làm và giúp bạn tự đánh giá.</p>
+  {spec.warmup.length > 0 && <details class="warm">
+    <summary>Khởi động: {spec.warmup.length} câu ôn kiến thức cần có</summary>
+    <Quiz client:idle questions={spec.warmup} />
+  </details>}
+</section>
+
+<style>
+  .before { border: 1px solid var(--rule-2); border-radius: 3px; background: var(--sheet); padding-top: 1rem; padding-bottom: 0.6rem; margin-top: 1rem; }
+  .tag { margin: 0; font-size: 1.3rem; }
+  .meta { font-size: 0.92rem; color: var(--pencil); margin: 0.2rem 0 0.8rem; }
+  .h { font-weight: 650; margin: 0 0 0.3rem; }
+  .goals { margin-top: 0; }
+  .how { font-size: 0.92rem; color: var(--pencil); }
+  .warm summary { cursor: pointer; font-weight: 600; font-size: 0.95rem; color: var(--tim); margin-bottom: 0.4rem; }
+</style>

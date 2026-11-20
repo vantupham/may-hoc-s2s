@@ -12,6 +12,8 @@ export interface Lesson {
   ready: boolean;
   /** Các bài cần học trước (theo slug) */
   requires: string[];
+  /** Bài đã có khung trải nghiệm đầy đủ: phần "Trước khi học" và bước 8 "Tổng kết" */
+  extended?: boolean;
 }
 
 export const lessons: Lesson[] = [
@@ -22,7 +24,7 @@ export const lessons: Lesson[] = [
   { slug: 'xu-ly-du-lieu', short: 'Xử lý dữ liệu', no: '3B', pos: [3, 1.65], title: 'Dữ liệu (B): xử lý và xây bộ dữ liệu tốt', summary: 'Điền giá trị thiếu, mã hoá, chuẩn hoá, rò rỉ dữ liệu, cách chia train/test, và câu hỏi: nhiều dữ liệu hơn hay dữ liệu tốt hơn?', dataset: 'California Housing đầy đủ, Titanic, Breast Cancer', ready: true, requires: ['kham-pha-du-lieu'] },
   { slug: 'knn-naive-bayes', short: 'KNN, Naive Bayes', no: '4', pos: [4, 0], title: 'KNN và Naive Bayes', summary: 'Phân loại hoa bằng láng giềng gần nhất, lọc tin rác bằng cách đếm từ.', dataset: 'Iris, SMS Spam Collection', ready: true, requires: ['xu-ly-du-lieu'] },
   { slug: 'cay-quyet-dinh', short: 'Cây quyết định', no: '5', pos: [4, 1], title: 'Cây quyết định và tập hợp', summary: 'Ai sống sót trên tàu Titanic? Gini, cây tham lam, rừng ngẫu nhiên và boosting.', dataset: 'Titanic', ready: true, requires: ['xu-ly-du-lieu'] },
-  { slug: 'svm', short: 'SVM', no: '6', pos: [4, 2], title: 'SVM', summary: 'Đường tách xa những ca khó nhất: lề cực đại, hinge loss, hệ số C và nhân RBF.', dataset: 'Breast Cancer Wisconsin', ready: true, requires: ['xu-ly-du-lieu'] },
+  { slug: 'svm', short: 'SVM', no: '6', pos: [4, 2], title: 'SVM', summary: 'Đường tách xa những ca khó nhất: lề cực đại, hinge loss, hệ số C và nhân RBF.', dataset: 'Breast Cancer Wisconsin', ready: true, requires: ['xu-ly-du-lieu'], extended: true },
   { slug: 'khong-giam-sat', short: 'Không giám sát', no: '7', pos: [1, 2.3], title: 'Học không giám sát', summary: 'Tìm cấu trúc khi không có nhãn: K-means, DBSCAN và PCA.', dataset: 'Chim cánh cụt Palmer, chữ số viết tay', ready: true, requires: ['gradient-descent'] },
   { slug: 'danh-gia-mo-hinh', short: 'Đánh giá mô hình', no: '8', pos: [5, 1], title: 'Đánh giá mô hình', summary: 'Con số độ chính xác đáng tin đến đâu? Cross-validation, bias–variance, ROC và AUC.', dataset: 'California Housing, Breast Cancer', ready: true, requires: ['knn-naive-bayes', 'cay-quyet-dinh'] },
   { slug: 'mang-no-ron', short: 'Mạng nơ-ron', no: '9', pos: [6, 1], title: 'Mạng nơ-ron', summary: 'Nơ-ron, hàm kích hoạt, lan truyền ngược từng con số, rồi huấn luyện nhận dạng chữ số trong trình duyệt.', dataset: 'Chữ số viết tay 8×8', ready: true, requires: ['hoi-quy-logistic', 'danh-gia-mo-hinh'] },
@@ -39,3 +41,7 @@ export const sections = [
   { id: 'ma-nguon', label: 'Mã nguồn' },
   { id: 'danh-gia', label: 'Toàn bộ dữ liệu' },
 ];
+
+/** Bước 8, chỉ có ở các bài extended */
+export const wrapUp = { id: 'tong-ket', label: 'Tổng kết' };
+export const sectionsFor = (l: Lesson) => (l.extended ? [...sections, wrapUp] : sections);

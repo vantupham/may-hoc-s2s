@@ -85,3 +85,51 @@ test('phòng thí nghiệm tải trễ vẫn tương tác được', async ({ pa
   });
   await expect.poll(() => lab.innerHTML()).not.toBe(before);
 });
+
+test('bài 6: khung trải nghiệm ghi nhớ dự đoán, nhiệm vụ, số liệu và tự đánh giá', async ({ page }) => {
+  const errors = watchErrors(page);
+  await page.goto('bai-hoc/svm');
+  await expect(page.locator('.secnav a[data-sec="tong-ket"]')).toHaveText(/Tổng kết/);
+  await expect(page.locator('#truoc-khi-hoc')).toContainText('Sau bài này, bạn có thể');
+
+  // Dự đoán ở lab Trực giác, khoá lại sau khi chọn
+  const mission = page.locator('[data-mission="le"]');
+  await mission.scrollIntoViewIfNeeded();
+  await expect(page.locator('astro-island[ssr]').filter({ has: mission })).toHaveCount(0);
+  await mission.getByRole('radio', { name: '2–3 người, từ cả hai nhóm' }).click();
+  await expect(mission.getByRole('radio', { name: 'Chỉ 1 người' })).toBeDisabled();
+  await mission.getByRole('checkbox').first().check();
+  await expect(mission).toContainText('1/3 đã làm');
+
+  // Bấm "Đặt đường có lề lớn nhất" trên lab rồi ghi số liệu
+  await page.getByRole('button', { name: 'Đặt đường có lề lớn nhất' }).click();
+  await expect(page.locator('.lab').filter({ hasText: 'Đường nào tách tốt nhất?' })).toContainText('bạn đã tìm ra!');
+  const deb = page.locator('[data-debrief="le"]');
+  await deb.scrollIntoViewIfNeeded();
+  await expect(page.locator('astro-island[ssr]').filter({ has: deb })).toHaveCount(0);
+  await deb.getByLabel('Lề lớn nhất có thể, Giá trị').fill('0,798');
+  await deb.getByLabel('Số người chạm mép dải lề, Giá trị').fill('2');
+  await deb.getByRole('button', { name: 'Đối chiếu số liệu' }).click();
+  await expect(deb).toContainText('Khớp 1/2 ô');
+  await expect(deb).toContainText('đúng là 3');
+  await deb.getByRole('button', { name: 'Xem kết quả' }).click();
+  await expect(deb.locator('.verdict')).toContainText('đúng.');
+
+  // Tải lại trang: mọi thứ vẫn còn
+  await page.reload();
+  const self = page.locator('[data-selfcheck]');
+  await self.scrollIntoViewIfNeeded();
+  await expect(page.locator('astro-island[ssr]').filter({ has: self })).toHaveCount(0);
+  await expect(self).toContainText('1/4');
+  const again = page.locator('[data-mission="le"]');
+  await again.scrollIntoViewIfNeeded();
+  await expect(again.getByRole('radio', { name: '2–3 người, từ cả hai nhóm' })).toHaveAttribute('aria-checked', 'true');
+  await expect(again).toContainText('1/3 đã làm');
+
+  // Tự đánh giá thấp một mục tiêu → được chỉ đường ôn lại
+  await self.scrollIntoViewIfNeeded();
+  await self.getByRole('radiogroup').nth(1).getByRole('radio', { name: /Mơ hồ/ }).click();
+  await expect(self.locator('.review a[href="#tinh-tay"]')).toHaveText('Bước 4. Tính tay');
+
+  expect(errors).toEqual([]);
+});

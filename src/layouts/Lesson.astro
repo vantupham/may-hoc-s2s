@@ -1,6 +1,6 @@
 ---
 import Base from './Base.astro';
-import { lessons, sections } from '../lib/lessons';
+import { lessons, sectionsFor } from '../lib/lessons';
 
 interface Props {
   slug: string;
@@ -9,6 +9,7 @@ interface Props {
 }
 const { slug, lead, data } = Astro.props;
 const lesson = lessons.find((l) => l.slug === slug)!;
+const sections = sectionsFor(lesson);
 const ready = lessons.filter((l) => l.ready);
 const i = ready.findIndex((l) => l.slug === slug);
 const prev = ready[i - 1];

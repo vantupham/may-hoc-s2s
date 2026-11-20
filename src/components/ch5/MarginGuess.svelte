@@ -1,7 +1,7 @@
 <script lang="ts">
   /** Trực giác: có vô số đường thẳng tách được 6 bệnh nhân. Đường nào cách xa điểm gần nhất nhất? */
   import MarginPlot from './MarginPlot.svelte';
-  import { svmTrain, fmt } from '../../lib/ml-core';
+  import { hardMargin2D, fmt } from '../../lib/ml-core';
 
   interface P { id: number; x1: number; x2: number; y: number }
   let { mini }: { mini: P[] } = $props();
@@ -11,12 +11,9 @@
   // Khoảng cách có dấu của từng điểm tới đường thẳng (‖w‖ = 1)
   const dists = $derived(mini.map((p) => (p.y ? 1 : -1) * (w[0] * p.x1 + w[1] * p.x2 + off)));
   const margin = $derived(Math.min(...dists));
-  const nearest = $derived(new Set(mini.filter((_, i) => Math.abs(dists[i] - margin) < 1e-9).map((p) => p.id)));
-  const best = $derived.by(() => {
-    const r = svmTrain(mini.map((p) => [p.x1, p.x2] as [number, number]), mini.map((p) => (p.y ? 1 : -1)), 1000, 6000);
-    const nw = Math.hypot(...r.w);
-    return { ang: (Math.atan2(r.w[1], r.w[0]) * 180) / Math.PI, off: r.b / nw, margin: 1 / nw };
-  });
+  const nearest = $derived(new Set(mini.filter((_, i) => Math.abs(dists[i] - margin) < 1e-4).map((p) => p.id)));
+  // Lề cứng chính xác: dò mọi hướng của đường thẳng (6 điểm, 2 chiều)
+  const best = $derived(hardMargin2D(mini.map((p) => [p.x1, p.x2] as [number, number]), mini.map((p) => (p.y ? 1 : -1))));
   // Đường lề vẽ tại khoảng cách = lề hiện tại: dùng w' = w/margin để f = ±1 trùng lề
   const wScaled = $derived(margin > 0 ? ([w[0] / margin, w[1] / margin] as [number, number]) : w);
   const bScaled = $derived(margin > 0 ? off / margin : off);
