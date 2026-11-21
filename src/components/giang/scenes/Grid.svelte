@@ -5,12 +5,15 @@
    * Trạng thái s: n (số ma trận đã hiện), hl ("m,r,c": ô đang nói), win ("m,r,c,h,w": khung trượt)
    */
   import { num, shown } from './reveal';
-  interface Mat { title?: string; vals: number[][]; rows?: string[]; cols?: string[]; kind?: 'num' | 'heat' | 'img'; digits?: number; cell?: number; signed?: boolean }
+  interface Mat { title?: string; vals: number[][]; rows?: string[]; cols?: string[]; kind?: 'num' | 'heat' | 'img'; digits?: number; cell?: number; signed?: boolean; bare?: boolean }
   let { title = '', mats, s = {} }: { title?: string; mats: Mat[]; s?: Record<string, unknown> } = $props();
 
   const fmt = (v: number, d = 2) => (Number.isInteger(v) && d === 0 ? v.toLocaleString('vi-VN') : v.toFixed(d).replace('.', ',').replace('-', '−'));
   const parse = (v: unknown) => String(v ?? '').split(',').filter((x) => x !== '').map(Number);
   const hl = $derived(parse(s.hl));
+  // Tự co cho vừa khung: đo kích thước thật của hàng ma trận rồi thu nhỏ nếu cần
+  let rw = $state(0), rh = $state(0);
+  const k = $derived(rw && rh ? Math.min(1, 790 / rw, (title ? 390 : 440) / rh) : 1);
   const win = $derived(parse(s.win));
   function bg(m: Mat, v: number) {
     const all = m.vals.flat();
@@ -24,7 +27,7 @@
 
 <div class="sc">
   {#if title}<h3>{title}</h3>{/if}
-  <div class="row">
+  <div class="fit" style:transform={`scale(${k})`}><div class="row" bind:clientWidth={rw} bind:clientHeight={rh}>
     {#each mats as m, k}
       {@const cs = m.cell ?? (m.kind === 'img' ? 300 / Math.max(m.vals.length, m.vals[0].length) : Math.min(72, 330 / Math.max(m.vals.length, m.vals[0].length)))}
       <figure style:opacity={shown(s.n ?? mats.length, k)}>
@@ -36,19 +39,20 @@
             {#each r as v, j}
               {@const on = hl[0] === k && hl[1] === i && hl[2] === j}
               {@const inw = win.length === 5 && win[0] === k && i >= win[1] && i < win[1] + win[3] && j >= win[2] && j < win[2] + win[4]}
-              <span class="c" class:on class:inw class:img={m.kind === 'img'} style:height={`${cs}px`} style:background={bg(m, v)} style:font-size={`${Math.min(20, cs * 0.34)}px`}>{m.kind === 'img' ? '' : fmt(v, m.digits ?? 2)}</span>
+              <span class="c" class:on class:inw class:img={m.kind === 'img' || m.bare} style:height={`${cs}px`} style:background={bg(m, v)} style:font-size={`${Math.min(20, cs * 0.34)}px`}>{m.kind === 'img' || m.bare ? '' : fmt(v, m.digits ?? 2)}</span>
             {/each}
           {/each}
         </div>
       </figure>
     {/each}
-  </div>
+  </div></div>
 </div>
 
 <style>
   .sc { padding: 34px 40px 0 130px; }
   h3 { font-size: 34px; margin: 0 0 16px; }
-  .row { display: flex; gap: 34px; align-items: flex-start; flex-wrap: wrap; }
+  .fit { transform-origin: 0 0; width: max-content; }
+  .row { display: flex; gap: 30px; align-items: flex-start; width: max-content; }
   figure { margin: 0; }
   figcaption { font-size: 19px; color: var(--pencil); margin-bottom: 8px; font-family: var(--hand); color: var(--tim); font-size: 23px; }
   .mat { display: grid; gap: 2px; }

@@ -1,0 +1,214 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:03.696
+Chương 3A: khám phá và đánh giá dữ liệu.
+
+00:00:04.056 --> 00:00:13.416
+Ba chương trước, dữ liệu luôn đến tay ta đã sạch sẽ: đúng hai cột, không ô trống, chia sẵn train và test. Ngoài đời không như vậy.
+
+00:00:13.776 --> 00:00:22.056
+Hình dung một đồng nghiệp gửi bạn tệp 20.640 dòng về giá nhà ở California và hỏi: dữ liệu này dùng để huấn luyện được chưa?
+
+00:00:22.416 --> 00:00:31.128
+Không có nút bấm nào trả lời thay. Mô hình sẽ học mọi thứ có trong dữ liệu, kể cả lỗi nhập liệu và thói quen của người thu thập.
+
+00:00:31.488 --> 00:00:36.720
+Chương này dạy cách nhìn và đo. Chương 3B sẽ dạy cách sửa.
+
+00:00:37.080 --> 00:00:44.088
+Việc đầu tiên là lập phiếu khám sức khoẻ cho từng cột: có bao nhiêu ô, thiếu bao nhiêu, giá trị nằm trong khoảng nào.
+
+00:00:44.448 --> 00:00:47.544
+Cột phòng ngủ thiếu 207 ô.
+
+00:00:47.904 --> 00:00:58.896
+Giá nhà: 965 khu vực có đúng cùng một giá lớn nhất, 500.001 USD. Đó không phải giá thật: hệ thống cũ không lưu được số lớn hơn.
+
+00:00:59.256 --> 00:01:09.024
+Thu nhập cũng vậy: 49 khu vực bị chặn ở đúng 15,0001. Tuổi nhà dừng ở 52 năm với 1.273 khu vực.
+
+00:01:09.384 --> 00:01:16.488
+Và để ý: trung bình luôn lớn hơn trung vị. Các cột này lệch phải, có một cái đuôi dài.
+
+00:01:16.848 --> 00:01:21.864
+Loại vị trí "trên đảo" chỉ có 5 khu vực: quá ít để mô hình học được gì.
+
+00:01:22.224 --> 00:01:26.952
+Vẽ phân bố giá nhà thành các cột, mỗi cột rộng 40.000 USD.
+
+00:01:27.312 --> 00:01:32.376
+Phân bố trơn tru, rồi đột nhiên có một cột nhô lên ở tận cùng bên phải.
+
+00:01:32.736 --> 00:01:40.152
+Không vấn đề nào ở đây làm chương trình báo lỗi. Mô hình vẫn chạy, chỉ là học sai một cách lặng lẽ.
+
+00:01:40.512 --> 00:01:47.328
+Bước tiếp theo: các cột liên quan với nhau thế nào. Số phòng và dân số tương quan rất mạnh.
+
+00:01:47.688 --> 00:01:53.832
+Hệ số tương quan r = 0,857. Nhưng đây có phải một phát hiện không?
+
+00:01:54.192 --> 00:02:01.944
+Không. Khu vực lớn thì vừa nhiều phòng vừa nhiều người. Cả hai cột chỉ cùng đo kích thước của khu vực.
+
+00:02:02.304 --> 00:02:07.680
+Chia cả hai cho số hộ: tương quan biến mất, r = −0,005.
+
+00:02:08.040 --> 00:02:15.168
+Còn thu nhập và giá nhà, r = 0,688, là một quan hệ thật, như ta đã dùng ở chương 1.
+
+00:02:15.528 --> 00:02:23.856
+Người làm học máy có câu: rác vào, rác ra. Mô hình không biết dòng nào là lỗi, nó chỉ cố khớp mọi dòng.
+
+00:02:24.216 --> 00:02:32.064
+Với hồi quy, sai số bị bình phương trước khi cộng lại. Một điểm lệch xa có sức nặng bằng hàng chục điểm bình thường.
+
+00:02:32.424 --> 00:02:39.720
+Nhưng không phải điểm lạ nào cũng là rác. Có khu vực trung bình tới 1243 người mỗi hộ.
+
+00:02:40.080 --> 00:02:48.792
+Đó không phải lỗi gõ phím: có thể là một trại lính hay ký túc xá. Việc của người làm dữ liệu là hỏi vì sao trước khi xoá.
+
+00:02:49.152 --> 00:02:52.632
+Có hai quy tắc phổ biến để đánh dấu ngoại lai.
+
+00:02:52.992 --> 00:03:02.184
+Quy tắc IQR: lấy khoảng giữa tứ phân vị thứ nhất và thứ ba, nới ra 1,5 lần độ rộng đó. Ngoài khoảng là ngoại lai.
+
+00:03:02.544 --> 00:03:06.768
+Điểm z: cách trung bình hơn 3 độ lệch chuẩn là ngoại lai.
+
+00:03:07.128 --> 00:03:16.368
+Trên cột người mỗi hộ: IQR đánh dấu 711 khu vực, còn điểm z chỉ đánh dấu 8. Vì sao chênh nhau nhiều vậy?
+
+00:03:16.728 --> 00:03:27.936
+Điểm z dùng trung bình và độ lệch chuẩn, đúng hai đại lượng mà ngoại lai làm phình to. Ngoại lai tự che giấu chính mình. Phần tính tay sẽ cho thấy rõ điều đó.
+
+00:03:28.296 --> 00:03:38.184
+Tính lại phiếu khám bằng tay trên 10 khu vực. Chín khu vực chọn ngẫu nhiên, và một khu vực mang thu nhập lớn nhất bộ dữ liệu: 15,0001.
+
+00:03:38.544 --> 00:03:46.200
+Trung bình của 10 số là 4,32. Trung vị, số đứng giữa, là 2,942.
+
+00:03:46.560 --> 00:03:53.472
+Bỏ khu vực cuối đi: trung bình tụt về 3,13, còn trung vị gần như đứng yên ở 2,563.
+
+00:03:53.832 --> 00:04:00.528
+Một khu vực đã kéo trung bình đi rất xa. Vì vậy phiếu khám luôn đặt trung bình cạnh trung vị.
+
+00:04:00.888 --> 00:04:08.952
+Quy tắc IQR: giới hạn trên là 8,466. Thu nhập 15 vượt xa, bị đánh dấu ngay.
+
+00:04:09.312 --> 00:04:15.960
+Còn điểm z của nó chỉ là 2,833, dưới ngưỡng 3. Quy tắc z bỏ lọt!
+
+00:04:16.320 --> 00:04:26.016
+Thực ra với 10 số, điểm z không bao giờ vượt quá 3, dù giá trị kia lớn đến đâu. Ngoại lai làm độ lệch chuẩn phình to và tự che mình.
+
+00:04:26.376 --> 00:04:30.528
+Ô thiếu nên xử lý thế nào phụ thuộc vào vì sao nó thiếu.
+
+00:04:30.888 --> 00:04:39.696
+Thiếu hoàn toàn ngẫu nhiên, ví dụ phiếu điều tra bị thất lạc ngẫu nhiên. Bỏ dòng thiếu không làm lệch kết quả, chỉ làm mất dữ liệu.
+
+00:04:40.056 --> 00:04:48.288
+Thiếu phụ thuộc vào cột khác: trên tàu Titanic, 28% hành khách hạng ba không rõ tuổi, so với 6% ở hạng hai.
+
+00:04:48.648 --> 00:04:56.496
+Thiếu phụ thuộc vào chính giá trị bị thiếu: người thu nhập rất cao thường không khai. Không cách điền nào sửa được hoàn toàn.
+
+00:04:56.856 --> 00:05:05.160
+Bản thân việc thiếu cũng là thông tin: chỉ 29% hành khách không rõ tuổi sống sót, so với 41% hành khách có ghi tuổi.
+
+00:05:05.520 --> 00:05:12.648
+Tương quan có ba giới hạn: chỉ đo quan hệ tuyến tính, rất nhạy với ngoại lai, và không nói gì về nhân quả.
+
+00:05:13.008 --> 00:05:22.320
+Lệch phân phối: mô hình chỉ đảm bảo hoạt động tốt trên dữ liệu giống dữ liệu huấn luyện. Học ở nội địa, dùng ở ven biển là chuyện khác.
+
+00:05:22.680 --> 00:05:32.376
+Nhãn sai: người gán nhãn mệt mỏi, hướng dẫn mơ hồ, ca khó. Ngay cả bộ chữ số MNIST nổi tiếng cũng có nhãn sai.
+
+00:05:32.736 --> 00:05:40.536
+Cuối cùng là công bằng. Trên Titanic, 74% phụ nữ sống sót so với 19% nam giới.
+
+00:05:40.896 --> 00:05:48.912
+Điều đó đúng với lịch sử năm 1912, nhưng một mô hình học từ đây mà dùng cho một quyết định hôm nay sẽ là phân biệt đối xử.
+
+00:05:49.272 --> 00:05:52.872
+Toàn bộ phiếu khám gói gọn trong vài lệnh pandas.
+
+00:05:53.232 --> 00:05:58.512
+describe cho trung bình, độ lệch chuẩn, tứ phân vị của mọi cột cùng lúc.
+
+00:05:58.872 --> 00:06:03.384
+Đếm ô thiếu, dòng trùng, và số dòng ở đúng giá trần.
+
+00:06:03.744 --> 00:06:07.416
+Quy tắc IQR chỉ cần hai tứ phân vị.
+
+00:06:07.776 --> 00:06:15.096
+Và một ma trận tương quan cho mọi cặp cột. Hãy tạo thói quen chạy những lệnh này trước dòng huấn luyện đầu tiên.
+
+00:06:15.456 --> 00:06:24.984
+Hai lỗi nguy hiểm nhất không lộ ra trong phiếu khám, vì từng cột nhìn vẫn bình thường: nhãn sai và dữ liệu không đại diện. Ta đo chúng bằng mô hình.
+
+00:06:25.344 --> 00:06:34.248
+Thí nghiệm: lật ngẫu nhiên một phần nhãn của Breast Cancer. Không lật gì, hồi quy logistic đạt 98,2%.
+
+00:06:34.608 --> 00:06:43.056
+Lật 20%: vẫn đạt 95,6%. Lật 40% thì sụp xuống 76,3%.
+
+00:06:43.416 --> 00:06:51.120
+Điều đáng chú ý: với 20% nhãn lật, mô hình phản đối 90 mẫu, và 78 mẫu trong đó đúng là bị lật.
+
+00:06:51.480 --> 00:06:59.208
+Nghĩa là chính mô hình có thể chỉ ra những nhãn đáng nghi để người xem lại. Đó là ý tưởng của confident learning.
+
+00:06:59.568 --> 00:07:08.232
+Lệch phân phối: học ở nội địa, kiểm tra trên phần giữ lại của nội địa, RMSE 0,524. Trông rất ổn.
+
+00:07:08.592 --> 00:07:14.040
+Đem dùng ở gần vịnh: RMSE vọt lên 1,311, gấp hơn hai lần.
+
+00:07:14.400 --> 00:07:23.904
+Cách phát hiện: huấn luyện một mô hình phân biệt dữ liệu vùng A với vùng B. AUC 0,887, gần 1, nghĩa là hai vùng khác nhau rõ rệt.
+
+00:07:24.264 --> 00:07:30.816
+Cặp thứ hai giống nhau hơn: AUC 0,646, và sai số chỉ tăng nhẹ.
+
+00:07:31.176 --> 00:07:35.736
+Con số đánh giá chỉ đáng tin khi tập test giống nơi mô hình sẽ được dùng.
+
+00:07:36.096 --> 00:07:45.504
+Bốn bẫy thường gặp. Một: xoá mọi ngoại lai theo quy tắc. Ngoại lai có thể là lỗi, cũng có thể là trường hợp quan trọng nhất.
+
+00:07:45.864 --> 00:07:49.200
+Hai: bỏ qua giá trị bị chặn trần.
+
+00:07:49.560 --> 00:07:53.544
+Ba: tin vào tương quan như thể đó là nhân quả.
+
+00:07:53.904 --> 00:08:00.408
+Bốn: đánh giá trên tập test lấy cùng nơi với tập huấn luyện, trong khi mô hình sẽ được dùng ở nơi khác.
+
+00:08:00.768 --> 00:08:02.640
+Tóm lại.
+
+00:08:03.000 --> 00:08:10.032
+Trước khi huấn luyện, lập phiếu khám cho từng cột. Không lỗi nào trong số đó làm chương trình báo lỗi.
+
+00:08:10.392 --> 00:08:15.096
+Luôn đặt trung bình cạnh trung vị: lệch nhau xa nghĩa là có đuôi dài.
+
+00:08:15.456 --> 00:08:21.336
+Với ngoại lai, quy tắc IQR bền hơn điểm z. Quy tắc chỉ gợi ý nhìn vào đâu.
+
+00:08:21.696 --> 00:08:29.304
+Tương quan không phải nhân quả. Nhãn sai và lệch phân phối không lộ ra trong phiếu khám: hãy đo chúng bằng mô hình.
+
+00:08:29.664 --> 00:08:38.160
+Chương 3B sẽ sửa những gì ta vừa tìm thấy: điền ô thiếu, mã hoá, chuẩn hoá, tránh rò rỉ, và chia dữ liệu cho đúng.
+
+00:08:38.520 --> 00:08:45.528
+Giờ hãy cuộn xuống, tự khám bộ dữ liệu trong các phòng thí nghiệm. Hẹn gặp lại ở chương 3B.

@@ -13,6 +13,7 @@ import Debrief from '../../components/hoc/Debrief.svelte';
 import Checkpoint from '../../components/hoc/Checkpoint.astro';
 import Exercises from '../../components/hoc/Exercises.astro';
 import WrapUp from '../../components/hoc/WrapUp.astro';
+import LectureSection from '../../components/giang/LectureSection.astro';
 import { cnnLearn as L } from '../../lib/hoc/cnn';
 
 const names = data.names;
@@ -43,6 +44,8 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 <Lesson slug="cnn" data={`Fashion-MNIST: 10.000 ảnh xám 28×28 của 10 loại quần áo, giày, túi do Zalando Research công bố`} lead="Mạng ở chương 9 coi ảnh là một hàng 64 con số, bỏ qua chuyện điểm ảnh nào nằm cạnh điểm ảnh nào. Mạng tích chập (CNN) giữ nguyên cấu trúc lưới: một bộ lọc nhỏ trượt khắp ảnh, tìm cùng một hoạ tiết ở mọi vị trí. Bài này cho bạn xem từng phép nhân trong đó.">
 
   <Goals spec={L} />
+
+  <LectureSection slug="cnn" />
 
   <section id="bai-toan">
     <div class="prose">

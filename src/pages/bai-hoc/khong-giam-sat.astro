@@ -15,6 +15,7 @@ import Debrief from '../../components/hoc/Debrief.svelte';
 import Checkpoint from '../../components/hoc/Checkpoint.astro';
 import Exercises from '../../components/hoc/Exercises.astro';
 import WrapUp from '../../components/hoc/WrapUp.astro';
+import LectureSection from '../../components/giang/LectureSection.astro';
 import { unsupLearn as L } from '../../lib/hoc/khong-giam-sat';
 
 const sp = peng.species;
@@ -47,6 +48,8 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 <Lesson slug="khong-giam-sat" data="342 con chim cánh cụt ở quần đảo Palmer, Nam Cực, và 1.797 chữ số viết tay 8×8 điểm ảnh (UCI)" lead="Từ đầu tới giờ, mọi dữ liệu đều có đáp án: giá nhà, chẩn đoán, loài hoa. Nhưng phần lớn dữ liệu trên đời không có nhãn. Học không giám sát tìm cấu trúc ẩn trong dữ liệu không nhãn: các nhóm tự nhiên (phân cụm) và những hướng quan trọng nhất (giảm chiều).">
 
   <Goals spec={L} />
+
+  <LectureSection slug="khong-giam-sat" />
 
   <section id="bai-toan">
     <div class="prose">

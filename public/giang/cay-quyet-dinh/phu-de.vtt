@@ -1,0 +1,190 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:04.776
+Chương 5: cây quyết định, rừng ngẫu nhiên và gradient boosting.
+
+00:00:05.136 --> 00:00:17.448
+Đêm 14 rạng sáng 15 tháng 4 năm 1912, tàu Titanic đâm vào băng trôi và chìm. Bộ dữ liệu ghi lại 891 hành khách, trong đó 342 người sống sót.
+
+00:00:17.808 --> 00:00:24.744
+Câu hỏi: từ giới tính, hạng vé, tuổi, giá vé và số người thân đi cùng, ai đã sống sót?
+
+00:00:25.104 --> 00:00:32.592
+Cây quyết định có một điểm mạnh hơn hồi quy logistic: kết quả của nó là một sơ đồ mà ai cũng đọc được, không cần biết toán.
+
+00:00:32.952 --> 00:00:40.632
+Quy tắc "phụ nữ và trẻ em lên xuồng trước" hiện rõ: 74% phụ nữ sống sót, so với 19% nam giới.
+
+00:00:40.992 --> 00:00:51.216
+Hạng vé cũng vậy: 63% ở hạng 1, chỉ 24% ở hạng 3. Khoang hạng 3 nằm sâu dưới tàu, xa boong có xuồng cứu sinh.
+
+00:00:51.576 --> 00:01:00.888
+Và 177 hành khách không có tuổi. Ở đây ta điền tuổi trung vị, 28 tuổi: cách đơn giản nhất, nhưng không vô hại.
+
+00:01:01.248 --> 00:01:07.848
+Nếu chỉ được hỏi một câu để đoán ai sống sót, bạn sẽ hỏi gì? Có lẽ là giới tính.
+
+00:01:08.208 --> 00:01:13.800
+Cây quyết định làm đúng việc đó, nhưng có hệ thống: nó thử mọi câu hỏi có thể.
+
+00:01:14.160 --> 00:01:20.928
+Chấm điểm từng câu: câu nào chia đám đông thành hai nhóm sạch nhất, tức trong mỗi nhóm gần như tất cả cùng một kết cục.
+
+00:01:21.288 --> 00:01:29.616
+Một nhóm 50 người sống, 50 người mất là lẫn lộn hoàn toàn. Một nhóm 95 sống, 5 mất là gần sạch.
+
+00:01:29.976 --> 00:01:34.584
+Chọn câu tốt nhất, rồi lặp lại đúng quy trình đó trong từng nhóm con.
+
+00:01:34.944 --> 00:01:41.112
+Đo độ "sạch" bằng độ vẩn đục Gini: một trừ bình phương tỷ lệ sống, trừ bình phương tỷ lệ mất.
+
+00:01:41.472 --> 00:01:52.488
+Ý nghĩa: chọn ngẫu nhiên hai người trong nhóm, Gini là xác suất họ có kết cục khác nhau. Nhóm thuần một loại có Gini bằng 0, chia đôi đều có Gini 0,5.
+
+00:01:52.848 --> 00:01:58.368
+Cả 891 hành khách: Gini = 0,473, khá lẫn lộn.
+
+00:01:58.728 --> 00:02:07.056
+Chia theo giới tính: nhóm nam có Gini 0,306, nhóm nữ 0,383. Cả hai đều sạch hơn.
+
+00:02:07.416 --> 00:02:15.360
+Lấy trung bình có trọng số theo cỡ nhóm: 0,333. Câu hỏi càng tốt, con số này càng nhỏ.
+
+00:02:15.720 --> 00:02:22.344
+Thử câu hỏi về tuổi trên 713 người huấn luyện: "tuổi ≤ t?" với mọi ngưỡng t.
+
+00:02:22.704 --> 00:02:32.472
+Đường ngang là Gini khi chưa chia: 0,475. Chia ở 30 tuổi, Gini chỉ xuống 0,4747: gần như vô ích.
+
+00:02:32.832 --> 00:02:37.056
+Chia ở 60 tuổi cũng vậy: 0,4719.
+
+00:02:37.416 --> 00:02:42.312
+Điểm thấp nhất nằm ở 6,5 tuổi: tách trẻ nhỏ ra khỏi người lớn.
+
+00:02:42.672 --> 00:02:48.912
+Chỉ cần thử các ngưỡng nằm giữa hai tuổi liên tiếp khác nhau: dịch ngưỡng trong khoảng đó không làm ai đổi nhánh.
+
+00:02:49.272 --> 00:02:58.560
+Với tuổi, thử mọi ngưỡng nằm giữa hai tuổi liên tiếp. Tốt nhất là tuổi ≤ 6,5, Gini sau khi chia 0,4645.
+
+00:02:58.920 --> 00:03:02.496
+Giá vé: tốt nhất 0,4335.
+
+00:03:02.856 --> 00:03:09.408
+Giới tính: 0,3409. Thắng rõ ràng, và trở thành gốc của cây.
+
+00:03:09.768 --> 00:03:17.712
+Sau đó cây lặp lại đúng quy trình này riêng cho nhóm nam, riêng cho nhóm nữ, cho đến khi đạt độ sâu tối đa hoặc nhóm đã thuần một loại.
+
+00:03:18.072 --> 00:03:23.760
+Đây là cây độ sâu 3 học từ tập huấn luyện. Gốc là câu hỏi giới tính.
+
+00:03:24.120 --> 00:03:30.144
+Tầng thứ hai: với nam, câu hỏi tiếp theo là tuổi; với nữ, là hạng vé.
+
+00:03:30.504 --> 00:03:37.656
+Tầng cuối là các lá. Mỗi lá dự đoán theo đa số: màu cam là sống, màu xanh là mất.
+
+00:03:38.016 --> 00:03:44.208
+Đọc theo một nhánh như đọc một câu: nữ, hạng vé 1 hoặc 2, thì rất có thể sống sót.
+
+00:03:44.568 --> 00:03:51.168
+Nam, trên 13 tuổi, hạng 2 hoặc 3: nhánh đông người nhất, và chỉ khoảng một phần mười sống sót.
+
+00:03:51.528 --> 00:04:00.720
+Còn bé trai dưới 13 tuổi đi cùng gia đình nhỏ: cả 16 em trong tập huấn luyện đều sống. Quy tắc "trẻ em trước" hiện ra ngay trong cây.
+
+00:04:01.080 --> 00:04:10.176
+Mỗi bước, cây chọn đặc trưng và ngưỡng làm Gini sau khi chia nhỏ nhất. Đây là thuật toán tham lam: tốt nhất lúc đó, không nhìn trước.
+
+00:04:10.536 --> 00:04:15.576
+Một cây sâu thì thuộc lòng dữ liệu: thay đổi vài hành khách là cây đổi hẳn.
+
+00:04:15.936 --> 00:04:26.616
+Rừng ngẫu nhiên lợi dụng chính điểm yếu đó: trồng nhiều cây, mỗi cây trên một mẫu lấy có lặp lại, và mỗi lần chia chỉ được xét vài đặc trưng ngẫu nhiên. Rồi lấy trung bình.
+
+00:04:26.976 --> 00:04:37.464
+Lấy mẫu có lặp lại nghĩa là bốc ngẫu nhiên từng người, bốc xong lại bỏ vào. Mỗi cây chỉ thấy khoảng hai phần ba số hành khách khác nhau, có người bị bốc hai ba lần.
+
+00:04:37.824 --> 00:04:43.440
+Các cây sai theo những cách khác nhau, nên khi cộng lại, sai số của chúng triệt tiêu bớt.
+
+00:04:43.800 --> 00:04:54.408
+Boosting đi hướng ngược lại: các cây nhỏ, yếu, trồng nối tiếp. Cây sau học phần mà các cây trước còn đoán sai, rồi được cộng vào với hệ số nhỏ η.
+
+00:04:54.768 --> 00:05:06.312
+Ví dụ một hành khách sống sót mà mô hình hiện chỉ cho xác suất 0,3: phần dư là 0,7. Cây tiếp theo cố đoán đúng phần 0,7 đó, và đẩy dự đoán của người này lên một chút.
+
+00:05:06.672 --> 00:05:17.280
+Phần dư y trừ p chính là âm gradient của mất mát log. Vậy boosting là Gradient Descent, nhưng thay vì cập nhật tham số, ta cập nhật cả một hàm.
+
+00:05:17.640 --> 00:05:22.752
+Ba mô hình với scikit-learn, trên đúng cách chia train và test của trang này.
+
+00:05:23.112 --> 00:05:28.008
+Cây độ sâu 3, in ra dạng chữ: giống hệt cây ta vừa xem.
+
+00:05:28.368 --> 00:05:35.736
+Rừng 100 cây, mỗi lần chia xét 2 đặc trưng. Boosting 150 vòng với cây độ sâu 2.
+
+00:05:36.096 --> 00:05:38.952
+Rồi chấm điểm cả ba trên tập test.
+
+00:05:39.312 --> 00:05:44.688
+Độ sâu 1, tức chỉ hỏi giới tính: đúng 81,5% trên test.
+
+00:05:45.048 --> 00:05:51.288
+Độ sâu 3: 86,0%. Độ sâu 4 cũng 86,0%.
+
+00:05:51.648 --> 00:05:59.232
+Sâu hơn nữa: đường huấn luyện cứ đi lên, còn đường test đi xuống. Cây bắt đầu thuộc lòng từng hành khách.
+
+00:05:59.592 --> 00:06:09.192
+Với 178 người trong tập test, mỗi người đúng hay sai làm độ chính xác thay đổi hơn nửa điểm phần trăm. Đừng đọc quá nhiều vào dao động nhỏ.
+
+00:06:09.552 --> 00:06:13.776
+Một cây sâu 8 tầng: 83,1% trên test.
+
+00:06:14.136 --> 00:06:24.288
+Rừng ngẫu nhiên: 1 cây chỉ 76,4%, vì cây đó học trên một mẫu lấy có lặp lại. 100 cây: 83,7%.
+
+00:06:24.648 --> 00:06:30.960
+Boosting: 10 vòng được 79,2%, 150 vòng lên 86,0%.
+
+00:06:31.320 --> 00:06:40.056
+Trên dữ liệu dạng bảng như thế này, gồm các cột số và cột phân loại, rừng và boosting thường là những mô hình mạnh nhất, mạnh hơn cả mạng nơ-ron.
+
+00:06:40.416 --> 00:06:46.008
+Cái giá phải trả: một trăm cây thì không còn đọc được bằng mắt như một cây đơn lẻ nữa.
+
+00:06:46.368 --> 00:06:52.056
+Ở bước 7, bấm "Trồng lại rừng khác" để thấy kết quả dao động bao nhiêu chỉ vì may rủi.
+
+00:06:52.416 --> 00:07:00.840
+Ba bẫy thường gặp. Một: cây quá sâu. Luôn giới hạn độ sâu, hoặc số người tối thiểu ở mỗi lá.
+
+00:07:01.200 --> 00:07:12.744
+Hai: tin vào mức quan trọng của đặc trưng một cách máy móc. Cột có nhiều giá trị khác nhau, như giá vé, có nhiều ngưỡng để thử, nên dễ được chọn hơn dù không thật sự quan trọng hơn.
+
+00:07:13.104 --> 00:07:23.952
+Ba: rò rỉ. Trung vị 28 tuổi ở đây được tính trên cả 891 người, kể cả tập test. Đúng ra phải tính trên tập huấn luyện thôi.
+
+00:07:24.312 --> 00:07:26.184
+Tóm lại.
+
+00:07:26.544 --> 00:07:33.576
+Cây quyết định hỏi một chuỗi câu có hoặc không. Mỗi câu được chọn vì làm Gini sau khi chia nhỏ nhất.
+
+00:07:33.936 --> 00:07:38.040
+Cây đọc được bằng mắt, nhưng sâu quá thì thuộc lòng dữ liệu.
+
+00:07:38.400 --> 00:07:49.128
+Rừng ngẫu nhiên trồng nhiều cây khác nhau rồi lấy trung bình. Boosting trồng cây nhỏ nối tiếp, cây sau sửa lỗi cây trước. Cả hai thường thắng một cây đơn lẻ.
+
+00:07:49.488 --> 00:07:58.536
+Chương 6 quay lại bài toán khối u lành hay ác, với một ý tưởng hình học: đường tách xa những ca khó nhất. Đó là SVM.
+
+00:07:58.896 --> 00:08:04.440
+Giờ hãy cuộn xuống làm các phòng thí nghiệm. Hẹn gặp lại ở chương 6.

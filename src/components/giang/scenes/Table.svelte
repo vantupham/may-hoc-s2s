@@ -12,7 +12,7 @@
   const hc = $derived(Math.round(num(s.hc, -1)));
 </script>
 
-<div class="sc">
+<div class="sc" class:dense={rows.length > 5} class:wide={cols.length > 5}>
   {#if title}<h3>{title}</h3>{/if}
   <table>
     <thead><tr>{#each cols as h, j}<th class={cls[j]} class:hc={hc === j} style:opacity={shown(c, j)}>{h}</th>{/each}</tr></thead>
@@ -35,6 +35,13 @@
   td { font-family: var(--mono); text-align: right; padding: 5px 18px; border-bottom: 1px solid var(--rule); }
   th:first-child, td:first-child { text-align: center; }
   td.t, th.t { font-family: var(--serif); text-align: left; }
+  td.t { white-space: nowrap; }
+  .dense table { font-size: 20px; }
+  .dense td { padding: 2px 18px; }
+  .dense h3 { font-size: 30px; margin-bottom: 8px; }
+  .wide table { font-size: 20px; }
+  .wide th { padding: 6px 10px; font-size: 17px; }
+  .wide td { padding-left: 10px; padding-right: 10px; }
   tr.on td { background: var(--hl); }
   .hc { background: var(--tim-soft); }
   .foot { font-size: 20px; margin-top: 14px; white-space: nowrap; color: var(--ink); font-family: var(--mono); }

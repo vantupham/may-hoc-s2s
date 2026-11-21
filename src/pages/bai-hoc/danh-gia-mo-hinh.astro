@@ -11,6 +11,7 @@ import Debrief from '../../components/hoc/Debrief.svelte';
 import Checkpoint from '../../components/hoc/Checkpoint.astro';
 import Exercises from '../../components/hoc/Exercises.astro';
 import WrapUp from '../../components/hoc/WrapUp.astro';
+import LectureSection from '../../components/giang/LectureSection.astro';
 import { evalLearn as L } from '../../lib/hoc/danh-gia-mo-hinh';
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
@@ -44,6 +45,8 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 <Lesson slug="danh-gia-mo-hinh" data="Lại hai bộ dữ liệu quen thuộc: 400 khu vực California Housing và 569 mẫu sinh thiết Breast Cancer Wisconsin" lead="Ở mọi chương trước, ta đã chia train/test và đọc độ chính xác. Chương này hỏi kỹ hơn: con số đó đáng tin đến đâu? Chọn bậc đa thức, chọn k, chọn C thế nào mà không lén nhìn tập test? Và tại sao một mô hình vừa có thể quá đơn giản, vừa có thể quá phức tạp?">
 
   <Goals spec={L} />
+
+  <LectureSection slug="danh-gia-mo-hinh" />
 
   <section id="bai-toan">
     <div class="prose">

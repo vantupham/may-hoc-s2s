@@ -163,7 +163,7 @@ for (const l of lessons.filter((l) => l.lecture)) {
     await player.getByRole('button', { name: 'Chép lời' }).click();
     const n = lec.chapters.flatMap((c: any) => c.scenes.flatMap((s: any) => s.lines)).length;
     await expect(player.locator('.transcript button')).toHaveCount(n);
-    await player.getByRole('button', { name: 'Dừng' }).click();
+    await player.locator('.bar .play').click();
 
     // Tua làm trình duyệt huỷ yêu cầu Range đang dở của tệp âm thanh: bình thường, không phải lỗi
     expect(errors.filter((e) => !/\.mp3 \(net::ERR_ABORTED\)/.test(e))).toEqual([]);

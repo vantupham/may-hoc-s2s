@@ -14,6 +14,7 @@ import Debrief from '../../components/hoc/Debrief.svelte';
 import Checkpoint from '../../components/hoc/Checkpoint.astro';
 import Exercises from '../../components/hoc/Exercises.astro';
 import WrapUp from '../../components/hoc/WrapUp.astro';
+import LectureSection from '../../components/giang/LectureSection.astro';
 import { svmLearn as L } from '../../lib/hoc/svm';
 
 const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
@@ -42,6 +43,8 @@ for g in (0.1, 1, 10, 50):
 <Lesson slug="svm" data="569 mẫu sinh thiết trong bộ Breast Cancer Wisconsin, hai đặc trưng đã chuẩn hoá như chương 2" lead="Chương 2, hồi quy logistic tìm một đường thẳng tách khối u lành và ác. Nhưng có vô số đường thẳng tách được. SVM chọn đường cách xa những ca khó nhất — những ca nằm sát ranh giới — và chỉ để những ca đó quyết định.">
 
   <Goals spec={L} />
+
+  <LectureSection slug="svm" />
 
   <section id="bai-toan">
     <div class="prose">

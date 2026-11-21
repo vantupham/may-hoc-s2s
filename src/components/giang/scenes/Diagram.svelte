@@ -23,9 +23,12 @@
     nodes.filter((n) => !n.parent).forEach((r) => walk(r.id, 0));
     return { pos, leaves: Math.max(1, leaf), depth: maxD };
   });
-  const W = 900, H = 420;
+  const W = 900, H = 384;
+  /** Ô nút hẹp lại khi cây nhiều lá */
+  const bw = $derived(Math.min(184, (W - 120) / layout.leaves - 8));
+  const small = $derived(bw < 140);
   const X = (x: number) => 60 + ((W - 120) * (x + 0.5)) / layout.leaves;
-  const Y = (d: number) => 40 + (layout.depth ? ((H - 90) * d) / layout.depth : 0);
+  const Y = (d: number) => 36 + (layout.depth ? ((H - 80) * d) / layout.depth : 0);
   const idx = $derived(new Map(nodes.map((n, i) => [n.id, i])));
   const path = $derived(new Set(String(s.path ?? '').split(',').filter(Boolean)));
 </script>
@@ -46,9 +49,9 @@
       {@const p = layout.pos.get(n.id)!}
       {@const on = s.hl === n.id || path.has(n.id)}
       <g opacity={shown(s.n ?? nodes.length, idx.get(n.id)!)} transform={`translate(${X(p.x)},${Y(p.d)})`}>
-        <rect x={-92} y={-26} width="184" height={n.sub ? 54 : 40} rx="6" fill={n.cls !== undefined ? `color-mix(in srgb, ${COLORS[n.cls]} 22%, var(--sheet))` : 'var(--sheet)'} stroke={on ? 'var(--le)' : 'var(--rule-2)'} stroke-width={on ? 3 : 1.5} />
-        <text y={n.sub ? -4 : 0} dy="0.35em" text-anchor="middle" class="t">{n.text}</text>
-        {#if n.sub}<text y="17" dy="0.35em" text-anchor="middle" class="sub">{n.sub}</text>{/if}
+        <rect x={-bw / 2} y={-26} width={bw} height={n.sub ? 54 : 40} rx="6" fill={n.cls !== undefined ? `color-mix(in srgb, ${COLORS[n.cls]} 22%, var(--sheet))` : 'var(--sheet)'} stroke={on ? 'var(--le)' : 'var(--rule-2)'} stroke-width={on ? 3 : 1.5} />
+        <text y={n.sub ? -4 : 0} dy="0.35em" text-anchor="middle" class="t" class:small>{n.text}</text>
+        {#if n.sub}<text y="17" dy="0.35em" text-anchor="middle" class="sub" class:small>{n.sub}</text>{/if}
       </g>
     {/each}
   </svg>
@@ -60,5 +63,7 @@
   svg { font-family: var(--serif); }
   .t { font-size: 17px; fill: var(--ink); font-weight: 600; }
   .sub { font-size: 14px; fill: var(--pencil); font-family: var(--mono); }
+  .t.small { font-size: 14px; }
+  .sub.small { font-size: 12px; }
   .edge { font-size: 15px; fill: var(--tim); font-family: var(--hand); }
 </style>

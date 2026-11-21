@@ -14,6 +14,7 @@ import Debrief from '../../components/hoc/Debrief.svelte';
 import Checkpoint from '../../components/hoc/Checkpoint.astro';
 import Exercises from '../../components/hoc/Exercises.astro';
 import WrapUp from '../../components/hoc/WrapUp.astro';
+import LectureSection from '../../components/giang/LectureSection.astro';
 import { attnLearn as L } from '../../lib/hoc/attention';
 
 const pick = (s: string) => sms.test.find((t) => t.text.startsWith(s))!;
@@ -44,6 +45,8 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 <Lesson slug="attention" data={`${sms.nTotal.toLocaleString('vi-VN')} tin nhắn SMS tiếng Anh có nhãn spam/thường (UCI), cùng cách chia train/test như chương 4`} lead="Mọi mô hình ngôn ngữ lớn ngày nay được xây trên một phép tính: attention. Mỗi từ đặt một câu hỏi, so với mọi từ khác trong câu, rồi gom thông tin từ những từ trả lời khớp nhất. Bài này huấn luyện một mô hình attention tí hon để lọc tin rác, rồi mở ra xem từng con số bên trong.">
 
   <Goals spec={L} />
+
+  <LectureSection slug="attention" />
 
   <section id="bai-toan">
     <div class="prose">

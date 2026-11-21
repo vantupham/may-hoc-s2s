@@ -9,6 +9,7 @@ import Debrief from '../../components/hoc/Debrief.svelte';
 import Checkpoint from '../../components/hoc/Checkpoint.astro';
 import Exercises from '../../components/hoc/Exercises.astro';
 import WrapUp from '../../components/hoc/WrapUp.astro';
+import LectureSection from '../../components/giang/LectureSection.astro';
 import airUrl from '../../data/hanoi-air.json?url';
 import hourlyUrl from '../../data/hanoi-hourly.json?url';
 import resUrl from '../../data/hanoi-results.json?url';
@@ -55,6 +56,8 @@ print("gradient boosting: ", round(mean_absolute_error(te.y, m.predict(te[feats]
 <Lesson slug="du-an-khong-khi-a" data="PM2.5 đo theo giờ ở 7 trạm quan trắc Hà Nội (1/2023 – 15/11/2026, kho mở OpenAQ) và thời tiết ERA5 theo giờ (Open-Meteo)" lead="Mười ba bài trước, mỗi bài dạy một công cụ trên một bộ dữ liệu riêng. Bài này đi theo chiều ngược lại: một vấn đề thật của Việt Nam, đang diễn ra ngay lúc này, và ta lần lượt lấy ra từng công cụ đã học để xem nó giúp được gì, ở bước nào, và khi nào nó không đáng dùng.">
 
   <Goals spec={L} />
+
+  <LectureSection slug="du-an-khong-khi-a" />
 
   <section id="bai-toan">
     <div class="prose">

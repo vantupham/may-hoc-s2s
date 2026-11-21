@@ -12,6 +12,7 @@ import Debrief from '../../components/hoc/Debrief.svelte';
 import Checkpoint from '../../components/hoc/Checkpoint.astro';
 import Exercises from '../../components/hoc/Exercises.astro';
 import WrapUp from '../../components/hoc/WrapUp.astro';
+import LectureSection from '../../components/giang/LectureSection.astro';
 import { treeLearn as L } from '../../lib/hoc/cay-quyet-dinh';
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
@@ -51,6 +52,8 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 <Lesson slug="cay-quyet-dinh" data="891 hành khách tàu Titanic (1912) với giới tính, hạng vé, tuổi, giá vé, số người thân đi cùng" lead="Một cây quyết định là chuỗi câu hỏi có/không, giống trò chơi hai mươi câu hỏi. Máy tự tìm câu hỏi nào nên hỏi trước, bằng một phép đo độ lẫn lộn gọi là Gini. Rồi ta trồng cả một rừng cây, và thử cách cho các cây nhỏ lần lượt sửa lỗi cho nhau.">
 
   <Goals spec={L} />
+
+  <LectureSection slug="cay-quyet-dinh" />
 
   <section id="bai-toan">
     <div class="prose">

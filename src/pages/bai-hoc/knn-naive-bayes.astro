@@ -17,6 +17,7 @@ import Debrief from '../../components/hoc/Debrief.svelte';
 import Checkpoint from '../../components/hoc/Checkpoint.astro';
 import Exercises from '../../components/hoc/Exercises.astro';
 import WrapUp from '../../components/hoc/WrapUp.astro';
+import LectureSection from '../../components/giang/LectureSection.astro';
 import { knnNbLearn as L } from '../../lib/hoc/knn-naive-bayes';
 
 const sp = iris.species;
@@ -69,6 +70,8 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 <Lesson slug="knn-naive-bayes" data="150 bông hoa Iris (Fisher, 1936) và 5.574 tin nhắn SMS tiếng Anh có nhãn spam/thường (UCI)" lead="Hai cách phân loại không cần Gradient Descent. KNN không học gì cả: gặp điểm mới thì hỏi các điểm cũ gần nhất. Naive Bayes chỉ đếm: từ nào hay xuất hiện trong tin rác? Cả hai đơn giản đến mức tính tay được, và vẫn đáng ngạc nhiên vì hoạt động tốt.">
 
   <Goals spec={L} />
+
+  <LectureSection slug="knn-naive-bayes" />
 
   <section id="bai-toan">
     <div class="prose">

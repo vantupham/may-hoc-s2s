@@ -18,6 +18,7 @@ import Debrief from '../../components/hoc/Debrief.svelte';
 import Checkpoint from '../../components/hoc/Checkpoint.astro';
 import Exercises from '../../components/hoc/Exercises.astro';
 import WrapUp from '../../components/hoc/WrapUp.astro';
+import LectureSection from '../../components/giang/LectureSection.astro';
 import { khamPhaLearn as L } from '../../lib/hoc/kham-pha-du-lieu';
 
 const cal = JSON.parse(readFileSync('src/data/california.json', 'utf8'));
@@ -59,6 +60,8 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 <Lesson slug="kham-pha-du-lieu" data="toàn bộ 20.640 khu vực California Housing với đủ 10 cột, và 569 mẫu sinh thiết Breast Cancer Wisconsin với đủ 30 đặc trưng" lead="Ba chương trước, dữ liệu luôn đến tay ta đã sạch sẽ: đúng hai cột, không ô trống, chia sẵn train và test. Ngoài đời không như vậy. Chương này dạy cách khám một bộ dữ liệu trước khi đưa cho mô hình: thiếu ở đâu, sai ở đâu, và nó có giống thế giới mà mô hình sẽ phải làm việc hay không.">
 
   <Goals spec={L} />
+
+  <LectureSection slug="kham-pha-du-lieu" />
 
   <section id="bai-toan">
     <div class="prose">

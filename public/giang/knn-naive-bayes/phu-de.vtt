@@ -1,0 +1,211 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:06.144
+Chương 4: hai thuật toán phân loại đơn giản đến bất ngờ, K láng giềng gần nhất và Naive Bayes.
+
+00:00:06.504 --> 00:00:21.120
+Bài toán thứ nhất. Năm 1936, nhà thống kê Ronald Fisher công bố số đo của 150 bông hoa diên vĩ thuộc ba loài, mỗi loài 50 bông. Cho số đo cánh hoa của một bông mới, nó thuộc loài nào?
+
+00:00:21.480 --> 00:00:34.104
+Bài toán thứ hai. Bộ SMS Spam Collection gồm 5.574 tin nhắn thật, trong đó 747 tin là tin rác. Cho một tin mới, có nên chặn nó không?
+
+00:00:34.464 --> 00:00:42.864
+Bài thứ nhất có đầu vào là hai con số. Bài thứ hai có đầu vào là một đoạn văn bản: ta phải tự biến chữ thành số.
+
+00:00:43.224 --> 00:00:52.800
+Đây là 150 bông hoa. Setosa có cánh hoa nhỏ hẳn: trung bình dài 1,46 cm, nằm tách riêng ở góc dưới.
+
+00:00:53.160 --> 00:01:03.192
+Versicolor dài trung bình 4,26 cm, virginica 5,55 cm. Hai loài này nằm sát nhau và chồng lấn một chút.
+
+00:01:03.552 --> 00:01:07.320
+Chỗ chồng lấn đó là nơi mô hình sẽ phải vất vả.
+
+00:01:07.680 --> 00:01:11.592
+Còn tin nhắn: vài ví dụ thật cho thấy ngay khác biệt.
+
+00:01:11.952 --> 00:01:18.984
+Tin rác hay có số điện thoại dài, chữ in hoa, và những từ như free, call, claim, prize.
+
+00:01:19.344 --> 00:01:23.664
+Tin thường thì ngắn, viết tắt, thân mật, nhiều từ lóng.
+
+00:01:24.024 --> 00:01:31.440
+Và tin rác hiếm: chỉ 13,4% toàn bộ tin nhắn. Điều này sẽ quan trọng khi đánh giá.
+
+00:01:31.800 --> 00:01:37.464
+KNN: hãy cho tôi biết bạn bè của bạn là ai, tôi sẽ nói bạn là ai.
+
+00:01:37.824 --> 00:01:43.824
+Một bông hoa lạ dài 4,9 cm, rộng 1,6 cm: tam giác tím.
+
+00:01:44.184 --> 00:01:50.280
+Tìm 5 bông đã biết loài gần nó nhất. Bông gần nhất cách 0,100 cm.
+
+00:01:50.640 --> 00:01:58.992
+Năm láng giềng bỏ phiếu: 3 phiếu versicolor, 2 phiếu virginica. Đa số thắng: versicolor.
+
+00:01:59.352 --> 00:02:08.928
+Dịch sang 5,0 cm và hỏi 9 láng giềng: 4 phiếu versicolor, 5 phiếu virginica. Dự đoán lật sang virginica.
+
+00:02:09.288 --> 00:02:15.144
+Không có tham số nào để học. Toàn bộ dữ liệu huấn luyện chính là mô hình.
+
+00:02:15.504 --> 00:02:23.424
+Tô màu mọi điểm trên mặt phẳng theo dự đoán. Với k = 1, ranh giới lởm chởm, uốn theo từng bông hoa.
+
+00:02:23.784 --> 00:02:29.904
+Tăng k lên 5, rồi 20: ranh giới mượt dần, bớt bị một bông lạc loài kéo đi.
+
+00:02:30.264 --> 00:02:34.680
+Naive Bayes nghĩ khác: mỗi từ trong tin nhắn là một bằng chứng.
+
+00:02:35.040 --> 00:02:38.856
+Một tin có từ free: khả năng là rác tăng lên.
+
+00:02:39.216 --> 00:02:44.040
+Thêm prize, tăng nữa. Thêm mum, giảm đi.
+
+00:02:44.400 --> 00:02:55.440
+Naive Bayes cộng dồn các bằng chứng đó, mỗi từ một lần, như thể chúng độc lập với nhau. Giả định đó ngây thơ, vì thế mới có tên Naive, nhưng lại chạy rất tốt.
+
+00:02:55.800 --> 00:03:02.328
+Với KNN, phép tính duy nhất là khoảng cách Euclid: định lý Pythagoras trên mặt phẳng.
+
+00:03:02.688 --> 00:03:09.432
+Bông gần nhất dài 4,9, rộng 1,5. Khoảng cách: 0,100 cm.
+
+00:03:09.792 --> 00:03:19.320
+Naive Bayes "huấn luyện" chỉ bằng cách đếm. Lấy 6 tin nhắn thật, 3 tin rác và 3 tin thường, đếm mỗi từ xuất hiện bao nhiêu lần ở mỗi loại.
+
+00:03:19.680 --> 00:03:27.624
+Chấm điểm tin mới: "Call now for your free prize". Chỉ những từ đã gặp mới được tính, từ lạ bị bỏ qua.
+
+00:03:27.984 --> 00:03:35.352
+Để ý từ call: nó có trong cả tin rác lẫn tin thường, nhưng nhiều hơn ở tin rác, nên kéo về phía rác một chút.
+
+00:03:35.712 --> 00:03:43.968
+Cộng log xác suất: điểm rác −6,802, điểm thường −8,086. Điểm rác cao hơn.
+
+00:03:44.328 --> 00:03:48.624
+Đổi ra xác suất: 78,3% là tin rác.
+
+00:03:48.984 --> 00:03:59.184
+Còn "Please call me later": điểm rác −14,991, điểm thường −14,786, chỉ 44,9% là rác. Không chặn.
+
+00:03:59.544 --> 00:04:08.544
+Mỗi con số trong bảng tính thế nào? Lấy từ call. Nó xuất hiện 3 lần trong các tin rác, và 1 lần trong tin thường.
+
+00:04:08.904 --> 00:04:16.584
+Cộng 1 vào số đếm, chia cho tổng số từ của tin rác cộng kích thước từ điển: 3 cộng 1, chia 23 cộng 37.
+
+00:04:16.944 --> 00:04:24.552
+Lấy log được −2,708 cho tin rác, so với −3,350 cho tin thường: call nghiêng về phía rác.
+
+00:04:24.912 --> 00:04:35.856
+Còn từ now chưa từng xuất hiện trong tin thường. Nhờ có cộng 1, nó vẫn có xác suất khác 0 ở đó: log bằng −4,043, thay vì âm vô cùng.
+
+00:04:36.216 --> 00:04:42.072
+KNN viết thành công thức: trong k láng giềng gần nhất, lớp nào nhiều phiếu nhất thì thắng.
+
+00:04:42.432 --> 00:04:50.784
+Vì khoảng cách cộng trực tiếp các chiều, mọi đặc trưng phải cùng thang đo. Một cột tính bằng mi-li-mét sẽ áp đảo cột tính bằng mét.
+
+00:04:51.144 --> 00:04:57.144
+KNN không có bước huấn luyện, nhưng mỗi lần dự đoán phải tính khoảng cách tới toàn bộ dữ liệu.
+
+00:04:57.504 --> 00:05:04.560
+Với hàng triệu điểm, người ta dùng cấu trúc dữ liệu như cây k-d để tìm láng giềng nhanh mà không phải đo tới từng điểm.
+
+00:05:04.920 --> 00:05:10.728
+Naive Bayes dùng định lý Bayes: xác suất lớp nhân với xác suất của từng từ trong lớp đó.
+
+00:05:11.088 --> 00:05:17.064
+Tích nhiều số nhỏ dễ tràn về 0 trên máy tính, nên ta lấy log để biến tích thành tổng.
+
+00:05:17.424 --> 00:05:28.320
+Hằng số α = 1 là làm mịn Laplace. Không có nó, một từ chưa từng gặp trong tin thường sẽ có xác suất 0, và một từ đó đủ để lật cả kết quả.
+
+00:05:28.680 --> 00:05:41.568
+Naive Bayes thì ngược lại với KNN: huấn luyện chỉ là đếm, một lượt qua dữ liệu, và dự đoán chỉ cần cộng vài con số. Nhanh đến mức nó từng là bộ lọc thư rác chuẩn của các hộp thư điện tử.
+
+00:05:41.928 --> 00:05:51.816
+Giả định độc lập rõ ràng là sai: free và prize hay đi cùng nhau. Nhưng ta chỉ cần biết lớp nào điểm cao hơn, và thứ hạng đó thường vẫn đúng.
+
+00:05:52.176 --> 00:05:56.160
+KNN tự viết bằng NumPy chỉ trong vài dòng.
+
+00:05:56.520 --> 00:06:00.024
+Tính khoảng cách tới mọi bông hoa trong tập huấn luyện.
+
+00:06:00.384 --> 00:06:04.296
+Sắp xếp, lấy k bông gần nhất, rồi đếm phiếu.
+
+00:06:04.656 --> 00:06:11.520
+Ở bước 6, bạn sẽ thấy thêm Naive Bayes của scikit-learn, dùng đúng từ điển và bảng đếm của trang này.
+
+00:06:11.880 --> 00:06:22.608
+k = 1: đúng 99,2% trên tập huấn luyện, gần như hoàn hảo, vì mỗi bông tự là láng giềng gần nhất của chính nó. Trên test chỉ 90,0%.
+
+00:06:22.968 --> 00:06:27.432
+k = 5: 96,7% trên test, tốt nhất.
+
+00:06:27.792 --> 00:06:35.400
+k = 20: lại xuống 90,0%. Hỏi quá nhiều hàng xóm thì hàng xóm ở xa cũng được tính.
+
+00:06:35.760 --> 00:06:45.456
+Tập test chỉ có 30 bông, mỗi bông sai làm độ chính xác giảm hơn 3 điểm. Chương 8 sẽ dùng cross-validation để chọn k chắc chắn hơn.
+
+00:06:45.816 --> 00:06:49.296
+Vẽ cả hai đường cho k từ 1 đến 30.
+
+00:06:49.656 --> 00:06:59.640
+Đường huấn luyện cao nhất ở k nhỏ: mô hình nhớ từng bông. Đường test thì nhảy lên xuống từng bậc 3,3%, vì mỗi bậc là đúng một bông hoa.
+
+00:07:00.000 --> 00:07:04.272
+Một tập test nhỏ như vậy không đủ để chọn k một cách chắc chắn.
+
+00:07:04.632 --> 00:07:11.952
+Naive Bayes học từ toàn bộ bảng đếm, rồi chấm 1.114 tin test: đúng 98,83%.
+
+00:07:12.312 --> 00:07:20.880
+Nhưng chỉ 13,4% tin là rác, nên luôn đoán "tin thường" cũng đã đạt 86,6%. Phải nhìn kỹ hơn.
+
+00:07:21.240 --> 00:07:23.448
+8 tin rác lọt qua.
+
+00:07:23.808 --> 00:07:31.896
+Và 5 tin thường bị chặn nhầm. Với bộ lọc tin nhắn, chặn nhầm tin của người thân thường tệ hơn để lọt một tin quảng cáo.
+
+00:07:32.256 --> 00:07:37.968
+Bốn bẫy thường gặp. Một: KNN với đặc trưng khác thang đo.
+
+00:07:38.328 --> 00:07:50.592
+Hai: KNN trong nhiều chiều. Khi có hàng trăm đặc trưng, mọi điểm đều xa nhau gần như bằng nhau, và khái niệm láng giềng mất ý nghĩa. Đó là lời nguyền số chiều.
+
+00:07:50.952 --> 00:07:54.096
+Ba: quên làm mịn trong Naive Bayes.
+
+00:07:54.456 --> 00:07:59.376
+Bốn: dữ liệu lệch lớp. Đừng chỉ nhìn độ chính xác.
+
+00:07:59.736 --> 00:08:01.608
+Tóm lại.
+
+00:08:01.968 --> 00:08:09.216
+KNN để k láng giềng gần nhất bỏ phiếu. Không có gì để học: dữ liệu chính là mô hình.
+
+00:08:09.576 --> 00:08:15.432
+k nhỏ cho ranh giới lởm chởm, k lớn cho ranh giới mượt, nhưng quá lớn thì mờ đi.
+
+00:08:15.792 --> 00:08:25.512
+Naive Bayes đếm từ, cộng log xác suất, và giả định các từ độc lập với nhau. Làm mịn Laplace giữ cho từ lạ không lật kết quả.
+
+00:08:25.872 --> 00:08:36.528
+Cả hai là những mốc so sánh rất tốt cho mọi dự án: nhanh, dễ giải thích, và thường khó đánh bại hơn ta tưởng. Hãy luôn thử chúng trước khi dùng một mô hình phức tạp.
+
+00:08:36.888 --> 00:08:44.616
+Chương 5 học cách hỏi một chuỗi câu hỏi có hoặc không: cây quyết định, rừng ngẫu nhiên và boosting, trên dữ liệu tàu Titanic.
+
+00:08:44.976 --> 00:08:50.472
+Giờ hãy cuộn xuống làm các phòng thí nghiệm. Hẹn gặp lại ở chương 5.

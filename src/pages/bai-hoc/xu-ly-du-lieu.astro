@@ -22,6 +22,7 @@ import Debrief from '../../components/hoc/Debrief.svelte';
 import Checkpoint from '../../components/hoc/Checkpoint.astro';
 import Exercises from '../../components/hoc/Exercises.astro';
 import WrapUp from '../../components/hoc/WrapUp.astro';
+import LectureSection from '../../components/giang/LectureSection.astro';
 import { xuLyLearn as L } from '../../lib/hoc/xu-ly-du-lieu';
 
 const cal = JSON.parse(readFileSync('src/data/california.json', 'utf8'));
@@ -91,6 +92,8 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 <Lesson slug="xu-ly-du-lieu" data="toàn bộ 20.640 khu vực California Housing, 891 hành khách Titanic, 569 mẫu sinh thiết Breast Cancer Wisconsin" lead="Bài 3A tìm ra các vấn đề. Bài này sửa chúng: điền giá trị thiếu, mã hoá, đưa về cùng thang đo, chặn rò rỉ, chia train/test cho đúng — và đo xem mỗi bước thật sự đáng giá bao nhiêu. Cuối bài là câu hỏi lớn của chương: nên thu thập thêm dữ liệu, hay làm cho dữ liệu đang có tốt hơn?">
 
   <Goals spec={L} />
+
+  <LectureSection slug="xu-ly-du-lieu" />
 
   <section id="bai-toan">
     <div class="prose">

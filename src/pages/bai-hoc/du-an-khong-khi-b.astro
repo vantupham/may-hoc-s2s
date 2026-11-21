@@ -9,6 +9,7 @@ import Debrief from '../../components/hoc/Debrief.svelte';
 import Checkpoint from '../../components/hoc/Checkpoint.astro';
 import Exercises from '../../components/hoc/Exercises.astro';
 import WrapUp from '../../components/hoc/WrapUp.astro';
+import LectureSection from '../../components/giang/LectureSection.astro';
 import airUrl from '../../data/hanoi-air.json?url';
 import netsUrl from '../../data/hanoi-nets.json?url';
 import resUrl from '../../data/hanoi-results.json?url';
@@ -58,6 +59,8 @@ print("MLP trên mùa đông:", round(mean_absolute_error(te.y, mlp.predict(z(te
 <Lesson slug="du-an-khong-khi-b" data="Cùng dữ liệu bài 12A, thêm chỉ số PM2.5 theo giờ và thời tiết ERA5 theo giờ cho cửa sổ 72 giờ, cùng số liệu 4–11/2026 sau tập kiểm tra" lead="Bài 12A dừng ở các mô hình nhìn số liệu theo ngày. Bài này mở rộng theo hai hướng: cho mô hình xem từng giờ của ba ngày gần nhất, và hỏi điều xảy ra sau khi mô hình được đưa vào sử dụng. Đó là lúc dữ liệu mới không còn giống dữ liệu đã học.">
 
   <Goals spec={L} />
+
+  <LectureSection slug="du-an-khong-khi-b" />
 
   <section id="bai-toan">
     <div class="prose">

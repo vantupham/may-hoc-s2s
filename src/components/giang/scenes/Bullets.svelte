@@ -5,7 +5,7 @@
   const hl = $derived(Math.round(num(s.hl, -1)));
 </script>
 
-<div class="sc" class:many={items.length > 3 || items.join('').replace(/<[^>]+>/g, '').length > 170}>
+<div class="sc" class:many={items.length > 3 || items.join('').replace(/<[^>]+>/g, '').length > 140}>
   {#if title}<h3>{title}</h3>{/if}
   <ul>
     {#each items as it, i}

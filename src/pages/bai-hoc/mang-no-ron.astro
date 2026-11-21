@@ -16,6 +16,7 @@ import Debrief from '../../components/hoc/Debrief.svelte';
 import Checkpoint from '../../components/hoc/Checkpoint.astro';
 import Exercises from '../../components/hoc/Exercises.astro';
 import WrapUp from '../../components/hoc/WrapUp.astro';
+import LectureSection from '../../components/giang/LectureSection.astro';
 import { nnLearn as L } from '../../lib/hoc/mang-no-ron';
 
 // Hình nhỏ ba hàm kích hoạt
@@ -62,6 +63,8 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 <Lesson slug="mang-no-ron" data="Chữ số viết tay 8×8 điểm ảnh (1.797 ảnh, UCI) và 6 bệnh nhân của bộ Breast Cancer Wisconsin" lead="Một nơ-ron nhân tạo chỉ là hồi quy logistic của chương 2. Xếp nhiều nơ-ron thành tầng, nối tầng này vào tầng kia, ta có mạng nơ-ron: thứ đứng sau nhận dạng ảnh, dịch máy và các mô hình ngôn ngữ. Bài này mổ xẻ cách mạng học — lan truyền ngược — trên một mạng đủ nhỏ để nhìn thấy mọi con số.">
 
   <Goals spec={L} />
+
+  <LectureSection slug="mang-no-ron" />
 
   <section id="bai-toan">
     <div class="prose">

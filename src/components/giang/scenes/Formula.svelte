@@ -5,10 +5,11 @@
   let { title = '', items, s = {} }: { title?: string; items: { tex: string; label?: string }[]; s?: Record<string, unknown> } = $props();
   const html = $derived(items.map((it) => renderTex(it.tex, true)));
   const hl = $derived(Math.round(num(s.hl, -1)));
-  const big = $derived(items.length <= 2);
+  const big = $derived(items.length === 1);
+  const two = $derived(items.length === 2);
 </script>
 
-<div class="sc" class:big>
+<div class="sc" class:big class:two>
   {#if title}<h3>{title}</h3>{/if}
   <div class="list">
     {#each items as it, i}
@@ -32,4 +33,6 @@
   .big .list { margin-top: 70px; gap: 30px; }
   .big .row { font-size: 40px; }
   .big .f :global(.katex-display) { text-align: center; }
+  .two .list { margin-top: 40px; gap: 26px; }
+  .two .row { font-size: 28px; }
 </style>

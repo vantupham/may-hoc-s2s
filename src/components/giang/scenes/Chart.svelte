@@ -12,7 +12,7 @@
   import { num, shown } from './reveal';
   import './chart.css';
 
-  interface Series { name: string; pts: number[][]; color?: number; dash?: boolean; dots?: boolean }
+  interface Series { name: string; pts: number[][]; color?: number; dash?: boolean; dots?: boolean; line?: boolean; r?: number; faint?: boolean }
   interface Bar { label: string; value: number; color?: number; text?: string }
   let { title = '', series = [], bars = [], xlab = '', ylab = '', xdom = [0, 1], ydom = [0, 1], xfmt, yfmt, legend = true, s = {} }: {
     title?: string; series?: Series[]; bars?: Bar[]; xlab?: string; ylab?: string; xdom?: number[]; ydom?: number[];
@@ -20,7 +20,7 @@
   } = $props();
 
   const COLORS = ['var(--k0)', 'var(--k1)', 'var(--k2)', 'var(--k3)', 'var(--k4)', 'var(--faint)', 'var(--c-w)', 'var(--c-L)'];
-  const fmtOf = (k?: string) => (v: number) => k === 'pct' ? `${Math.round(v * 100)}%` : k === 'int' ? Math.round(v).toLocaleString('vi-VN') : String(+v.toFixed(3)).replace('.', ',').replace('-', '−');
+  const fmtOf = (k?: string) => (v: number) => k === 'year' ? (Number.isInteger(v) ? String(v) : '') : k === 'pct' ? `${Math.round(v * 100)}%` : k === 'int' ? Math.round(v).toLocaleString('vi-VN') : String(+v.toFixed(3)).replace('.', ',').replace('-', '−');
   const isBar = $derived(bars.length > 0);
   const W = 900, H = title ? 372 : 404, m = { t: 16, r: 24, b: 54, l: 70 };
   const sx = $derived(scaleLinear().domain(xdom).range([m.l, W - m.r]));
@@ -63,14 +63,14 @@
           {@const o = shown(s.n ?? series.length, i)}
           {@const p = cut(se.pts)}
           <g opacity={o * (hl >= 0 && hl !== i ? 0.35 : 1)}>
-            <path d={path(p)} fill="none" stroke={COLORS[se.color ?? i]} stroke-width={hl === i ? 4 : 2.8} stroke-dasharray={se.dash ? '7 5' : undefined} />
-            {#if se.dots}{#each p as q}<circle cx={sx(q[0])} cy={sy(q[1])} r="4.5" fill={COLORS[se.color ?? i]} />{/each}{/if}
+            {#if se.line !== false}<path d={path(p)} fill="none" stroke={COLORS[se.color ?? i]} stroke-width={se.faint ? 1.2 : hl === i ? 4 : 2.8} stroke-opacity={se.faint ? 0.45 : 1} stroke-dasharray={se.dash ? '7 5' : undefined} />{/if}
+            {#if se.dots}{#each p as q}{#if q[1] >= ydom[0] && q[1] <= ydom[1]}<circle cx={sx(q[0])} cy={sy(q[1])} r={se.r ?? 4.5} fill={COLORS[se.color ?? i]} fill-opacity={se.line === false ? 0.55 : 1} />{/if}{/each}{/if}
           </g>
         {/each}
       </g>
-      {#if legend && series.length > 1}
+      {#if legend && series.filter((x) => !x.faint).length > 1}
         <g>
-          {#each series as se, i}
+          {#each series.filter((x) => !x.faint) as se, i}
             <g transform={`translate(${m.l + 16},${m.t + 14 + i * 24})`} opacity={shown(s.n ?? series.length, i)}>
               <line x1="0" x2="26" y1="0" y2="0" stroke={COLORS[se.color ?? i]} stroke-width="3" stroke-dasharray={se.dash ? '7 5' : undefined} />
               <text x="34" y="5" class="ink lg">{se.name}</text>

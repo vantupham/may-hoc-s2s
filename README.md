@@ -128,13 +128,16 @@ thanh, nên số trên hình vẫn do ml-core tính, và mỗi bài chỉ tốn 
    - Mỗi câu thoại có phụ đề `cap`. Lời đọc `say` là tuỳ chọn: mặc định nó được sinh từ phụ đề bằng
      `speak()`, hàm này đổi số và ký hiệu thành chữ. Câu thoại cũng có thể kèm `set` để đổi trạng thái
      cảnh; trạng thái này được nội suy trong lúc câu đang được đọc.
+   - Cảnh dùng chung cho đồ thị: `Points` (điểm có lớp, vùng quyết định, tâm cụm), `Chart` (đường, cột),
+     `Grid` (ma trận, bản đồ nhiệt, ảnh), `Diagram` (cây).
 2. Sinh giọng (cần `pip install edge-tts`):
    ```bash
    npm run build
    python3 scripts/gen_voice.py --only <slug>   # ghi public/giang/<slug>/: loi-giang.mp3, thoi-gian.json, phu-de.vtt
    ```
    Mỗi câu được lưu đệm theo mã băm trong `data/voice-cache/` (không commit), nên sửa một câu thì chỉ
-   phải tạo lại câu đó.
+   phải tạo lại câu đó. Dịch vụ đọc hay từ chối ngẫu nhiên; script tự thử lại nhiều lần, nên một bài
+   có thể mất vài chục phút.
 3. Đặt `lecture: true` và chèn `<LectureSection slug="<slug>" />` ngay sau `<Goals>`.
 
 `tests/giang.test.ts` kiểm tra hai điều:

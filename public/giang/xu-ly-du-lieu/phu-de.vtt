@@ -1,0 +1,214 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:04.488
+Chương 3B: xử lý dữ liệu và xây một bộ dữ liệu tốt.
+
+00:00:04.848 --> 00:00:11.040
+Chương trước đã tìm ra những vấn đề của dữ liệu California. Giờ ta sửa chúng.
+
+00:00:11.400 --> 00:00:18.168
+Thí nghiệm của cả chương: giữ nguyên một mô hình hồi quy tuyến tính, không đổi thuật toán, chỉ dữ liệu thay đổi.
+
+00:00:18.528 --> 00:00:27.408
+Có một luật xuyên suốt bài. Mọi bước xử lý có học một con số từ dữ liệu, như trung vị để điền ô trống hay trung bình để chuẩn hoá…
+
+00:00:27.768 --> 00:00:30.600
+…đều chỉ được học từ tập huấn luyện.
+
+00:00:30.960 --> 00:00:38.280
+Phá luật này gọi là rò rỉ dữ liệu: lỗi khiến điểm đánh giá đẹp hơn sự thật, và chỉ lộ ra khi mô hình đã được dùng.
+
+00:00:38.640 --> 00:00:42.864
+Nhắc lại phiếu khám của chương 3A, xếp theo việc cần làm.
+
+00:00:43.224 --> 00:00:48.000
+Một: điền. Cột phòng ngủ thiếu 207 ô.
+
+00:00:48.360 --> 00:00:54.816
+Hai: mã hoá. Vị trí so với biển là chữ, mà mô hình chỉ hiểu số.
+
+00:00:55.176 --> 00:01:02.544
+Ba: biến đổi thang đo. Các cột đếm lệch phải, và thu nhập với dân số chênh nhau hàng nghìn lần.
+
+00:01:02.904 --> 00:01:10.944
+Bốn: thiết kế đặc trưng. Số phòng hay số người phụ thuộc vào cỡ khu vực, nên tỷ lệ mới là thứ có ý nghĩa.
+
+00:01:11.304 --> 00:01:17.232
+Không có cách điền trung lập. Mỗi cách là một giả định về lý do ô bị trống.
+
+00:01:17.592 --> 00:01:21.792
+Điền trung vị là giả định ô trống trông giống một khu vực điển hình.
+
+00:01:22.152 --> 00:01:26.040
+Điền theo nhóm là giả định nó giống các khu vực cùng nhóm.
+
+00:01:26.400 --> 00:01:31.728
+Điền bằng láng giềng gần nhất là giả định nó giống những khu vực có các cột khác gần nó nhất.
+
+00:01:32.088 --> 00:01:38.184
+Để so các cách điền, ta che bớt những ô đang có số thật, điền lại, rồi đo sai lệch.
+
+00:01:38.544 --> 00:01:47.208
+Điền trung vị sai trung bình 272,7 phòng. Láng giềng gần nhất chỉ sai 36,1 phòng, chính xác hơn hẳn.
+
+00:01:47.568 --> 00:01:54.360
+Nhưng sai số của mô hình giá nhà gần như không đổi: 0,6699 so với 0,6631.
+
+00:01:54.720 --> 00:02:03.744
+Vì chỉ khoảng một phần trăm số ô bị thiếu. Đoán lại ô thiếu thật giỏi chưa chắc làm mô hình tốt hơn: hãy luôn đo bằng chính mục tiêu cuối.
+
+00:02:04.104 --> 00:02:08.904
+Cột vị trí: bỏ đi, RMSE là 0,6779.
+
+00:02:09.264 --> 00:02:19.608
+Đánh số từ 0 đến 4: 0,6774, gần như không giúp gì. Con số tự đặt ra một thứ tự giả: "gần vịnh" không lớn gấp đôi "nội địa".
+
+00:02:19.968 --> 00:02:25.824
+One-hot, mỗi loại một cột 0 hoặc 1: 0,6699, tốt nhất.
+
+00:02:26.184 --> 00:02:32.376
+Sáu khu vực đi qua cả dây chuyền. Hai khu vực đầu và thứ ba thiếu số phòng ngủ.
+
+00:02:32.736 --> 00:02:43.824
+Điền theo trung vị của nhóm: khu vực nội địa nhận 423 phòng, khu vực "cách biển dưới 1 giờ" nhận 438. Trung vị chung của cả bộ là 435.
+
+00:02:44.184 --> 00:02:47.400
+Cột thu nhập qua ba phép biến đổi thang đo.
+
+00:02:47.760 --> 00:02:56.688
+Chuẩn hoá z: trừ trung bình, chia độ lệch chuẩn. Trung bình về 0, độ lệch chuẩn về 1, nhưng hình dạng phân phối giữ nguyên.
+
+00:02:57.048 --> 00:03:02.976
+Min-max ép mọi giá trị vào đoạn từ 0 đến 1, nên rất nhạy với một giá trị cực lớn.
+
+00:03:03.336 --> 00:03:08.880
+Log thì kéo cái đuôi dài bên phải lại gần, làm phân phối lệch trở nên cân đối hơn.
+
+00:03:09.240 --> 00:03:17.040
+Và nhớ luật: trung vị, trung bình, độ lệch chuẩn ở đây đều phải tính trên tập huấn luyện, rồi đem áp dụng cho tập test.
+
+00:03:17.400 --> 00:03:23.304
+Rò rỉ xảy ra khi mô hình được huấn luyện hoặc đánh giá với thông tin mà lúc dùng thật nó không có.
+
+00:03:23.664 --> 00:03:32.592
+Rò rỉ từ nhãn: một đặc trưng tính từ chính đáp án, hoặc chỉ có sau khi biết đáp án, như số tiền bồi thường khi dự đoán ai sẽ nộp đơn bảo hiểm.
+
+00:03:32.952 --> 00:03:39.144
+Rò rỉ từ tập test: chuẩn hoá, điền thiếu hay chọn đặc trưng trên toàn bộ dữ liệu trước khi chia.
+
+00:03:39.504 --> 00:03:46.272
+Rò rỉ qua bản sao: cùng một bệnh nhân chụp hai lần, hay cùng một toạ độ, nằm ở cả train và test.
+
+00:03:46.632 --> 00:03:57.312
+Cách phòng: đặt mọi bước vào một pipeline, chỉ gọi fit trên phần huấn luyện. Và với từng cột, hỏi: lúc cần dự đoán, cột này đã có giá trị chưa?
+
+00:03:57.672 --> 00:04:03.072
+Tập test phải mô phỏng đúng tình huống mô hình sẽ gặp. Có bốn cách chia.
+
+00:04:03.432 --> 00:04:06.840
+Ngẫu nhiên, khi các dòng độc lập với nhau.
+
+00:04:07.200 --> 00:04:12.120
+Phân tầng, khi có lớp hiếm, để tập test nhỏ không thiếu hẳn lớp hiếm.
+
+00:04:12.480 --> 00:04:17.688
+Theo nhóm, khi các dòng trong cùng nhóm giống nhau: cả nhóm phải vào cùng một tập.
+
+00:04:18.048 --> 00:04:23.952
+Theo thời gian, khi dự báo tương lai: học trên quá khứ, kiểm tra trên giai đoạn sau.
+
+00:04:24.312 --> 00:04:32.520
+Nhãn bị lật ngẫu nhiên với tỷ lệ ε thì mỗi nhãn chỉ còn mang một phần thông tin: khoảng cách giữa đúng và sai còn 1 − 2ε.
+
+00:04:32.880 --> 00:04:41.160
+Lật 30% thì khoảng cách chỉ còn 0,4 thay vì 1. Mô hình cần nhiều mẫu hơn hẳn để lọc ra cùng một tín hiệu.
+
+00:04:41.520 --> 00:04:50.184
+Còn với nhãn sai có hệ thống, thêm bao nhiêu mẫu cũng không lọc được. Đó là lý do làm sạch nhãn thường đáng giá hơn thu thập thêm.
+
+00:04:50.544 --> 00:05:01.944
+Cuối cùng, một bộ dữ liệu tốt nên đi kèm một phiếu dữ liệu, giống bảng thông số của linh kiện điện tử. Đó là đề xuất "Datasheets for Datasets" của Gebru và cộng sự.
+
+00:05:02.304 --> 00:05:10.320
+Phiếu ghi nguồn gốc: dữ liệu này từ điều tra dân số Mỹ năm 1990, mỗi dòng là một khu vực, không phải một căn nhà.
+
+00:05:10.680 --> 00:05:16.464
+Ghi giới hạn: giá và thu nhập bị chặn trần, và dữ liệu đã hơn 30 năm tuổi.
+
+00:05:16.824 --> 00:05:22.560
+Và ghi mục đích được phép: dùng để học tập, không phải để định giá một căn nhà thật hôm nay.
+
+00:05:22.920 --> 00:05:28.416
+Trong scikit-learn, ColumnTransformer áp dụng các bước khác nhau cho các nhóm cột khác nhau.
+
+00:05:28.776 --> 00:05:37.488
+Cột số: điền trung vị rồi chuẩn hoá. Thu nhập và dân số: thêm log. Cột vị trí: one-hot.
+
+00:05:37.848 --> 00:05:41.952
+Pipeline nối các bước xử lý với mô hình thành một khối.
+
+00:05:42.312 --> 00:05:49.224
+Cross-validation gọi fit của cả khối trên từng phần huấn luyện, nên không có gì rò rỉ sang phần kiểm tra.
+
+00:05:49.584 --> 00:05:57.000
+Vòng lặp cuối so hai cách chia: ngẫu nhiên và theo ô địa lý. Bạn có thể chạy nó ở bước 6.
+
+00:05:57.360 --> 00:06:04.896
+Thí nghiệm 1. Mô hình gốc báo cáo RMSE 0,6482, khi dùng thật là 0,7010.
+
+00:06:05.256 --> 00:06:16.104
+Thêm cột "giá trung bình của ô lưới", tính trên cả train lẫn test: điểm báo cáo đẹp hẳn, 0,4705. Nhưng khi dùng thật chỉ còn 0,5849.
+
+00:06:16.464 --> 00:06:28.632
+Tệ nhất: cột "phân khúc giá" tính từ chính giá nhà. Báo cáo 0,2747, đẹp như mơ. Dùng thật: 1,1489, tệ hơn cả mô hình gốc.
+
+00:06:28.992 --> 00:06:38.544
+Cột tốt đến khó tin thường là rò rỉ. Trước khi vui mừng vì một đặc trưng mạnh, hãy hỏi: lúc cần dự đoán, ta đã biết giá trị này chưa?
+
+00:06:38.904 --> 00:06:49.488
+Thí nghiệm 2. Chia ngẫu nhiên: RMSE 0,555. Nhưng 54,5% khu vực test có toạ độ trùng với một khu vực trong train.
+
+00:06:49.848 --> 00:06:56.472
+Chia theo ô địa lý một độ, không ô nào nằm ở cả hai tập: RMSE tăng lên 0,879.
+
+00:06:56.832 --> 00:07:06.000
+Nếu mô hình sẽ được dùng ở vùng mới, con số thứ hai mới là sự thật. Chia ngẫu nhiên để mô hình nhớ anh em sinh đôi thay vì học quy luật.
+
+00:07:06.360 --> 00:07:15.936
+Thí nghiệm 3: đường cong học. Với 200 mẫu, hồi quy tuyến tính có RMSE 0,699, KNN 0,798.
+
+00:07:16.296 --> 00:07:23.904
+Tăng lên hơn 16 nghìn mẫu: tuyến tính chỉ nhích xuống 0,668, còn KNN xuống hẳn 0,556.
+
+00:07:24.264 --> 00:07:33.432
+Mô hình tuyến tính đã chạm giới hạn của chính nó: thêm dữ liệu vô ích, cần đặc trưng tốt hơn. KNN thì vẫn còn đói dữ liệu.
+
+00:07:33.792 --> 00:07:40.608
+Gom mọi bước lại. Chỉ dùng thu nhập: RMSE 0,8374 khi chia ngẫu nhiên.
+
+00:07:40.968 --> 00:07:50.904
+Thêm các đặc trưng tự thiết kế: 0,6679, và 0,6934 khi chia theo vùng. Cùng một mô hình, chỉ dữ liệu thay đổi.
+
+00:07:51.264 --> 00:07:53.136
+Tóm lại.
+
+00:07:53.496 --> 00:08:00.984
+Mỗi cách điền ô trống là một giả định. Hãy đo bằng mục tiêu cuối cùng, không phải độ chính xác của việc điền.
+
+00:08:01.344 --> 00:08:04.224
+Cột phân loại thì mã hoá one-hot.
+
+00:08:04.584 --> 00:08:12.408
+Mọi bước học tham số nằm trong pipeline và chỉ học trên tập huấn luyện. Cột tốt đến khó tin thường là rò rỉ.
+
+00:08:12.768 --> 00:08:18.168
+Chia dữ liệu theo đúng cách mô hình sẽ được dùng: theo nhóm, theo thời gian khi cần.
+
+00:08:18.528 --> 00:08:24.264
+Và khi đường cong học đã phẳng, đừng đi thu thập thêm: hãy cải thiện đặc trưng hoặc mô hình.
+
+00:08:24.624 --> 00:08:29.520
+Chương 4 trở lại với thuật toán: K láng giềng gần nhất và Naive Bayes.
+
+00:08:29.880 --> 00:08:35.376
+Giờ hãy cuộn xuống làm các phòng thí nghiệm. Hẹn gặp lại ở chương 4.
