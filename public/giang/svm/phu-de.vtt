@@ -1,0 +1,187 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:05.040
+Chương 6: máy vector hỗ trợ, gọi tắt là SVM.
+
+00:00:05.400 --> 00:00:12.336
+Cùng dữ liệu và cùng câu hỏi với chương 2: từ bán kính và độ nhám của nhân tế bào, khối u lành hay ác?
+
+00:00:12.696 --> 00:00:19.152
+Lần này ta hỏi thêm: trong mọi đường thẳng tách được dữ liệu, đường nào an toàn nhất khi gặp bệnh nhân mới?
+
+00:00:19.512 --> 00:00:26.976
+Sáu bệnh nhân thật của chương 2: ba ca ác tính, ba ca lành tính. Một đường thẳng tách được hoàn toàn.
+
+00:00:27.336 --> 00:00:30.120
+Đường này tách đúng cả sáu người.
+
+00:00:30.480 --> 00:00:34.896
+Đường này cũng vậy. Có vô số đường như thế.
+
+00:00:35.256 --> 00:00:43.776
+Nhưng chúng sượt sát một vài người. Người gần nhất chỉ cách đường thứ nhất 0,476, cách đường thứ hai 0,146.
+
+00:00:44.136 --> 00:00:51.216
+Một ca ác tính tiếp theo hơi khác một chút, vì máy đo sai lệch hay vì tế bào khác đôi chút, là bị phân loại sai.
+
+00:00:51.576 --> 00:01:00.336
+Trực giác: đường thẳng cách đều và xa nhất khỏi cả hai nhóm có một khoảng đệm cho sai số đo đạc. Đó là đường SVM chọn.
+
+00:01:00.696 --> 00:01:08.568
+Người gần nhất cách nó 0,798: xa hơn 1,7 lần so với đường thứ nhất, và 5,5 lần so với đường thứ hai.
+
+00:01:08.928 --> 00:01:17.808
+Hai đường đứt là mép của dải lề. Khoảng cách từ ranh giới tới mỗi mép là 0,798, lớn nhất có thể với sáu người này.
+
+00:01:18.168 --> 00:01:22.920
+Để ý: có đúng 3 người chạm mép dải lề, từ cả hai nhóm.
+
+00:01:23.280 --> 00:01:29.592
+Dời những người ở xa đi đâu cũng được, miễn là họ không lấn vào dải: đường thẳng không hề thay đổi.
+
+00:01:29.952 --> 00:01:39.264
+Những người chạm mép gọi là vector hỗ trợ, support vectors. Tên của thuật toán đến từ đó: chỉ những ca khó nhất quyết định ranh giới.
+
+00:01:39.624 --> 00:01:44.208
+Ở bước 3, bạn có thể tự xoay đường thẳng để tìm lề lớn nhất.
+
+00:01:44.568 --> 00:01:52.992
+Thay vì xoay bằng tay, ta tối ưu bằng một biến thể của Gradient Descent. Mất mát của SVM là hinge loss.
+
+00:01:53.352 --> 00:02:00.192
+Gọi m là nhãn nhân với điểm số: m dương là đúng phía, m càng lớn càng xa ranh giới.
+
+00:02:00.552 --> 00:02:09.864
+Hinge loss bằng 0 khi m ≥ 1, tức bệnh nhân đã nằm ngoài dải lề, đúng phía. Lấn vào dải thì mất mát tăng tuyến tính.
+
+00:02:10.224 --> 00:02:20.688
+So với mất mát log của hồi quy logistic, đường đứt: nó không bao giờ bằng 0, mọi điểm đều góp một chút. Hinge loss thì bỏ qua hẳn những điểm đã an toàn.
+
+00:02:21.048 --> 00:02:28.896
+Hàm có một góc gập tại m = 1, nên ta dùng subgradient: ở mỗi bước, chỉ những người vi phạm mới góp vào hướng đi.
+
+00:02:29.256 --> 00:02:39.312
+Bước 1, xuất phát từ w = 0: mọi người đều vi phạm, vì m = 0 < 1. Cả sáu cùng kéo w về phía mình.
+
+00:02:39.672 --> 00:02:45.816
+Sau bước 1: w = (4,422; 4,649).
+
+00:02:46.176 --> 00:02:51.240
+Chạy tiếp: số người vi phạm giảm dần, và chỉ còn họ đẩy đường thẳng.
+
+00:02:51.600 --> 00:03:00.744
+Khi không ai còn lấn vào dải, chỉ còn số hạng giữ cho w nhỏ, tức là kéo lề rộng ra. Hai lực cân bằng ở lề cực đại.
+
+00:03:01.104 --> 00:03:11.544
+Vì có góc gập, đường thẳng dễ dao động quanh nghiệm. Bộ giải ở đây cho tốc độ học giảm dần theo số bước, rồi lấy trung bình các nghiệm ở nửa sau để lặng dao động.
+
+00:03:11.904 --> 00:03:21.696
+Ranh giới là nơi w·x + b = 0. Nếu quy ước những điểm gần nhất có điểm số đúng bằng 1, thì dải lề rộng 2 chia độ dài của w.
+
+00:03:22.056 --> 00:03:30.312
+Muốn lề rộng nhất, ta làm w nhỏ nhất, với điều kiện mọi điểm nằm ngoài dải. Đó là SVM lề cứng.
+
+00:03:30.672 --> 00:03:39.168
+Khi dữ liệu chồng lấn, điều kiện đó không thể thoả. Ta cho phép vi phạm nhưng phạt chúng bằng hinge loss, nhân hệ số C.
+
+00:03:39.528 --> 00:03:46.152
+Số hạng đầu muốn lề rộng, số hạng sau muốn ít vi phạm. C cân hai mong muốn đó.
+
+00:03:46.512 --> 00:03:59.304
+Vì hinge loss bằng 0 với những điểm đã an toàn, chúng không góp gì vào gradient. Nghiệm cuối cùng chỉ phụ thuộc vào các vector hỗ trợ. Hồi quy logistic thì để mọi điểm cùng góp phần.
+
+00:03:59.664 --> 00:04:07.512
+Khi ranh giới thật sự cong, ta có thể ánh xạ dữ liệu sang không gian nhiều chiều hơn, ví dụ thêm bình phương và tích của các đặc trưng.
+
+00:04:07.872 --> 00:04:12.216
+Một mặt phẳng trong không gian mới là một đường cong trong không gian cũ.
+
+00:04:12.576 --> 00:04:25.032
+Điều kỳ diệu: dạng đối ngẫu của bài toán SVM chỉ cần tích vô hướng giữa các cặp điểm. Thay tích vô hướng bằng một hàm nhân, ta làm việc trong không gian mới mà không bao giờ phải tính toạ độ ở đó.
+
+00:04:25.392 --> 00:04:32.904
+Nhân RBF hay dùng nhất. Hệ số γ quyết định mỗi bệnh nhân ảnh hưởng một vùng rộng hay hẹp quanh mình.
+
+00:04:33.264 --> 00:04:43.536
+Ví dụ với γ = 1: hai bệnh nhân cách nhau 1 đơn vị có độ giống nhau 0,368. Cách nhau 2 đơn vị, chỉ còn 0,018.
+
+00:04:43.896 --> 00:04:54.216
+Với γ = 50, ngay cả khoảng cách 0,3 cũng cho độ giống nhau gần như bằng 0: 0,011. Mỗi điểm chỉ còn biết những hàng xóm sát bên.
+
+00:04:54.576 --> 00:05:00.816
+scikit-learn giải dạng đối ngẫu bằng thuật toán SMO của thư viện LIBSVM.
+
+00:05:01.176 --> 00:05:07.776
+Nhân tuyến tính với ba giá trị C: in độ rộng lề, số vector hỗ trợ và độ chính xác test.
+
+00:05:08.136 --> 00:05:15.960
+Kết quả trùng với bộ giải subgradient của trang này đến sai số nhỏ hơn 0,5% của hàm mục tiêu, đã được kiểm thử tự động.
+
+00:05:16.320 --> 00:05:20.232
+Rồi nhân RBF với bốn giá trị γ.
+
+00:05:20.592 --> 00:05:33.048
+Toàn bộ dữ liệu chồng lấn, nên cần lề mềm. C = 0,01: phạt vi phạm rất nhẹ. Lề rộng 2,149, có tới 246 vector hỗ trợ.
+
+00:05:33.408 --> 00:05:36.912
+Độ chính xác test 88,6%.
+
+00:05:37.272 --> 00:05:45.192
+C = 1: lề hẹp lại còn 0,846, 124 vector hỗ trợ, test 91,2%.
+
+00:05:45.552 --> 00:05:54.408
+C = 100: phạt rất nặng, lề chỉ còn 0,747, 112 vector hỗ trợ, test vẫn 91,2%.
+
+00:05:54.768 --> 00:06:00.864
+C lớn bám sát dữ liệu huấn luyện; C nhỏ chịu sai một chút để có lề rộng và ổn định hơn.
+
+00:06:01.224 --> 00:06:10.704
+Số vector hỗ trợ cũng là một tín hiệu: rất nhiều vector hỗ trợ nghĩa là nhiều ca nằm trong vùng khó, và dự đoán sẽ chậm hơn vì phải so với từng vector đó.
+
+00:06:11.064 --> 00:06:21.576
+Với hai đặc trưng này, SVM tuyến tính cho kết quả gần như hồi quy logistic ở chương 2. Khác biệt của nó nằm ở cách nghĩ: chỉ ca khó mới quan trọng.
+
+00:06:21.936 --> 00:06:31.464
+Nhân RBF, γ = 0,1: ranh giới gần như thẳng. Train 89,9%, test 92,1%.
+
+00:06:31.824 --> 00:06:35.352
+Tăng γ: ranh giới bắt đầu uốn cong.
+
+00:06:35.712 --> 00:06:47.952
+γ = 50: mỗi bệnh nhân chỉ ảnh hưởng một vùng rất nhỏ. Ranh giới bao quanh từng cụm điểm. Train lên 94,7%, test tụt còn 80,7%.
+
+00:06:48.312 --> 00:06:54.360
+Đó là học thuộc lòng. Với dữ liệu này, ranh giới thẳng đã gần như tốt nhất.
+
+00:06:54.720 --> 00:07:03.720
+Bốn bẫy thường gặp. Một: quên chuẩn hoá. SVM dựa trên khoảng cách, đặc trưng có thang đo lớn sẽ áp đảo.
+
+00:07:04.080 --> 00:07:13.632
+Hai: chọn γ và C bằng tập test. Hai siêu tham số này phải chọn bằng cross-validation trên tập huấn luyện, chủ đề của chương 8.
+
+00:07:13.992 --> 00:07:21.600
+Ba: hiểu đầu ra như xác suất. Điểm số của SVM là khoảng cách có dấu, không phải xác suất.
+
+00:07:21.960 --> 00:07:29.256
+Bốn: dữ liệu rất lớn. SVM nhân phi tuyến tốn thời gian tăng khoảng bình phương theo số mẫu.
+
+00:07:29.616 --> 00:07:31.488
+Tóm lại.
+
+00:07:31.848 --> 00:07:38.832
+SVM chọn đường thẳng có lề rộng nhất, và chỉ những vector hỗ trợ, các ca khó nhất, quyết định nó.
+
+00:07:39.192 --> 00:07:43.656
+Hinge loss bỏ qua những điểm đã an toàn, khác với mất mát log.
+
+00:07:44.016 --> 00:07:52.632
+C cân giữa lề rộng và ít vi phạm. Nhân RBF cho ranh giới cong, với γ quyết định mượt hay uốn sát dữ liệu.
+
+00:07:52.992 --> 00:08:04.200
+Trong nhiều năm trước khi mạng nơ-ron trở lại, SVM là một trong những mô hình mạnh nhất. Với dữ liệu nhỏ và vừa, có ít đặc trưng, nó vẫn là một lựa chọn rất tốt.
+
+00:08:04.560 --> 00:08:11.208
+Chương 7 bỏ nhãn đi hoàn toàn: học không giám sát, tìm cấu trúc trong dữ liệu khi không ai cho biết đáp án.
+
+00:08:11.568 --> 00:08:17.112
+Giờ hãy cuộn xuống làm các phòng thí nghiệm. Hẹn gặp lại ở chương 7.

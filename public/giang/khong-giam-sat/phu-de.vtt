@@ -1,0 +1,205 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:11.832
+Chương 7: học không giám sát. Từ đầu khoá tới giờ, dữ liệu luôn có nhãn: giá nhà, lành hay ác, sống hay mất. Lần này không có nhãn nào cả.
+
+00:00:12.192 --> 00:00:30.240
+Bài toán thứ nhất, phân cụm. Từ 2007 đến 2009, nhà sinh thái học Kristen Gorman đo chim cánh cụt trên quần đảo Palmer ở Nam Cực. Giả sử ta chỉ có số đo mỏ của 342 con, không biết loài: liệu có tự chia được chúng thành nhóm?
+
+00:00:30.600 --> 00:00:44.544
+Bài toán thứ hai, giảm chiều. Mỗi ảnh chữ số viết tay gồm 64 con số. Không thể vẽ 64 chiều. Có cách nào tóm mỗi ảnh vào 2 con số mà vẫn giữ được phần lớn thông tin?
+
+00:00:44.904 --> 00:00:58.368
+Đây là 342 con chim, tô màu theo loài thật. Adelie mỏ ngắn: trung bình 38,8 mm. Gentoo mỏ dài nhưng mỏng. Chinstrap mỏ dài và dày.
+
+00:00:58.728 --> 00:01:10.104
+Không đặc trưng nào một mình tách được ba loài, nhưng cả hai cùng nhau thì có thể. Hai số đo đã được chuẩn hoá, vì mỏ dài khoảng 44 mm mà chỉ dày khoảng 17 mm.
+
+00:01:10.464 --> 00:01:16.920
+Nhưng trong học không giám sát, ta không được biết màu. Thứ ta thật sự có là thế này.
+
+00:01:17.280 --> 00:01:25.008
+Còn đây là mười ảnh chữ số đầu tiên. Mỗi ảnh có 8 nhân 8 điểm ảnh, độ đậm từ 0 đến 16.
+
+00:01:25.368 --> 00:01:31.248
+Toàn bộ có 1.797 ảnh, mỗi ảnh là một điểm trong không gian 64 chiều.
+
+00:01:31.608 --> 00:01:37.752
+K-means giống trò chơi cắm K lá cờ. Cắm 3 lá cờ: dấu nhân.
+
+00:01:38.112 --> 00:01:43.656
+Bước gán: mỗi con chim chạy về lá cờ gần nhất, và mang màu của lá cờ đó.
+
+00:01:44.016 --> 00:01:48.600
+Bước dời tâm: mỗi lá cờ dời về chính giữa đám chim của nó.
+
+00:01:48.960 --> 00:01:55.440
+Lặp lại: gán, rồi dời tâm. Một vài con chim ở vùng giáp ranh đổi màu.
+
+00:01:55.800 --> 00:02:01.752
+Mỗi vòng, các lá cờ dịch chuyển ít hơn, như những người đi tìm chỗ đứng giữa đám đông của mình.
+
+00:02:02.112 --> 00:02:07.536
+Cho tới khi không con nào đổi chỗ nữa. Ở đây cần 13 vòng.
+
+00:02:07.896 --> 00:02:13.656
+K-means tối ưu một con số: tổng bình phương khoảng cách từ mỗi con chim tới tâm cụm của nó.
+
+00:02:14.016 --> 00:02:19.056
+Sau bước gán ở vòng 1, tổng đó là 485,831.
+
+00:02:19.416 --> 00:02:23.712
+Ở vòng cuối, chỉ còn 186,927.
+
+00:02:24.072 --> 00:02:34.056
+Bước gán làm J nhỏ đi, vì mỗi con chim chọn tâm gần nhất. Bước dời tâm cũng làm J nhỏ đi, vì trung bình là điểm có tổng bình phương khoảng cách nhỏ nhất.
+
+00:02:34.416 --> 00:02:44.280
+J không bao giờ tăng, nên thuật toán chắc chắn dừng. Nhưng nó có thể dừng ở một đáy cục bộ: đổi vị trí cờ ban đầu, kết quả có thể khác.
+
+00:02:44.640 --> 00:02:54.240
+Ta đã chọn K = 3 vì biết có ba loài. Nếu không biết thì sao? Chạy K-means với K từ 1 đến 6 và vẽ J.
+
+00:02:54.600 --> 00:03:02.040
+Từ 1 lên 2 cụm, J giảm 344. Từ 2 lên 3, giảm thêm 153.
+
+00:03:02.400 --> 00:03:09.936
+Sau đó mỗi cụm thêm vào chỉ giảm khoảng 31. Đường cong gập lại ở K = 3, như một khuỷu tay.
+
+00:03:10.296 --> 00:03:20.088
+J luôn giảm khi tăng K, đến 0 khi mỗi con chim là một cụm. Vì vậy không chọn K nhỏ nhất J, mà chọn chỗ thêm cụm không còn đáng công.
+
+00:03:20.448 --> 00:03:25.632
+Giờ mới "gian lận" một chút: so ba cụm với loài thật mà thuật toán chưa từng thấy.
+
+00:03:25.992 --> 00:03:32.688
+Mỗi cụm phần lớn là một loài. K-means tự tìm ra ba loài chim chỉ từ số đo mỏ.
+
+00:03:33.048 --> 00:03:41.256
+Cụm 1 có 147 con Adelie, chỉ lẫn 6 con loài khác. Cụm 3 có 116 con Gentoo.
+
+00:03:41.616 --> 00:03:49.128
+Tính chung, 318 trên 342 con, tức 93,0%, nằm cùng cụm với đa số loài của mình.
+
+00:03:49.488 --> 00:03:54.504
+Chỗ nhầm nằm ở vùng Chinstrap giáp Gentoo, đúng nơi hai loài chồng lấn.
+
+00:03:54.864 --> 00:04:01.584
+K-means giả định cụm tròn và phải biết trước K. DBSCAN nghĩ khác: cụm là vùng dày đặc điểm.
+
+00:04:01.944 --> 00:04:13.008
+Một điểm là lõi nếu trong bán kính eps quanh nó có ít nhất 5 điểm. Các lõi gần nhau nối thành cụm. Điểm không thuộc cụm nào là nhiễu, tô màu xám.
+
+00:04:13.368 --> 00:04:18.576
+Với eps = 0,28: 3 cụm, 38 điểm nhiễu.
+
+00:04:18.936 --> 00:04:24.408
+Thu nhỏ eps còn 0,20: vỡ thành 5 cụm, 89 điểm nhiễu.
+
+00:04:24.768 --> 00:04:29.496
+Nới eps lên 0,40: mọi thứ dính thành 1 cụm duy nhất.
+
+00:04:29.856 --> 00:04:36.768
+DBSCAN không cần biết trước số cụm và tìm được cụm hình dạng bất kỳ, nhưng rất nhạy với eps.
+
+00:04:37.128 --> 00:04:45.960
+Điểm nhiễu cũng là thông tin: một con chim có số đo lạ hẳn so với mọi con khác đáng được xem lại, có thể đo nhầm, có thể là một trường hợp đặc biệt.
+
+00:04:46.320 --> 00:04:56.664
+PCA giống chụp ảnh một vật ba chiều: bạn xoay vật sao cho bức ảnh hai chiều cho thấy nhiều chi tiết nhất. PCA tìm góc chụp đó cho dữ liệu 64 chiều.
+
+00:04:57.024 --> 00:05:05.808
+Trừ ảnh trung bình, rồi tính ma trận hiệp phương sai 64 nhân 64: mỗi ô cho biết hai điểm ảnh cùng sáng, cùng tối với nhau đến đâu.
+
+00:05:06.168 --> 00:05:13.776
+Vector riêng ứng với trị riêng lớn nhất là hướng dữ liệu trải rộng nhất. Trị riêng chính là phương sai theo hướng đó.
+
+00:05:14.136 --> 00:05:20.568
+Các vector riêng vuông góc với nhau, nên mỗi thành phần chính mang một phần thông tin không trùng với các thành phần trước.
+
+00:05:20.928 --> 00:05:29.496
+Toạ độ mới của một ảnh là hình chiếu của nó lên các hướng đó. Giữ 2 hướng đầu, ta có 2 con số thay cho 64.
+
+00:05:29.856 --> 00:05:33.456
+Cả ba thuật toán đều có sẵn trong scikit-learn.
+
+00:05:33.816 --> 00:05:39.576
+K-means với đúng ba tâm khởi tạo của trang này, nên kết quả trùng với hình ta vừa xem.
+
+00:05:39.936 --> 00:05:45.096
+DBSCAN với eps 0,28 và tối thiểu 5 điểm.
+
+00:05:45.456 --> 00:05:52.056
+PCA trên toàn bộ ảnh chữ số, in phần phương sai giữ lại với 2, 10 và 20 thành phần.
+
+00:05:52.416 --> 00:05:59.640
+Chiếu mỗi ảnh xuống hai thành phần chính đầu tiên. Đây là các chữ số 0, 3, 4 và 6.
+
+00:06:00.000 --> 00:06:06.552
+Chỉ với 2 con số, các chữ số đã tách thành từng đám khá rõ, dù PCA không hề biết nhãn.
+
+00:06:06.912 --> 00:06:11.736
+Hai thành phần này giữ lại 28,5% phương sai của dữ liệu.
+
+00:06:12.096 --> 00:06:18.552
+Nén được thì phải tái dựng lại được. Đây là ảnh chữ số 0 đầu tiên trong bộ dữ liệu.
+
+00:06:18.912 --> 00:06:25.368
+Chỉ giữ 2 con số rồi dựng lại: một vệt mờ, đoán được hình dạng chung nhưng chưa chắc là chữ gì.
+
+00:06:25.728 --> 00:06:29.232
+Giữ 10 con số: nét chữ đã hiện ra.
+
+00:06:29.592 --> 00:06:33.312
+Giữ 20 con số: gần như không khác ảnh gốc.
+
+00:06:33.672 --> 00:06:36.576
+Thêm thành phần thì giữ được nhiều hơn.
+
+00:06:36.936 --> 00:06:40.536
+10 thành phần: 73,8%.
+
+00:06:40.896 --> 00:06:48.960
+20 thành phần: 89,4%. Ảnh 64 số có thể nén còn 20 số mà vẫn nhận ra.
+
+00:06:49.320 --> 00:06:53.856
+Chương 9 sẽ dùng chính bộ chữ số này để huấn luyện một mạng nơ-ron.
+
+00:06:54.216 --> 00:07:02.328
+Học không giám sát khó đánh giá vì không có đáp án. Ở đây ta có nhãn loài để kiểm tra; ngoài đời thường không có.
+
+00:07:02.688 --> 00:07:10.008
+Bốn bẫy thường gặp. Một: không chuẩn hoá. Đặc trưng có số lớn sẽ áp đảo khoảng cách.
+
+00:07:10.368 --> 00:07:20.352
+Hai: K-means giả định cụm tròn, cỡ tương đương. Cụm dài, cong hay lồng nhau sẽ bị cắt sai; khi đó thử DBSCAN.
+
+00:07:20.712 --> 00:07:29.064
+Ba: diễn giải cụm như sự thật. K-means luôn trả về đúng K cụm, kể cả khi dữ liệu không có cấu trúc cụm nào.
+
+00:07:29.424 --> 00:07:35.664
+Bốn: thành phần chính là hướng có phương sai lớn, không nhất thiết là hướng quan trọng cho bài toán của bạn.
+
+00:07:36.024 --> 00:07:37.896
+Tóm lại.
+
+00:07:38.256 --> 00:07:44.568
+K-means gán mỗi điểm về tâm gần nhất, dời tâm về trung bình, và lặp lại cho tới khi đứng yên.
+
+00:07:44.928 --> 00:07:50.280
+DBSCAN coi cụm là vùng dày đặc, và dám nói một điểm là nhiễu.
+
+00:07:50.640 --> 00:07:55.896
+PCA chiếu dữ liệu lên những hướng trải rộng nhất, nén nhiều chiều xuống vài chiều.
+
+00:07:56.256 --> 00:08:01.320
+Và vì không có đáp án, hãy luôn kiểm tra kết quả bằng hiểu biết về lĩnh vực.
+
+00:08:01.680 --> 00:08:09.720
+Hai kỹ thuật này hay đi cùng nhau: dùng PCA giảm chiều trước, rồi phân cụm trong không gian ít chiều hơn, vừa nhanh vừa bớt nhiễu.
+
+00:08:10.080 --> 00:08:16.560
+Chương 8 hỏi một câu quan trọng cho mọi mô hình có giám sát: con số độ chính xác của ta đáng tin đến đâu?
+
+00:08:16.920 --> 00:08:22.416
+Giờ hãy cuộn xuống làm các phòng thí nghiệm. Hẹn gặp lại ở chương 8.
