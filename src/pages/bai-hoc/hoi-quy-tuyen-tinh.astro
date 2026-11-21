@@ -14,6 +14,7 @@ import Debrief from '../../components/hoc/Debrief.svelte';
 import Checkpoint from '../../components/hoc/Checkpoint.astro';
 import Exercises from '../../components/hoc/Exercises.astro';
 import WrapUp from '../../components/hoc/WrapUp.astro';
+import LectureSection from '../../components/giang/LectureSection.astro';
 import { linregLearn as L } from '../../lib/hoc/hoi-quy-tuyen-tinh';
 
 const sample = housing.sample;
@@ -76,6 +77,8 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 <Lesson slug="hoi-quy-tuyen-tinh" data="400 khu vực ngẫu nhiên trong bộ California Housing (20.640 khu vực)" lead="Bài trước ta chỉ có một núm vặn w. Bài này thêm núm thứ hai — hệ số chặn b — và dùng 400 khu vực thật thay vì 5. Ta sẽ thấy hai cách tìm đường thẳng tốt nhất (Gradient Descent và công thức đóng) cho cùng một đáp số, rồi đo xem mô hình dự đoán tốt đến đâu trên dữ liệu chưa từng thấy.">
 
   <Goals spec={L} />
+
+  <LectureSection slug="hoi-quy-tuyen-tinh" />
 
   <section id="bai-toan">
     <div class="prose">

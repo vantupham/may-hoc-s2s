@@ -4,12 +4,14 @@
   import { num } from './reveal';
   let { title = '', code, s = {} }: { title?: string; code: string; s?: Record<string, unknown> } = $props();
   const lines = $derived(highlightPython(code).split('\n'));
+  /** Cỡ chữ vừa khung: tối đa 15px, nhỏ lại khi mã dài để không chạm phụ đề */
+  const fs = $derived(Math.min(15, 400 / (lines.length * 1.36)));
   const a = $derived(Math.round(num(s.a))), b = $derived(Math.round(num(s.b)));
 </script>
 
 <div class="sc">
   {#if title}<p class="file">{title}</p>{/if}
-  <pre><code>{#each lines as l, i}<span class="ln" class:on={a > 0 && i + 1 >= a && i + 1 <= b} class:dim={a > 0 && (i + 1 < a || i + 1 > b)}><span class="no">{i + 1}</span>{@html l || ' '}</span>{/each}</code></pre>
+  <pre style:font-size={`${fs}px`}><code>{#each lines as l, i}<span class="ln" class:on={a > 0 && i + 1 >= a && i + 1 <= b} class:dim={a > 0 && (i + 1 < a || i + 1 > b)}><span class="no">{i + 1}</span>{@html l || ' '}</span>{/each}</code></pre>
 </div>
 
 <style>

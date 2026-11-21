@@ -1,0 +1,250 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:03.768
+Chào mừng bạn đến với chương 1: hồi quy tuyến tính.
+
+00:00:04.128 --> 00:00:10.104
+Ở chương trước, mô hình chỉ có một núm vặn w, và đường thẳng buộc phải đi qua gốc toạ độ.
+
+00:00:10.464 --> 00:00:16.440
+Bài này thêm núm thứ hai, hệ số chặn b, và dùng 400 khu vực thật thay vì 5.
+
+00:00:16.800 --> 00:00:23.304
+Ta sẽ tìm đường thẳng tốt nhất bằng hai cách, rồi đo xem nó dự đoán tốt đến đâu trên dữ liệu chưa từng thấy.
+
+00:00:23.664 --> 00:00:32.712
+Đây là vài khu vực trong mẫu 400 khu vực, chọn ngẫu nhiên từ 20.640 khu vực của cuộc điều tra dân số California năm 1990.
+
+00:00:33.072 --> 00:00:37.896
+Đầu vào x vẫn là thu nhập trung bình, đầu ra y vẫn là giá nhà.
+
+00:00:38.256 --> 00:00:45.216
+Đầu ra là một con số liên tục, không phải một nhãn. Bài toán như vậy gọi là hồi quy.
+
+00:00:45.576 --> 00:00:49.584
+Mô hình: ŷ = w·x + b.
+
+00:00:49.944 --> 00:00:54.048
+w cho biết giá tăng bao nhiêu khi thu nhập tăng một đơn vị.
+
+00:00:54.408 --> 00:01:01.656
+b là giá dự đoán khi thu nhập bằng 0. Nhờ b, đường thẳng không còn bắt buộc đi qua gốc toạ độ.
+
+00:01:02.016 --> 00:01:08.136
+Trước khi huấn luyện bất cứ thứ gì, hãy nhìn dữ liệu. Mỗi chấm là một khu vực.
+
+00:01:08.496 --> 00:01:15.672
+Có xu hướng rõ: thu nhập cao thì giá nhà cao. Hệ số tương quan là 0,69.
+
+00:01:16.032 --> 00:01:24.720
+Nhưng đám mây điểm rất dày theo chiều dọc: cùng một mức thu nhập, giá nhà chênh nhau rất nhiều. Một đường thẳng chỉ bắt được xu hướng chung.
+
+00:01:25.080 --> 00:01:33.240
+Để ý hàng điểm nằm ngang ở trên cùng. Đó là 26 khu vực có giá ghi đúng 500.001 USD.
+
+00:01:33.600 --> 00:01:43.200
+Dữ liệu bị chặn trần: giá thật có thể cao hơn nhiều. Mô hình sẽ học sai ở vùng giá cao, và ta sẽ thấy dấu vết của nó ở cuối bài.
+
+00:01:43.560 --> 00:01:51.048
+Thử đặt w = 0,2 và b = 0,5. Mất mát MSE bằng 1,556.
+
+00:01:51.408 --> 00:01:56.376
+Đường thẳng quá thấp ở bên phải. Ta tăng độ dốc w.
+
+00:01:56.736 --> 00:02:03.336
+Giờ bên phải đã khá hơn, nhưng cả đường thẳng bị nâng lên quá cao. Phải hạ b xuống.
+
+00:02:03.696 --> 00:02:10.296
+Hai núm không độc lập: tăng độ dốc thì thường phải hạ hệ số chặn, để đường thẳng vẫn đi qua giữa đám mây.
+
+00:02:10.656 --> 00:02:15.888
+Có một điểm mà đường thẳng tốt nhất luôn đi qua: điểm trung bình, x̄ và ȳ.
+
+00:02:16.248 --> 00:02:25.488
+Đường tốt nhất: w = 0,427, b = 0,370, và MSE giảm xuống 0,725, chỉ còn khoảng một nửa.
+
+00:02:25.848 --> 00:02:32.328
+Ở bước 3 của bài, bạn có thể tự kéo hai thanh trượt và cố đưa MSE xuống dưới 0,80.
+
+00:02:32.688 --> 00:02:36.432
+Thuật toán giống hệt chương 0, chỉ thêm một đạo hàm.
+
+00:02:36.792 --> 00:02:42.096
+Đạo hàm theo w vẫn là hai phần n nhân tổng eᵢ·xᵢ.
+
+00:02:42.456 --> 00:02:48.888
+Đạo hàm theo b là hai phần n nhân tổng các sai số, vì đạo hàm của w·xᵢ + b − yᵢ theo b bằng 1.
+
+00:02:49.248 --> 00:02:53.904
+Mỗi vòng, cả hai tham số cùng bước ngược chiều độ dốc của chính nó.
+
+00:02:54.264 --> 00:03:03.768
+Quay lại 5 khu vực của chương 0, xuất phát từ w = 0 và b = 0. Mọi dự đoán bằng 0, nên sai số là âm giá nhà.
+
+00:03:04.128 --> 00:03:07.128
+Cột cuối vẫn là sai số nhân thu nhập.
+
+00:03:07.488 --> 00:03:17.472
+Hai phần năm nhân tổng sai số cho ∂L/∂b = −2,95. Hai phần năm nhân tổng cột cuối cho ∂L/∂w = −11,11.
+
+00:03:17.832 --> 00:03:22.008
+Cả hai đều âm, nên cả w và b cùng tăng.
+
+00:03:22.368 --> 00:03:31.512
+Nhìn từ trên cao: mỗi đường cong nối các cặp w, b có cùng mất mát, như đường đồng mức trên bản đồ địa hình. Ngôi sao là đáy.
+
+00:03:31.872 --> 00:03:35.688
+Chạy 60 vòng với η = 0,02.
+
+00:03:36.048 --> 00:03:42.936
+Mất mát giảm rất nhanh trong vài vòng đầu, từ 2,42 xuống 0,303, rồi gần như nằm ngang.
+
+00:03:43.296 --> 00:03:51.288
+Nhưng w = 0,295 và b = 0,313 vẫn còn rất xa đáy: 0,092 và 1,138.
+
+00:03:51.648 --> 00:03:59.064
+Vì đáy nằm trong một thung lũng dài và gần phẳng. Trong thung lũng, độ dốc rất nhỏ nên bước rất ngắn.
+
+00:03:59.424 --> 00:04:09.744
+Tăng η lên 0,06: sau 60 vòng, w = 0,216, b = 0,631. Gần hơn, nhưng vẫn chưa tới.
+
+00:04:10.104 --> 00:04:13.416
+Xem quỹ đạo đi xuống rồi bò dọc thung lũng.
+
+00:04:13.776 --> 00:04:17.760
+Phần lý thuyết sẽ chỉ ra cách làm cái thung lũng này biến mất.
+
+00:04:18.120 --> 00:04:24.000
+Bài toán này có thể giải thẳng. Tại đáy, cả hai đạo hàm bằng 0.
+
+00:04:24.360 --> 00:04:33.648
+Từ đạo hàm theo b bằng 0, tổng sai số bằng 0, suy ra b = ȳ − w·x̄. Đó là lý do đường tốt nhất đi qua điểm trung bình.
+
+00:04:34.008 --> 00:04:39.960
+Thay vào đạo hàm theo w bằng 0 rồi rút gọn, ta được công thức bình phương tối thiểu, OLS.
+
+00:04:40.320 --> 00:04:52.176
+Với 400 khu vực: w = 0,4269, b = 0,3697. Mỗi 10.000 USD thu nhập tăng thêm, giá nhà dự đoán tăng khoảng 43.000 USD.
+
+00:04:52.536 --> 00:05:03.864
+Vậy vì sao vẫn học Gradient Descent? Vì công thức đóng chỉ có ở vài mô hình đơn giản. Hồi quy logistic và mạng nơ-ron không có công thức nào cả.
+
+00:05:04.224 --> 00:05:10.800
+Quay lại cái thung lũng. Đây là bản đồ mất mát của 400 khu vực, thu nhập để nguyên.
+
+00:05:11.160 --> 00:05:15.336
+Các đường đồng mức là những hình elip rất dẹt, nằm chéo.
+
+00:05:15.696 --> 00:05:22.704
+Với η = 0,04, tốc độ tốt nhất ở đây, quả bóng cần 214 bước mới tới sát đáy.
+
+00:05:23.064 --> 00:05:33.192
+Thu nhập có giá trị khoảng 4, nên mất mát nhạy với w hơn b rất nhiều. η phải đủ nhỏ cho hướng dốc nhất, và hướng thoải thì bị bò rất chậm.
+
+00:05:33.552 --> 00:05:40.800
+Cách chữa: chuẩn hoá. Trừ trung bình 4,04, rồi chia cho độ lệch chuẩn 2,03.
+
+00:05:41.160 --> 00:05:46.992
+Sau chuẩn hoá, thu nhập có trung bình 0 và độ lệch chuẩn 1, cùng cỡ với hệ số chặn.
+
+00:05:47.352 --> 00:05:53.424
+Cùng dữ liệu, cùng thuật toán. Các đường đồng mức giờ gần như những vòng tròn.
+
+00:05:53.784 --> 00:05:58.440
+Với η = 0,2, chỉ 11 bước là tới sát đáy.
+
+00:05:58.800 --> 00:06:04.776
+Với η = 0,5: đúng 1 bước. Độ dốc chỉ thẳng vào đáy.
+
+00:06:05.136 --> 00:06:10.032
+Từ 214 bước xuống 1 bước, chỉ nhờ đổi thang đo của dữ liệu.
+
+00:06:10.392 --> 00:06:15.720
+Ở bước 5 của bài, bạn có thể bật tắt chuẩn hoá và tự thử các tốc độ học.
+
+00:06:16.080 --> 00:06:18.840
+Phiên bản tự viết bằng NumPy.
+
+00:06:19.200 --> 00:06:22.152
+Tải 400 khu vực từ chính trang web.
+
+00:06:22.512 --> 00:06:26.568
+Chuẩn hoá thu nhập: trừ trung bình, chia độ lệch chuẩn.
+
+00:06:26.928 --> 00:06:32.592
+Vòng lặp: tính sai số, hai đạo hàm, rồi cập nhật cùng lúc w và b.
+
+00:06:32.952 --> 00:06:38.160
+Mô hình học trên thang đã chuẩn hoá, nên cuối cùng phải đổi ngược về đơn vị gốc.
+
+00:06:38.520 --> 00:06:47.856
+Trong thực tế, ta dùng scikit-learn: ba dòng là đủ, và kết quả trùng với nghiệm đóng. Cả hai ô mã đều chạy được ở bước 6.
+
+00:06:48.216 --> 00:06:52.392
+Mô hình chỉ có giá trị nếu dự đoán tốt trên dữ liệu mới.
+
+00:06:52.752 --> 00:07:03.840
+Ta tách 400 khu vực thành 320 khu vực để huấn luyện và 80 khu vực để kiểm tra. Mô hình không được nhìn tập kiểm tra khi học.
+
+00:07:04.200 --> 00:07:10.200
+Học trên tập train: ŷ = 0,446·x + 0,332.
+
+00:07:10.560 --> 00:07:13.272
+Giờ mới chấm điểm trên tập test.
+
+00:07:13.632 --> 00:07:20.760
+RMSE là căn bậc hai của MSE, cùng đơn vị với giá nhà: mô hình thường sai khoảng chừng này.
+
+00:07:21.120 --> 00:07:29.712
+R² là tỷ lệ biến động của giá nhà mà mô hình giải thích được. 0 là không hơn gì đoán trung bình, 1 là hoàn hảo.
+
+00:07:30.072 --> 00:07:39.480
+Trên tập train, R² = 0,515. Trên tập test, R² = 0,470: thấp hơn một chút, như thường lệ.
+
+00:07:39.840 --> 00:07:46.968
+Thu nhập chỉ giải thích được khoảng một nửa biến động giá nhà. Mô hình thường sai khoảng 87.000 USD.
+
+00:07:47.328 --> 00:07:57.384
+Luôn có một mốc ngây thơ để so: luôn đoán giá trung bình. R² của nó gần 0, và RMSE khoảng 119.000 USD.
+
+00:07:57.744 --> 00:08:03.840
+Mô hình nào không thắng được mốc này là vô dụng. Hồi quy của ta thắng rõ ràng.
+
+00:08:04.200 --> 00:08:06.168
+Bốn bẫy thường gặp.
+
+00:08:06.528 --> 00:08:14.304
+Một: đánh giá trên tập train. Con số sẽ đẹp hơn thực tế. Luôn báo cáo trên tập test.
+
+00:08:14.664 --> 00:08:18.624
+Hai: quên chuẩn hoá khi dùng Gradient Descent.
+
+00:08:18.984 --> 00:08:25.680
+Ba: dữ liệu bị chặn trần. Mô hình tuyến tính không thể biết giá thật cao hơn mức trần.
+
+00:08:26.040 --> 00:08:33.840
+Bốn: ngoại suy. Dự đoán ở vùng thu nhập rất cao, nơi gần như không có dữ liệu, là không đáng tin.
+
+00:08:34.200 --> 00:08:36.072
+Tóm lại.
+
+00:08:36.432 --> 00:08:40.416
+Hệ số chặn b cho phép đường thẳng không đi qua gốc toạ độ.
+
+00:08:40.776 --> 00:08:45.912
+Mỗi tham số có một đạo hàm riêng, và cả hai cùng được cập nhật trong mỗi vòng.
+
+00:08:46.272 --> 00:08:51.984
+Đường tốt nhất đi qua điểm trung bình, và với hồi quy tuyến tính ta có thể giải thẳng bằng công thức.
+
+00:08:52.344 --> 00:08:56.664
+Chuẩn hoá dữ liệu làm Gradient Descent nhanh hơn hàng trăm lần.
+
+00:08:57.024 --> 00:09:01.224
+Và luôn chấm điểm trên tập test, so với một mốc ngây thơ.
+
+00:09:01.584 --> 00:09:08.496
+Chương 2 chuyển từ dự đoán một con số sang dự đoán một nhãn: khối u lành hay ác, với hồi quy logistic.
+
+00:09:08.856 --> 00:09:16.176
+Giờ hãy cuộn xuống, làm các phòng thí nghiệm và trả lời câu hỏi trong bài. Hẹn gặp lại ở chương 2.
