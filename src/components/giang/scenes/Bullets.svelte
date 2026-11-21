@@ -5,7 +5,7 @@
   const hl = $derived(Math.round(num(s.hl, -1)));
 </script>
 
-<div class="sc">
+<div class="sc" class:many={items.length > 3 || items.some((it) => it.length > 90)}>
   {#if title}<h3>{title}</h3>{/if}
   <ul>
     {#each items as it, i}
@@ -19,5 +19,8 @@
   h3 { font-size: 40px; margin: 0 0 30px; }
   ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 20px; }
   li { font-size: 29px; line-height: 1.4; padding: 6px 14px 6px 22px; border-left: 4px solid var(--rule-2); transition: background 0.3s, border-color 0.3s; }
+  .many h3 { font-size: 36px; margin-bottom: 20px; }
+  .many ul { gap: 10px; }
+  .many li { font-size: 24px; padding: 3px 14px 3px 20px; }
   li.on { background: var(--hl); border-left-color: var(--le); }
 </style>

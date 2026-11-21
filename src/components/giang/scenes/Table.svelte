@@ -28,14 +28,14 @@
 </div>
 
 <style>
-  .sc { padding: 48px 60px 0 150px; }
-  h3 { font-size: 36px; margin: 0 0 22px; }
-  table { border-collapse: collapse; font-size: 25px; }
+  .sc { padding: 44px 60px 0 150px; }
+  h3 { font-size: 36px; margin: 0 0 14px; }
+  table { border-collapse: collapse; font-size: 24px; }
   th { font-size: 19px; font-weight: 600; color: var(--pencil); text-align: right; padding: 6px 18px; border-bottom: 2px solid var(--ink); max-width: 220px; line-height: 1.25; vertical-align: bottom; }
-  td { font-family: var(--mono); text-align: right; padding: 7px 18px; border-bottom: 1px solid var(--rule); }
+  td { font-family: var(--mono); text-align: right; padding: 5px 18px; border-bottom: 1px solid var(--rule); }
   th:first-child, td:first-child { text-align: center; }
   td.t, th.t { font-family: var(--serif); text-align: left; }
   tr.on td { background: var(--hl); }
   .hc { background: var(--tim-soft); }
-  .foot { font-size: 25px; margin-top: 22px; color: var(--ink); font-family: var(--mono); }
+  .foot { font-size: 20px; margin-top: 14px; white-space: nowrap; color: var(--ink); font-family: var(--mono); }
 </style>

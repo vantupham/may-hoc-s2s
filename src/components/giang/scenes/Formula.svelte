@@ -12,7 +12,7 @@
   {#if title}<h3>{title}</h3>{/if}
   <div class="list">
     {#each items as it, i}
-      <div class="row" class:on={hl === i} class:dim={hl >= 0 && hl !== i} style:opacity={shown(s.n, i) * (hl >= 0 && hl !== i ? 0.45 : 1)}>
+      <div class="row" class:on={hl === i} class:dim={hl >= 0 && hl !== i} style:opacity={shown(s.n, i) * (hl >= 0 && hl !== i ? 0.62 : 1)}>
         {#if it.label}<span class="flab">{it.label}</span>{/if}
         <div class="f">{@html html[i]}</div>
       </div>

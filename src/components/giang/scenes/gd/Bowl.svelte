@@ -115,5 +115,11 @@
   .ptlab { font-family: var(--hand); font-size: 22px; fill: var(--tim); }
   .star { font-size: 16px; fill: var(--ok); font-family: var(--mono); }
   .off { font-size: 15px; fill: var(--bad); }
-  svg :global(text) { font-size: 15px; }
+  /* Trục vẽ bằng Axis.svelte: màu lấy từ token để đọc rõ cả trên giấy trắng lẫn bảng đen */
+  svg { font-family: var(--serif); overflow: visible; }
+  svg :global(text) { font-size: 15px; fill: var(--pencil); }
+  svg :global(.tick text) { font-family: var(--mono); fill: var(--pencil); }
+  svg :global(.tick line) { stroke: var(--rule-2); }
+  svg :global(.axis-label) { font-style: italic; fill: var(--pencil); }
+  svg :global(.domain) { stroke: var(--ink); stroke-opacity: 0.7; }
 </style>
