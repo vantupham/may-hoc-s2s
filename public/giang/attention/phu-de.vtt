@@ -1,0 +1,181 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:05.784
+Chương 11: chuỗi và attention, cơ chế đứng sau các mô hình ngôn ngữ lớn ngày nay.
+
+00:00:06.144 --> 00:00:09.456
+Bài toán vẫn là lọc tin rác của chương 4.
+
+00:00:09.816 --> 00:00:18.912
+Naive Bayes coi tin nhắn là một túi từ. Với nó, "call now for free" và "free for now, call" là như nhau: thứ tự bị bỏ hết.
+
+00:00:19.272 --> 00:00:27.216
+Nó cũng không biết free trong "free prize", giải thưởng miễn phí, khác với free trong "are you free tonight", tối nay bạn rảnh không.
+
+00:00:27.576 --> 00:00:35.616
+Muốn hiểu một từ, phải nhìn các từ xung quanh nó. Attention là cách để mỗi từ tự quyết định nên nhìn từ nào.
+
+00:00:35.976 --> 00:00:43.680
+Bài dùng tin nhắn tiếng Anh vì chưa có bộ câu tiếng Việt với giấy phép rõ ràng để đăng lại. Thuật toán thì không đổi.
+
+00:00:44.040 --> 00:00:49.344
+Mỗi tin nhắn được tách thành từ như chương 4, giữ tối đa 24 từ đầu tiên.
+
+00:00:49.704 --> 00:00:55.320
+Từ điển gồm 1.500 từ hay gặp nhất; từ khác được thay bằng một ký hiệu "không rõ".
+
+00:00:55.680 --> 00:01:05.160
+Mỗi từ được biểu diễn bằng một vector 8 số, gọi là embedding. Ban đầu chúng là ngẫu nhiên; mô hình tự học chúng trong lúc huấn luyện.
+
+00:01:05.520 --> 00:01:11.832
+Hình dung một buổi họp lớp. Mỗi học sinh, tức mỗi từ, cầm ba tấm thẻ.
+
+00:01:12.192 --> 00:01:16.368
+Một câu hỏi, gọi là q: ai biết về giải thưởng?
+
+00:01:16.728 --> 00:01:20.856
+Một nhãn tên, gọi là k: tôi biết về tiền.
+
+00:01:21.216 --> 00:01:25.776
+Và một ghi chú, gọi là v: nội dung thật sự mình biết.
+
+00:01:26.136 --> 00:01:37.032
+Mỗi bạn so câu hỏi của mình với nhãn tên của mọi bạn khác. Khớp càng nhiều, càng lắng nghe ghi chú của bạn đó. Rồi trộn các ghi chú theo mức lắng nghe.
+
+00:01:37.392 --> 00:01:47.784
+Trong các mô hình lớn, mỗi tầng có nhiều nhóm thẻ như vậy chạy song song, gọi là nhiều đầu. Một đầu có thể chuyên tìm chủ ngữ, đầu khác chuyên tìm con số.
+
+00:01:48.144 --> 00:01:57.528
+Kết quả: mỗi từ có một biểu diễn mới đã pha thông tin từ các từ liên quan. Free đứng cạnh prize sẽ mang nghĩa khác free đứng cạnh tonight.
+
+00:01:57.888 --> 00:02:08.880
+Một tin rác thật trong tập test. Mỗi hàng là một từ đặt câu hỏi, mỗi cột là một từ được hỏi. Ô càng đậm, từ ở hàng càng chú ý vào từ ở cột.
+
+00:02:09.240 --> 00:02:14.472
+Mỗi hàng cộng lại đúng bằng 1: đó là cách mỗi từ chia sự chú ý của mình.
+
+00:02:14.832 --> 00:02:23.928
+Mô hình này học cách chú ý rất gắt: gần như mọi từ dồn hết sự chú ý vào một hoặc hai từ. Ở tin này, đó là "claim".
+
+00:02:24.288 --> 00:02:32.400
+Vì sao gắt vậy? Các điểm số rất lớn, có cái tới 279, nên softmax gần như chọn hẳn một từ.
+
+00:02:32.760 --> 00:02:37.272
+Cuối cùng, mô hình cho tin này xác suất là rác 100,00%.
+
+00:02:37.632 --> 00:02:49.896
+Còn một tin thường cũng mở đầu bằng "You have", "You have an important customer service…": chỉ 33,63%. Cùng hai từ đầu, nhưng các từ sau kéo nghĩa đi chỗ khác.
+
+00:02:50.256 --> 00:02:54.888
+Một ví dụ nhỏ hơn để tính tay: "free call now", ba từ.
+
+00:02:55.248 --> 00:03:00.840
+Ma trận điểm số: tích của q mỗi từ với k của mọi từ, chia căn của 8.
+
+00:03:01.200 --> 00:03:05.880
+Softmax từng hàng biến điểm số thành tỷ lệ chú ý, cộng lại bằng 1.
+
+00:03:06.240 --> 00:03:13.440
+Đọc từng hàng: "free" chú ý nhiều nhất vào "now", "call" vào "call", và "now" vào "call".
+
+00:03:13.800 --> 00:03:19.512
+Một từ hoàn toàn có thể chú ý vào chính nó: không có gì bắt nó phải nhìn sang từ khác.
+
+00:03:19.872 --> 00:03:24.864
+Đầu ra của mỗi từ là trung bình các vector v, theo đúng tỷ lệ đó.
+
+00:03:25.224 --> 00:03:32.664
+Lấy trung bình đầu ra của cả ba từ, rồi đưa qua hồi quy logistic: p = 58,13% là rác.
+
+00:03:33.024 --> 00:03:39.480
+Đảo thứ tự thành "now call free": cùng ba từ, nhưng p chỉ còn 50,08%.
+
+00:03:39.840 --> 00:03:48.744
+Naive Bayes sẽ cho hai câu này đúng cùng một con số. Mô hình attention thì phân biệt được, nhờ một chi tiết: mã hoá vị trí.
+
+00:03:49.104 --> 00:03:58.680
+X là ma trận: mỗi hàng là embedding của một từ cộng với mã hoá vị trí. Nhân với ba ma trận trọng số được Q, K, V.
+
+00:03:59.040 --> 00:04:10.272
+Tích Q với K chuyển vị là ma trận chứa điểm khớp của mọi cặp từ. Chia cho căn của d để điểm số không quá lớn khi d tăng; nếu không, softmax sẽ dồn hết vào một từ.
+
+00:04:10.632 --> 00:04:21.576
+Vì sao lại là căn d? Tích của hai vector ngẫu nhiên d chiều có độ lớn tăng theo căn d. Chia cho căn d đưa điểm số về cùng một cỡ, dù d là 8 hay 8 nghìn.
+
+00:04:21.936 --> 00:04:28.152
+Attention tự nó không biết thứ tự: hoán đổi hai từ thì hai hàng của đầu ra cũng hoán đổi theo.
+
+00:04:28.512 --> 00:04:37.824
+Để mô hình biết một từ đứng ở vị trí nào, ta cộng vào embedding một vector cố định phụ thuộc vị trí, dựng từ các hàm sin và cos với tần số khác nhau.
+
+00:04:38.184 --> 00:04:49.440
+Cuối cùng lấy trung bình các hàng đầu ra, rồi áp hồi quy logistic của chương 2. Toàn bộ mô hình có 12.209 tham số, phần lớn nằm trong bảng embedding.
+
+00:04:49.800 --> 00:05:02.400
+Transformer, kiến trúc của các mô hình ngôn ngữ lớn, chồng hàng chục tầng attention như thế này, mỗi tầng nhiều đầu chạy song song, xen với các mạng dense của chương 9. Bản chất từng phép tính vẫn y như vậy.
+
+00:05:02.760 --> 00:05:10.176
+Attention chỉ là vài phép nhân ma trận và một softmax. Ví dụ với 3 từ, mỗi từ 4 chiều.
+
+00:05:10.536 --> 00:05:13.968
+Ba phép chiếu ra Q, K, V.
+
+00:05:14.328 --> 00:05:18.768
+Điểm số, softmax theo hàng, rồi trộn các vector V.
+
+00:05:19.128 --> 00:05:27.408
+Mô hình trên trang được huấn luyện bằng NumPy thuần, với lan truyền ngược viết tay, và được kiểm tra gradient bằng sai phân hữu hạn trước khi huấn luyện.
+
+00:05:27.768 --> 00:05:34.896
+Mô hình attention: đúng 98,38%, để lọt 14 tin rác, chặn nhầm 4 tin thường.
+
+00:05:35.256 --> 00:05:43.584
+Naive Bayes của chương 4: đúng 98,83%, lọt 8, chặn nhầm 5. Gần như ngang nhau.
+
+00:05:43.944 --> 00:05:51.936
+Hai mô hình sai theo hai kiểu khác nhau: attention để lọt nhiều tin rác hơn, 14 so với 8, nhưng chặn nhầm ít hơn một chút.
+
+00:05:52.296 --> 00:05:58.176
+Tin rác trong bộ dữ liệu này dễ nhận ra chỉ từ từ vựng, nên ngữ cảnh không giúp thêm nhiều.
+
+00:05:58.536 --> 00:06:07.272
+Đây là một bài học quan trọng: mô hình mới hơn, phức tạp hơn, không tự động tốt hơn. Phải đo trên chính bài toán của mình.
+
+00:06:07.632 --> 00:06:16.200
+Sức mạnh của attention hiện ra khi nghĩa của câu thật sự phụ thuộc vào thứ tự và ngữ cảnh: dịch máy, trả lời câu hỏi, tóm tắt văn bản.
+
+00:06:16.560 --> 00:06:28.200
+Bốn bẫy thường gặp. Một: coi trọng số attention là lời giải thích. Từ được chú ý nhiều chưa chắc là lý do của dự đoán: thông tin còn đi qua V và các tầng khác.
+
+00:06:28.560 --> 00:06:34.584
+Hai: quên mã hoá vị trí. Mô hình sẽ thành một túi từ có trọng số.
+
+00:06:34.944 --> 00:06:43.344
+Ngoài ra, mô hình của ta chỉ đọc 24 từ đầu tiên. Thông tin nằm ở cuối một tin nhắn dài sẽ bị bỏ qua hoàn toàn.
+
+00:06:43.704 --> 00:06:53.448
+Ba: chi phí bình phương. Ma trận chú ý có L nhân L ô; với văn bản dài hàng nghìn từ, bộ nhớ và thời gian tăng rất nhanh.
+
+00:06:53.808 --> 00:07:04.344
+Bốn: dùng mô hình phức tạp khi không cần. Ở đây Naive Bayes, chỉ là một bảng đếm, đã ngang ngửa. Luôn so với một mô hình đơn giản trước.
+
+00:07:04.704 --> 00:07:06.576
+Tóm lại.
+
+00:07:06.936 --> 00:07:12.456
+Mỗi từ thành một vector embedding, cộng mã hoá vị trí để biết mình đứng ở đâu.
+
+00:07:12.816 --> 00:07:20.736
+Tích q với k đo mức khớp, softmax biến thành tỷ lệ chú ý, rồi trộn các vector v. Chia căn d để softmax không quá gắt.
+
+00:07:21.096 --> 00:07:26.904
+Attention mạnh khi ngữ cảnh và thứ tự quan trọng, nhưng không phải bài toán nào cũng cần nó.
+
+00:07:27.264 --> 00:07:43.128
+Mô hình của ta có một tầng, một đầu, vector 8 chiều. Các mô hình ngôn ngữ lớn có hàng chục tầng, hàng chục đầu, vector hàng nghìn chiều, và học trên hàng nghìn tỷ từ. Nhưng từng phép tính bên trong vẫn là những gì ta vừa làm bằng tay.
+
+00:07:43.488 --> 00:07:52.704
+Chương 12 là dự án cuối khoá: dự báo bụi mịn PM2.5 ở Hà Nội, ôn lại toàn bộ những gì ta đã học trên một bài toán Việt Nam đang diễn ra.
+
+00:07:53.064 --> 00:08:00.624
+Giờ hãy cuộn xuống, tự gõ một tin nhắn và xem các từ nhìn nhau thế nào. Hẹn gặp lại ở chương 12.

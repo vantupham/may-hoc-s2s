@@ -78,113 +78,116 @@ Trượt con tem cạnh dọc qua: được bản đồ 4 nhân 4. Cột bên tr
 00:03:12.624 --> 00:03:17.544
 Dương là chỗ chuyển từ tối sang sáng, âm là chỗ chuyển từ sáng sang tối.
 
-00:03:17.904 --> 00:03:21.192
-ReLU giữ phần dương, xoá phần âm.
+00:03:17.904 --> 00:03:28.560
+ReLU giữ phần dương, xoá phần âm. Bộ lọc này chỉ "quan tâm" chỗ tối chuyển sang sáng; muốn bắt chỗ sáng chuyển sang tối thì cần một bộ lọc khác, có dấu ngược lại.
 
-00:03:21.552 --> 00:03:30.864
+00:03:28.920 --> 00:03:38.232
 Max-pool lấy số lớn nhất trong mỗi ô 2 nhân 2: chỉ còn 4 con số, mà vẫn giữ được điều quan trọng: có một cạnh tối sang sáng, ở nửa bên trái.
 
-00:03:31.224 --> 00:03:36.864
+00:03:38.592 --> 00:03:44.232
 Không đệm viền, ảnh 28 nhân 28 cho bản đồ 26 nhân 26.
 
-00:03:37.224 --> 00:03:47.040
+00:03:44.592 --> 00:03:54.408
 Mỗi bộ lọc chỉ có 9 trọng số và 1 bias, dùng chung cho mọi vị trí: gọi là chia sẻ trọng số. Sáu bộ lọc chỉ tốn 60 tham số.
 
-00:03:47.400 --> 00:03:55.416
+00:03:54.768 --> 00:04:02.784
 Max-pool giữ giá trị lớn nhất trong mỗi ô 2 nhân 2. Bản đồ 26 nhân 26 còn 13 nhân 13.
 
-00:03:55.776 --> 00:04:04.824
+00:04:03.144 --> 00:04:12.192
 Mạng vì thế ít nhạy với việc hoạ tiết dịch đi một điểm ảnh. Khi lan truyền ngược, gradient chỉ chảy về đúng ô đã thắng trong mỗi cửa sổ.
 
-00:04:05.184 --> 00:04:15.216
+00:04:12.552 --> 00:04:22.584
 Vì một trọng số của bộ lọc được dùng ở mọi vị trí, gradient của nó là tổng đóng góp từ mọi vị trí. Bản thân phép tính đó cũng là một phép tích chập.
 
-00:04:15.576 --> 00:04:22.176
+00:04:22.944 --> 00:04:29.544
 Ghép lại thành cả mạng. Ảnh đi qua 6 bộ lọc, được 6 bản đồ, qua ReLU.
 
-00:04:22.536 --> 00:04:29.952
+00:04:29.904 --> 00:04:37.320
 Max-pool thu mỗi bản đồ còn 13 nhân 13. Trải phẳng ra: 1.014 con số.
 
-00:04:30.312 --> 00:04:35.904
+00:04:37.680 --> 00:04:43.272
 Một tầng dense như chương 9 biến chúng thành 10 điểm số, rồi softmax biến thành 10 xác suất.
 
-00:04:36.264 --> 00:04:41.400
+00:04:43.632 --> 00:04:48.768
 Tổng cộng chỉ 10.210 tham số, phần lớn nằm ở tầng dense cuối.
 
-00:04:41.760 --> 00:04:47.400
+00:04:49.128 --> 00:04:54.768
 Mạng trên trang được huấn luyện sẵn bằng NumPy; trình duyệt của bạn chỉ chạy phần lan truyền xuôi.
 
-00:04:47.760 --> 00:05:00.552
+00:04:55.128 --> 00:05:07.920
 Các mạng thật chồng nhiều tầng tích chập. Tầng đầu thấy ô 3 nhân 3, tầng sau thấy tổ hợp của các ô đó, nên vùng nhìn rộng dần: từ cạnh, đến hoạ tiết, đến cả bộ phận như cổ áo hay quai túi.
 
-00:05:00.912 --> 00:05:08.832
+00:05:08.280 --> 00:05:16.200
 Ý tưởng này có từ cuối thập niên 1980. Mạng LeNet của Yann LeCun từng đọc chữ số trên séc ngân hàng ở Mỹ.
 
-00:05:09.192 --> 00:05:13.920
+00:05:16.560 --> 00:05:21.288
 Tích chập và max-pool viết tay trên một ảnh 6 nhân 6 có một vạch sáng dọc.
 
-00:05:14.280 --> 00:05:16.224
+00:05:21.648 --> 00:05:23.592
 Bộ lọc cạnh dọc.
 
-00:05:16.584 --> 00:05:21.600
+00:05:23.952 --> 00:05:28.968
 Hai vòng lặp trượt cửa sổ 3 nhân 3 qua ảnh: nhân từng cặp, cộng lại.
 
-00:05:21.960 --> 00:05:30.072
+00:05:29.328 --> 00:05:37.440
 Max-pool chỉ một dòng NumPy. Ở bước 6, thử đổi bộ lọc thành bộ dò cạnh ngang rồi đoán kết quả trước khi chạy.
 
-00:05:30.432 --> 00:05:33.168
+00:05:37.800 --> 00:05:40.536
 Đưa chính ảnh đó qua cả mạng.
 
-00:05:33.528 --> 00:05:40.296
+00:05:40.896 --> 00:05:47.664
 Áo khoác: 53,5%. Áo sơ mi: 27,7%.
 
-00:05:40.656 --> 00:05:48.768
+00:05:48.024 --> 00:05:56.136
 Xác suất là thông tin hữu ích. Khi mạng không chắc, một hệ thống thật có thể chuyển ảnh đó cho người xem lại thay vì tự quyết.
 
-00:05:49.128 --> 00:05:56.088
+00:05:56.496 --> 00:06:03.456
 Mạng đoán đúng, nhưng không chắc chắn lắm: hai loại áo này thật sự giống nhau ở 28 nhân 28 điểm ảnh.
 
-00:05:56.448 --> 00:06:01.848
+00:06:03.816 --> 00:06:09.216
 Trên 2.000 ảnh test, mạng chỉ với 6 bộ lọc đạt 84,5%.
 
-00:06:02.208 --> 00:06:06.192
-Quần, túi, giày, dép gần như không nhầm.
+00:06:09.576 --> 00:06:16.464
+Quần, túi, giày, dép gần như không nhầm: hình dáng của chúng khác hẳn nhau ngay cả khi ảnh rất nhỏ.
 
-00:06:06.552 --> 00:06:12.576
+00:06:16.824 --> 00:06:25.872
+Dép và giày thể thao thỉnh thoảng lẫn vào nhau: 12 ảnh dép bị đoán là giày. Cả hai đều nằm ngang, thấp, ở nửa dưới ảnh.
+
+00:06:26.232 --> 00:06:32.256
 Áo sơ mi khó nhất: chỉ 74 ảnh đoán đúng, và 45 ảnh bị đoán là áo phông.
 
-00:06:12.936 --> 00:06:21.816
+00:06:32.616 --> 00:06:41.496
 Thêm 41 ảnh áo sơ mi bị đoán là áo khoác. Ở 28 nhân 28 điểm ảnh, cổ áo và hàng cúc gần như biến mất.
 
-00:06:22.176 --> 00:06:29.712
+00:06:41.856 --> 00:06:49.392
 Các CNN sâu hơn, với nhiều tầng tích chập chồng lên nhau, đạt trên 93% trên Fashion-MNIST.
 
-00:06:30.072 --> 00:06:35.712
+00:06:49.752 --> 00:06:55.392
 Ba bẫy thường gặp. Một: quên chuẩn hoá điểm ảnh về khoảng 0 đến 1.
 
-00:06:36.072 --> 00:06:44.856
+00:06:55.752 --> 00:07:04.536
 Hai: nhầm thứ tự chiều cao, rộng, kênh giữa các thư viện. Rất nhiều lỗi CNN trong thực tế là lỗi sắp xếp mảng.
 
-00:06:45.216 --> 00:06:56.376
+00:07:04.896 --> 00:07:16.056
 Ba: kết luận rằng mạng hiểu quần áo. Nó chỉ học thống kê điểm ảnh của 8.000 ảnh nền đen, sản phẩm đặt giữa. Ảnh chụp ngoài đời sẽ làm nó lúng túng.
 
-00:06:56.736 --> 00:06:58.608
+00:07:16.416 --> 00:07:18.288
 Tóm lại.
 
-00:06:58.968 --> 00:07:07.680
+00:07:18.648 --> 00:07:27.360
 Một bộ lọc 3 nhân 3 trượt qua ảnh: 9 phép nhân, cộng lại, qua ReLU. Cùng một bộ lọc dùng cho mọi vị trí.
 
-00:07:08.040 --> 00:07:12.168
+00:07:27.720 --> 00:07:31.848
 Max-pool thu nhỏ bản đồ và làm mạng bớt nhạy với dịch chuyển.
 
-00:07:12.528 --> 00:07:17.928
+00:07:32.208 --> 00:07:37.608
 Và mạng tự học ra các bộ dò cạnh, bộ dò vùng, không cần ai thiết kế.
 
-00:07:18.288 --> 00:07:24.360
+00:07:37.968 --> 00:07:44.040
 CNN là nền tảng của nhận dạng ảnh, từ mở khoá điện thoại bằng khuôn mặt đến đọc ảnh y khoa.
 
-00:07:24.720 --> 00:07:35.328
+00:07:44.400 --> 00:07:55.008
 Chương 11 chuyển từ ảnh sang chuỗi: từng từ trong một tin nhắn nhìn sang các từ khác thế nào. Đó là cơ chế attention, trái tim của các mô hình ngôn ngữ hiện đại.
 
-00:07:35.688 --> 00:07:41.784
+00:07:55.368 --> 00:08:01.464
 Giờ hãy cuộn xuống, tự trượt bộ lọc qua ảnh. Hẹn gặp lại ở chương 11.
