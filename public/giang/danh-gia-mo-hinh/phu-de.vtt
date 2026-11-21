@@ -1,0 +1,175 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:06.096
+Chương 8: đánh giá mô hình. Con số độ chính xác của ta đáng tin đến đâu?
+
+00:00:06.456 --> 00:00:18.264
+Bài toán: dự đoán giá nhà từ thu nhập bằng một đa thức. Bậc 1 là đường thẳng của chương 1. Bậc cao hơn cho đường cong uốn lượn hơn. Bậc nào tốt nhất?
+
+00:00:18.624 --> 00:00:31.656
+Cách ngây thơ: thử từng bậc, xem bậc nào có sai số thấp nhất trên tập test. Nhưng khi đó ta đã chọn mô hình vì nó làm tốt trên đúng 80 khu vực test. Tập test đã thành một phần của việc huấn luyện.
+
+00:00:32.016 --> 00:00:38.256
+Dữ liệu là 400 khu vực đã gặp ở chương 1: 320 để huấn luyện, 80 để test.
+
+00:00:38.616 --> 00:00:43.248
+Thu nhập lệch phải: phần lớn dưới 6, vài khu vực trên 10.
+
+00:00:43.608 --> 00:00:54.936
+Và trong 320 khu vực huấn luyện, chỉ có 1 khu vực thu nhập trên 12, đúng mức bị chặn trần 15,0001. Một điểm đơn độc như vậy có thể quyết định cả hình dạng của một đa thức bậc cao.
+
+00:00:55.296 --> 00:00:57.600
+Bậc 1: đường thẳng.
+
+00:00:57.960 --> 00:01:01.992
+Bậc 3: hơi cong, bám dữ liệu tốt hơn một chút.
+
+00:01:02.352 --> 00:01:07.488
+Bậc 9: uốn lượn, và vặn mình về phía khu vực đơn độc ở bên phải.
+
+00:01:07.848 --> 00:01:17.976
+Hình dung một học sinh ôn thi. Nếu chỉ học thuộc đáp án của đúng 20 bài tập trong sách, em sẽ làm đúng 100% bài tập đó, nhưng gặp đề thi mới là lúng túng.
+
+00:01:18.336 --> 00:01:26.448
+Đó là đa thức bậc cao: quá linh hoạt, thuộc lòng cả nhiễu. Người ta gọi là quá khớp, overfitting.
+
+00:01:26.808 --> 00:01:35.208
+Nếu chỉ học một mẹo duy nhất, em sai đều ở mọi đề. Đó là mô hình quá đơn giản, chưa khớp, underfitting.
+
+00:01:35.568 --> 00:01:48.024
+Cross-validation là cách tự kiểm tra trước kỳ thi: tự che một phần bài tập, học phần còn lại, rồi làm thử phần bị che. Làm vậy nhiều lần với các phần khác nhau để có điểm trung bình đáng tin.
+
+00:01:48.384 --> 00:01:57.624
+Chia 320 khu vực huấn luyện thành 5 phần. Lần lượt che từng phần, học trên 4 phần còn lại, rồi đo sai số trên phần bị che.
+
+00:01:57.984 --> 00:02:10.152
+Với bậc 3, năm con số dao động từ 0,51 đến 0,97: cùng một cỡ, chỉ khác vì mỗi phần có những khu vực dễ, khó khác nhau. Trung bình 0,723.
+
+00:02:10.512 --> 00:02:18.768
+Với bậc 9, phần 5 có MSE lên tới 19.957, trong khi bậc 3 ở cùng phần đó chỉ 0,5266.
+
+00:02:19.128 --> 00:02:31.536
+Đó là phần chứa khu vực thu nhập 15,0001. Khi nó bị che, mô hình học trên những khu vực có thu nhập thấp hơn nhiều, rồi phải đoán ở một nơi xa tít. Đa thức bậc 9 phóng vọt lên trời.
+
+00:02:31.896 --> 00:02:40.992
+Trung bình của bậc 9 là 3.992. Cross-validation đã bắt được mô hình nguy hiểm này, dù tập test không hề thấy.
+
+00:02:41.352 --> 00:02:54.360
+Ba tập dữ liệu, ba vai trò. Tập huấn luyện để học tham số. Tập kiểm định để chọn siêu tham số, như bậc đa thức, k hay C. Tập test để báo cáo một lần duy nhất, ở cuối.
+
+00:02:54.720 --> 00:03:01.176
+Cross-validation tận dụng dữ liệu bằng cách cho mỗi phần lần lượt làm tập kiểm định, rồi lấy trung bình.
+
+00:03:01.536 --> 00:03:13.848
+Thường chia 5 hoặc 10 phần. Chia càng nhiều phần thì mỗi lần học trên nhiều dữ liệu hơn, nhưng phải huấn luyện nhiều lần hơn. Cực đoan nhất là mỗi phần chỉ một mẫu, gọi là để-lại-một.
+
+00:03:14.208 --> 00:03:21.072
+Tưởng tượng thu thập lại dữ liệu nhiều lần và huấn luyện lại. Sai số kỳ vọng tách thành ba phần.
+
+00:03:21.432 --> 00:03:34.224
+Bias: mô hình sai một cách có hệ thống, vì quá đơn giản. Variance: mô hình đổi nhiều khi dữ liệu đổi, vì quá linh hoạt. Và nhiễu: phần không mô hình nào giảm được.
+
+00:03:34.584 --> 00:03:42.216
+Ở đây nhiễu rất lớn: giá nhà còn phụ thuộc vị trí, tuổi nhà, trường học, và vô số điều mà thu nhập không nói được.
+
+00:03:42.576 --> 00:03:50.544
+Học bậc 1 trên 20 mẫu lấy lại khác nhau từ cùng dữ liệu. 20 đường thẳng gần như trùng nhau: variance thấp.
+
+00:03:50.904 --> 00:03:55.368
+Nhưng chúng cùng bỏ lỡ chỗ cong của dữ liệu: đó là bias.
+
+00:03:55.728 --> 00:04:04.152
+Bậc 9: các đường toả ra như một chiếc quạt, nhất là ở vùng thu nhập cao, nơi dữ liệu thưa. Variance rất cao.
+
+00:04:04.512 --> 00:04:11.160
+Mô hình tốt nằm ở giữa: đủ linh hoạt để bắt được hình dạng thật, đủ ổn định để không đổi theo từng mẫu.
+
+00:04:11.520 --> 00:04:21.984
+Đây là đánh đổi cốt lõi của học máy: giảm bias thường làm tăng variance, và ngược lại. Mọi kỹ thuật chọn mô hình đều là cách tìm điểm cân bằng giữa hai thứ đó.
+
+00:04:22.344 --> 00:04:31.056
+Thêm dữ liệu giúp giảm variance: các đường sẽ chụm lại. Nhưng thêm dữ liệu không chữa được bias: đường thẳng vẫn là đường thẳng.
+
+00:04:31.416 --> 00:04:37.824
+Với phân loại, mỗi ngưỡng cho một cặp số: tỷ lệ báo nhầm, và tỷ lệ bắt được ca ác tính.
+
+00:04:38.184 --> 00:04:48.000
+Tỷ lệ bắt được là số ca ác tính được báo, chia tổng số ca ác tính. Tỷ lệ báo nhầm là số ca lành tính bị báo ác, chia tổng số ca lành tính.
+
+00:04:48.360 --> 00:04:53.160
+Hạ ngưỡng từ cao xuống thấp, nối mọi cặp lại: đó là đường ROC.
+
+00:04:53.520 --> 00:05:01.200
+Mô hình A dùng cả bán kính và độ nhám: AUC, diện tích dưới đường cong, là 0,922.
+
+00:05:01.560 --> 00:05:07.032
+Mô hình B chỉ dùng độ nhám: AUC 0,707, tệ hơn hẳn.
+
+00:05:07.392 --> 00:05:16.320
+AUC bằng 1 là phân biệt hoàn hảo, 0,5 là đoán bừa, đường chéo. AUC giúp so mô hình trước khi chọn ngưỡng.
+
+00:05:16.680 --> 00:05:27.432
+Ngưỡng 0,5 bắt được 85% ca ác tính, báo nhầm 5%. Ngưỡng 0,2 bắt được 90%, nhưng báo nhầm lên 21%.
+
+00:05:27.792 --> 00:05:32.568
+Trong scikit-learn, đặt mọi bước tiền xử lý vào một Pipeline.
+
+00:05:32.928 --> 00:05:41.736
+Khi đó cross_val_score học lại bộ chuẩn hoá trong từng lần chia, chỉ trên 4 phần huấn luyện. Đó là cách tránh rò rỉ dữ liệu.
+
+00:05:42.096 --> 00:05:48.504
+Kết quả vì thế hơi khác phòng thí nghiệm ở bước 4, vốn dùng trung bình của cả tập huấn luyện cho đơn giản.
+
+00:05:48.864 --> 00:05:53.064
+Cuối cùng là AUC của hồi quy logistic trên tập test.
+
+00:05:53.424 --> 00:06:04.176
+Sai số huấn luyện luôn giảm khi bậc tăng: từ 0,7223 ở bậc 1 xuống 0,6731 ở bậc 9. Mô hình linh hoạt hơn thì khớp tập huấn luyện tốt hơn.
+
+00:06:04.536 --> 00:06:10.536
+Đường cross-validation giảm nhẹ, thấp nhất ở bậc 4, rồi vọt lên khỏi khung hình.
+
+00:06:10.896 --> 00:06:19.296
+Đường test thì khá phẳng: bậc 1 là 0,7515, bậc 4 là 0,7128, bậc 9 là 0,7090.
+
+00:06:19.656 --> 00:06:28.872
+Vậy quy trình đúng: chọn bậc 4 nhờ cross-validation, huấn luyện lại trên cả 320 khu vực, rồi mới mở tập test đúng một lần để báo cáo.
+
+00:06:29.232 --> 00:06:43.296
+Vì sao đường test lại phẳng? Mọi khu vực test đều nằm trong vùng thu nhập dày dữ liệu. Nhìn tập test, ta sẽ tưởng bậc 9 vô hại. Cross-validation cho thấy nó có thể phát điên với một khu vực mới ở vùng thưa.
+
+00:06:43.656 --> 00:06:52.104
+Bốn bẫy thường gặp. Một: chọn mô hình bằng tập test. Mọi lựa chọn phải dựa trên cross-validation.
+
+00:06:52.464 --> 00:06:58.992
+Hai: rò rỉ. Chuẩn hoá hay điền dữ liệu thiếu trên toàn bộ dữ liệu trước khi chia.
+
+00:06:59.352 --> 00:07:08.016
+Ba: chia ngẫu nhiên khi dữ liệu có nhóm, hoặc theo thời gian. Dự báo tương lai thì tập kiểm định phải nằm sau tập huấn luyện.
+
+00:07:08.376 --> 00:07:18.384
+Bốn: tin vào con số của một tập test nhỏ. Với 80 mẫu, khoảng tin cậy rất rộng. Hãy báo cáo cả độ lệch giữa các phần.
+
+00:07:18.744 --> 00:07:20.616
+Tóm lại.
+
+00:07:20.976 --> 00:07:26.664
+Huấn luyện để học tham số, kiểm định để chọn mô hình, test để báo cáo một lần duy nhất.
+
+00:07:27.024 --> 00:07:33.840
+Cross-validation cho một điểm trung bình đáng tin, và bắt được những mô hình bất ổn mà một tập test nhỏ bỏ lọt.
+
+00:07:34.200 --> 00:07:42.672
+Sai số gồm bias, variance và nhiễu. Mô hình quá đơn giản thì bias cao, quá linh hoạt thì variance cao.
+
+00:07:43.032 --> 00:07:48.168
+Với phân loại, đường ROC và AUC giúp so mô hình trước khi chọn ngưỡng.
+
+00:07:48.528 --> 00:07:55.104
+Một con số đánh giá chỉ có nghĩa khi bạn biết nó được đo trên dữ liệu nào, và dữ liệu được chia ra sao.
+
+00:07:55.464 --> 00:08:01.608
+Chương 9 bước vào mạng nơ-ron: nơ-ron, hàm kích hoạt, và lan truyền ngược từng con số.
+
+00:08:01.968 --> 00:08:07.464
+Giờ hãy cuộn xuống làm các phòng thí nghiệm. Hẹn gặp lại ở chương 9.
