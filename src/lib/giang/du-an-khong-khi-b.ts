@@ -105,6 +105,7 @@ export function duAnBLecture(): Lecture {
               L(`Kết quả ${fmt(board.mlp.mae, 2)}, ngang gradient boosting. Cùng một dữ liệu thì mô hình mạnh hơn không giúp được bao nhiêu.`, { n: 3, hl: 2 }, { say: `Kết quả ${sn(board.mlp.mae, 2)}, ngang gradient boosting. Cùng một dữ liệu thì mô hình mạnh hơn không giúp được bao nhiêu.` }),
               L('Vậy dữ liệu theo giờ giúp được gì? Hai ngày có cùng bụi trung bình 60 có thể rất khác nhau. Một ngày bụi đang dâng lên vào buổi tối, gió lặng. Ngày kia bụi đang giảm từ trưa vì gió mùa vừa về.', { hl: -1 }, { say: 'Vậy dữ liệu theo giờ giúp được gì? Hai ngày có cùng bụi trung bình sáu mươi có thể rất khác nhau. Một ngày bụi đang dâng lên vào buổi tối, gió lặng. Ngày kia bụi đang giảm từ trưa vì gió mùa vừa về.' }),
               L('Trung bình ngày xoá mất khác biệt đó. Dữ liệu theo giờ giữ lại nó.'),
+              L('Đây cũng là bài học của chương 3B nhìn từ phía khác: muốn mô hình tốt hơn, nhiều khi phải hỏi lại dữ liệu đã bị tóm tắt mất những gì.', undefined, { say: 'Đây cũng là bài học của chương ba B nhìn từ phía khác: muốn mô hình tốt hơn, nhiều khi phải hỏi lại dữ liệu đã bị tóm tắt mất những gì.' }),
             ],
           },
         ],
@@ -200,6 +201,7 @@ export function duAnBLecture(): Lecture {
               L(`Nhưng nhìn đường độ lệch: dự báo ngày càng cao hơn thực tế. Đến tháng ${+lastBias.m.slice(5)}, mô hình đoán cao trung bình ${fmt(lastBias.bias, 1)} ${UG}.`, { n: 3, hl: 2 }, { say: `Nhưng nhìn đường độ lệch: dự báo ngày càng cao hơn thực tế. Đến tháng ${speakNum(String(+lastBias.m.slice(5)))}, mô hình đoán cao trung bình ${sn(lastBias.bias, 1)} ${sUG}.` }),
               L('Thế giới đã thay đổi. Trong giai đoạn này có lộ trình hạn chế xe máy chạy xăng trong Vành đai 1, và cùng lúc một trạm đo ngừng hoạt động. Dữ liệu dự báo không tách được hai thay đổi đó ra.', { hl: -1 }),
               L('Bài học: mô hình không phải xây một lần là xong. Phải theo dõi sai số và độ lệch hằng tháng, và có lịch học lại.'),
+              L('Một cách làm phổ biến: mỗi tháng so sai số mới với sai số lúc triển khai. Nếu độ lệch vượt một ngưỡng đặt trước, học lại trên dữ liệu gần nhất, và kiểm tra lại bằng cross-validation theo thời gian như chặng 10.', undefined, { say: 'Một cách làm phổ biến: mỗi tháng so sai số mới với sai số lúc triển khai. Nếu độ lệch vượt một ngưỡng đặt trước, học lại trên dữ liệu gần nhất, và kiểm tra lại bằng cross-validation theo thời gian như chặng mười.' }),
             ],
           },
           {

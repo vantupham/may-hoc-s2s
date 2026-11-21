@@ -1,0 +1,160 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:08.640
+Chương 12B: phần cuối của dự án bụi mịn, và cũng là bài cuối của khoá học. Ta ôn lại chương 8 đến chương 11.
+
+00:00:09.000 --> 00:00:18.096
+Phần A kết thúc với gradient boosting đứng đầu: sai 11,16 µg/m³, nhưng chỉ hơn hồi quy tuyến tính chưa tới một đơn vị.
+
+00:00:18.456 --> 00:00:25.752
+Có hai cách đi tiếp. Một: dùng mô hình mạnh hơn trên cùng dữ liệu, như mạng nơ-ron của chương 9.
+
+00:00:26.112 --> 00:00:34.656
+Hai: cho mô hình xem dữ liệu chi tiết hơn. Thay vì một con số trung bình cho cả ngày, đưa vào 72 giờ gần nhất.
+
+00:00:35.016 --> 00:00:45.168
+Mỗi mẫu là một bảng 72 hàng, 4 cột: bụi, gió, độ ẩm và độ cao lớp biên của từng giờ, từ 0 giờ hai ngày trước đến 23 giờ hôm nay.
+
+00:00:45.528 --> 00:00:55.992
+Chỉ những ngày có đủ 72 giờ liên tục mới dùng được: 144 ngày kiểm tra thì còn 142 ngày. Đó là cái giá đầu tiên của dữ liệu chi tiết.
+
+00:00:56.352 --> 00:01:06.744
+Chặng 10, ôn chương 8: trước khi so mô hình mới, cần một cách chọn tham số không đụng tới tập kiểm tra. Đó là cross-validation trên tập huấn luyện.
+
+00:01:07.104 --> 00:01:16.392
+Với chuỗi thời gian, mỗi lần chia phải học trên quá khứ và kiểm tra trên giai đoạn ngay sau đó. Năm lần chia, cửa sổ huấn luyện lớn dần.
+
+00:01:16.752 --> 00:01:26.256
+Lần thứ 3, kiểm tra từ 17/11/2024 đến 2/3/2025, là một mùa đông: sai nhiều nhất, 11,71. Mùa đông luôn khó hơn.
+
+00:01:26.616 --> 00:01:38.712
+Lần cuối, mùa hè thu 2025, mô hình còn thua mốc: 7,73 so với 7,21. Khi trời sạch và ổn định, "ngày mai bằng hôm nay" đã rất tốt.
+
+00:01:39.072 --> 00:01:43.224
+Trung bình 5 lần chia theo thời gian: 8,72.
+
+00:01:43.584 --> 00:01:50.424
+Nếu xáo trộn ngẫu nhiên các ngày rồi chia 5 phần như chương 8: 7,74. Đẹp hơn.
+
+00:01:50.784 --> 00:02:04.656
+Đẹp hơn vì sai. Khi xáo trộn, ngày 14 nằm ở tập kiểm tra trong khi ngày 13 và ngày 15 nằm ở tập huấn luyện. Bụi hôm nay gần giống hôm qua và ngày mai, nên mô hình gần như được xem trước đáp án.
+
+00:02:05.016 --> 00:02:15.912
+Chặng 11, ôn chương 9: một mạng MLP có thể học bất kỳ quan hệ phi tuyến nào, với điều kiện có đủ dữ liệu. Ở đây chỉ có 638 ngày.
+
+00:02:16.272 --> 00:02:23.160
+Mạng có 16 nơ-ron ẩn, điều chuẩn để giữ trọng số nhỏ, và dừng sớm khi sai số kiểm định thôi giảm.
+
+00:02:23.520 --> 00:02:31.800
+Kết quả 11,37, ngang gradient boosting. Cùng một dữ liệu thì mô hình mạnh hơn không giúp được bao nhiêu.
+
+00:02:32.160 --> 00:02:46.728
+Vậy dữ liệu theo giờ giúp được gì? Hai ngày có cùng bụi trung bình 60 có thể rất khác nhau. Một ngày bụi đang dâng lên vào buổi tối, gió lặng. Ngày kia bụi đang giảm từ trưa vì gió mùa vừa về.
+
+00:02:47.088 --> 00:02:52.632
+Trung bình ngày xoá mất khác biệt đó. Dữ liệu theo giờ giữ lại nó.
+
+00:02:52.992 --> 00:03:00.912
+Đây cũng là bài học của chương 3B nhìn từ phía khác: muốn mô hình tốt hơn, nhiều khi phải hỏi lại dữ liệu đã bị tóm tắt mất những gì.
+
+00:03:01.272 --> 00:03:14.352
+Chặng 12, ôn chương 10. Ở chương 10, bộ lọc 3 nhân 3 trượt trên ảnh theo hai chiều. Ở đây bộ lọc dài 6 giờ, phủ cả 4 kênh, và chỉ trượt theo một chiều: thời gian.
+
+00:03:14.712 --> 00:03:20.952
+Một bộ lọc có thể học hình dạng "bụi tăng dần trong khi gió giảm": một dấu hiệu báo trước ngày mai bẩn.
+
+00:03:21.312 --> 00:03:30.288
+Mạng có 3 bộ lọc. Từ mỗi bản đồ, nó lấy hai số: trung bình cả ba ngày, và giá trị ở 6 giờ cuối của hôm nay.
+
+00:03:30.648 --> 00:03:41.616
+Một ngày trong lab: CNN dự báo 92,8 µg/m³, thực tế là 107,6. Hụt, nhưng đúng hướng: một ngày rất bẩn.
+
+00:03:41.976 --> 00:03:52.704
+Chặng 13, ôn chương 11. Ở chương 11 mỗi từ là một vector; ở đây mỗi giờ là một vector: 4 kênh, cộng giờ trong ngày dưới dạng sin và cos.
+
+00:03:53.064 --> 00:03:59.784
+Giờ trong ngày đóng vai trò mã hoá vị trí: 13 giờ hôm qua và 13 giờ hôm nay có cùng nhịp ngày đêm.
+
+00:04:00.144 --> 00:04:12.744
+Trung bình trên 142 ngày kiểm tra, 24 giờ gần nhất nhận 33% sự chú ý, gần đúng một phần ba. Mô hình học được rằng hình dạng của cả ba ngày đều có ích, chứ không chỉ hôm nay.
+
+00:04:13.104 --> 00:04:23.280
+Nhắc lại bẫy của chương 11: trọng số chú ý không phải lời giải thích. Đừng viết "AI phát hiện bụi lúc 13 giờ hôm qua là nguyên nhân của ô nhiễm hôm nay".
+
+00:04:23.640 --> 00:04:30.408
+Ở bước 6, cross-validation theo thời gian chỉ là một dòng: TimeSeriesSplit của scikit-learn.
+
+00:04:30.768 --> 00:04:35.376
+Mạng MLP cũng có sẵn, với điều chuẩn và dừng sớm.
+
+00:04:35.736 --> 00:04:45.408
+CNN 1D và attention được huấn luyện bằng NumPy thuần trong kho mã của dự án, giống chương 10 và 11; trang này chỉ chạy lan truyền xuôi với trọng số đã lưu.
+
+00:04:45.768 --> 00:04:48.744
+Bảng xếp hạng cuối cùng của cả khoá học.
+
+00:04:49.104 --> 00:04:57.624
+CNN 1D đứng đầu: 9,71 µg/m³. Attention thứ hai: 10,21.
+
+00:04:57.984 --> 00:05:10.176
+Nhưng công bằng thì phải so trên cùng 142 ngày có đủ 72 giờ. Trên đúng những ngày đó, gradient boosting sai 11,09, và mốc "ngày mai bằng hôm nay" sai 16,3.
+
+00:05:10.536 --> 00:05:19.104
+CNN vẫn thắng rõ, chỉ với khoảng 100 tham số. Thứ giúp nó không phải độ phức tạp, mà là dữ liệu theo giờ.
+
+00:05:19.464 --> 00:05:28.944
+Thí nghiệm lệch phân phối của chương 3A: chỉ cho gradient boosting học các tháng 5 đến 9. Ngày bẩn nhất nó từng thấy là 74,1.
+
+00:05:29.304 --> 00:05:42.504
+Mùa đông có ngày lên tới 171. Cây quyết định không thể đoán vượt quá những gì nó từng thấy. Sai số mùa đông: 15,59, so với 11,16 khi học mọi tháng.
+
+00:05:42.864 --> 00:05:50.184
+Cuối cùng, giả sử ta chốt mô hình vào ngày 1 tháng 4 năm 2026 và cho chạy tiếp, không học lại.
+
+00:05:50.544 --> 00:05:56.976
+Từng tháng, sai số của mô hình và của mốc. Mô hình thắng mốc 7 trên 8 tháng.
+
+00:05:57.336 --> 00:06:06.912
+Nhưng nhìn đường độ lệch: dự báo ngày càng cao hơn thực tế. Đến tháng 11, mô hình đoán cao trung bình 4,9 µg/m³.
+
+00:06:07.272 --> 00:06:19.464
+Thế giới đã thay đổi. Trong giai đoạn này có lộ trình hạn chế xe máy chạy xăng trong Vành đai 1, và cùng lúc một trạm đo ngừng hoạt động. Dữ liệu dự báo không tách được hai thay đổi đó ra.
+
+00:06:19.824 --> 00:06:28.104
+Bài học: mô hình không phải xây một lần là xong. Phải theo dõi sai số và độ lệch hằng tháng, và có lịch học lại.
+
+00:06:28.464 --> 00:06:41.496
+Một cách làm phổ biến: mỗi tháng so sai số mới với sai số lúc triển khai. Nếu độ lệch vượt một ngưỡng đặt trước, học lại trên dữ liệu gần nhất, và kiểm tra lại bằng cross-validation theo thời gian như chặng 10.
+
+00:06:41.856 --> 00:06:55.296
+Bốn bẫy. Một: chọn mô hình chỉ theo sai số. CNN đứng đầu nhưng cần 72 giờ liên tục; một đêm mất tín hiệu là không có dự báo. Luôn cần một mô hình dự phòng đơn giản.
+
+00:06:55.656 --> 00:06:59.496
+Hai: coi trọng số attention là lời giải thích.
+
+00:06:59.856 --> 00:07:08.664
+Ba: đọc sai số giảm như bằng chứng một chính sách thành công. Khi hai thay đổi xảy ra cùng lúc, dữ liệu dự báo không tách được chúng.
+
+00:07:09.024 --> 00:07:14.352
+Bốn: không học lại. Mùa đông tới sẽ khác mùa đông vừa qua.
+
+00:07:14.712 --> 00:07:20.208
+Đây là bài giảng cuối cùng. Mười ba chương gói lại thành một quy trình.
+
+00:07:20.568 --> 00:07:26.232
+Khám dữ liệu, đặt mốc so sánh, và chia dữ liệu đúng như cách mô hình sẽ được dùng.
+
+00:07:26.592 --> 00:07:31.944
+Bắt đầu từ mô hình đơn giản, và chỉ thêm độ phức tạp khi đo được lợi ích của nó.
+
+00:07:32.304 --> 00:07:39.816
+Đặc trưng tốt và dữ liệu tốt thường thắng mô hình phức tạp: thời tiết ngày mai ở phần A, dữ liệu theo giờ ở phần B.
+
+00:07:40.176 --> 00:07:45.552
+Và mô hình sống trong một thế giới thay đổi: hãy theo dõi nó, và học lại.
+
+00:07:45.912 --> 00:07:54.912
+Từ Gradient Descent trên năm căn nhà đến attention trên 72 giờ bụi mịn, mọi phép tính đều là những phép cộng, phép nhân bạn đã tự làm bằng tay.
+
+00:07:55.272 --> 00:08:04.440
+Cảm ơn bạn đã học cùng Máy học S2S. Giờ hãy cuộn xuống, hoàn thành dự án, và mang những gì đã học tới một bài toán của chính bạn.

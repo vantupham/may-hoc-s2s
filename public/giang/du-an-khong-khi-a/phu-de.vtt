@@ -1,0 +1,169 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:10.080
+Chương 12A: dự án cuối khoá. Ta ôn lại chương 0 đến chương 8 trên một bài toán Việt Nam đang diễn ra: bụi mịn PM2.5 ở Hà Nội.
+
+00:00:10.440 --> 00:00:16.368
+Đây là bụi mịn trung bình mỗi ngày ở Hà Nội, từ đầu năm 2023 đến nay.
+
+00:00:16.728 --> 00:00:20.832
+Mỗi mùa đông bụi dâng cao, mùa hè thì sạch hơn hẳn.
+
+00:00:21.192 --> 00:00:32.712
+Ngưỡng 50 µg/m³ trung bình 24 giờ là mức giới hạn của quy chuẩn Việt Nam. Tháng 1 năm 2026 có 21 trên 30 ngày đủ số liệu vượt ngưỡng này.
+
+00:00:33.072 --> 00:00:41.496
+Ngày tệ nhất mùa đông vừa rồi, 12/12/2025, lên tới 171 µg/m³.
+
+00:00:41.856 --> 00:00:52.776
+Câu hỏi của dự án: từ số liệu đến hết hôm nay, PM2.5 ngày mai là bao nhiêu, và có nên phát cảnh báo không? Vừa là hồi quy, vừa là phân loại.
+
+00:00:53.136 --> 00:01:04.176
+Quy ước: mô hình học trên 638 ngày trước tháng 11 năm 2025, và được chấm trên mùa đông 2025–2026: 144 ngày, trong đó 61 ngày vượt ngưỡng.
+
+00:01:04.536 --> 00:01:15.432
+Chặng 1, ôn chương 3: khám dữ liệu. Kho mở OpenAQ lưu số đo của hàng chục nghìn trạm. Quét cả kho, ta tìm được 7 trạm ở Hà Nội.
+
+00:01:15.792 --> 00:01:23.640
+Trạm 7441 cũ ghi 3.193 giờ với giá trị −999: một mã lỗi, không phải số đo.
+
+00:01:24.000 --> 00:01:32.352
+Cột tương quan đo mức trạm đó đi cùng các trạm khác. Trạm Minh Khai lệch nhịp, tương quan dưới 0,7, nên bị loại.
+
+00:01:32.712 --> 00:01:39.408
+Trạm Vinhomes Ocean Park dùng cảm biến giá rẻ, đo cao hơn trung bình khoảng 12 đơn vị, cũng bị loại.
+
+00:01:39.768 --> 00:01:46.944
+Còn lại 5 trạm. Thêm 24 ngày-trạm bị loại vì lệch quá xa trung vị của các trạm khác cùng ngày.
+
+00:01:47.304 --> 00:01:55.512
+Mỗi quy tắc kiểm soát chất lượng là một quyết định của người làm dự án, và quyết định nào cũng có thể sai. Hãy ghi lại chúng.
+
+00:01:55.872 --> 00:02:02.712
+Chặng 2, ôn chương 8: trước khi học bất kỳ mô hình nào, hỏi xem không cần học máy thì làm được đến đâu.
+
+00:02:03.072 --> 00:02:10.176
+Cách 1: ngày mai bằng hôm nay. Sai trung bình 16,32 µg/m³.
+
+00:02:10.536 --> 00:02:17.784
+Cách 2: lấy trung bình của cùng tháng các năm trước. Sai 20,73, còn tệ hơn.
+
+00:02:18.144 --> 00:02:23.448
+Từ giờ, mọi mô hình phải thắng con số 16,3 thì mới đáng bàn tới.
+
+00:02:23.808 --> 00:02:34.512
+Chỉ dùng bụi của những ngày qua thì gần như không thể thắng. Thứ giúp được là thời tiết ngày mai: gió, mưa, độ ẩm, lớp không khí sát mặt đất dày hay mỏng.
+
+00:02:34.872 --> 00:02:42.840
+Chặng 3, ôn chương 0 và 1: mô hình đơn giản nhất có học, ŷ = w·x + b, với x là bụi hôm nay.
+
+00:02:43.200 --> 00:02:50.616
+Năm ngày quanh Tết Ất Tỵ, khi bụi giảm đều. Để dễ tính tay, đơn vị là chục microgam.
+
+00:02:50.976 --> 00:03:04.416
+Gradient Descent với η = 0,01, 80 vòng: w = 0,696, b = 0,131. Nghiệm đóng: w = 0,693, b = 0,149.
+
+00:03:04.776 --> 00:03:13.824
+w đã rất sát, còn b vẫn lệch một chút: đúng như chương 1, cái bát dẹt vì x chưa chuẩn hoá, nên Gradient Descent bò chậm dọc thung lũng.
+
+00:03:14.184 --> 00:03:28.224
+Trên cả 638 ngày huấn luyện, nghiệm đóng cho w = 0,806: ngày mai khoảng 81% của hôm nay, cộng thêm một ít. Sai số trên mùa đông: 15,64, chỉ nhỉnh hơn mốc một chút.
+
+00:03:28.584 --> 00:03:36.864
+Chặng 4, ôn chương 3B: mỗi dòng dữ liệu là một ngày, nhãn là bụi ngày hôm sau. Có 12 đặc trưng.
+
+00:03:37.224 --> 00:03:45.672
+Chỉ số bụi có những đoạn bị thiếu. Điền bằng nội suy hai phía, tức dùng cả ngày trước lẫn ngày sau, trông rất tự nhiên.
+
+00:03:46.032 --> 00:03:55.344
+Thử dự báo trên các ô đã điền: chỉ nhìn quá khứ thì sai 18,6, nội suy hai phía chỉ sai 4,6. Tốt đến khó tin.
+
+00:03:55.704 --> 00:04:07.536
+Vì nội suy đã nhìn thấy ngày mai, đúng thứ ta đang cần dự báo. Đó là rò rỉ từ tương lai. Với dữ liệu thời gian, mọi phép tính chỉ được nhìn về quá khứ.
+
+00:04:07.896 --> 00:04:20.592
+Chặng 5, ôn chương 2: hồi quy logistic ước lượng xác suất ngày mai vượt ngưỡng. Với ngưỡng 0,5, trên mùa đông: 51 lần cảnh báo đúng, 10 lần báo nhầm, 10 lần bỏ sót.
+
+00:04:20.952 --> 00:04:30.792
+Nếu một lần bỏ sót đắt gấp năm lần một lần báo nhầm, vì học sinh hít bụi cả ngày, thì nên hạ ngưỡng xuống rất thấp. Chọn ngưỡng là quyết định về chi phí.
+
+00:04:31.152 --> 00:04:44.136
+Chặng 6, ôn chương 4: KNN có tên khác trong khí tượng là dự báo tương tự. Tìm 10 ngày quá khứ giống hôm nay nhất, xem ngày hôm sau của chúng. Sai 12,35.
+
+00:04:44.496 --> 00:04:58.344
+Chặng 7, ôn chương 5: cây sâu 1 đúng 79,2%, nhưng cây sâu 2 tụt còn 67,4%. Câu hỏi thêm vào là "mai có mưa không", và mùa đông này mưa không còn rửa sạch bụi như các năm trước.
+
+00:04:58.704 --> 00:05:13.560
+Chặng 8, ôn chương 6: SVM nhân RBF. γ = 0,1 đúng 82,6% trên test; γ = 10 khớp tập huấn luyện tốt hơn, 90,6%, nhưng test chỉ 81,2%.
+
+00:05:13.920 --> 00:05:25.920
+Chặng 9, ôn chương 7: K-means trên hình dạng bụi trong 24 giờ tìm ra 3 kiểu ngày. Kiểu có đỉnh lúc 1 giờ sáng đông nhất vào tháng 10, mùa nghịch nhiệt và đốt rơm rạ sau thu hoạch.
+
+00:05:26.280 --> 00:05:33.960
+Ở bước 6, toàn bộ chặng 4 và mô hình mạnh nhất gói trong khoảng 30 dòng pandas và scikit-learn, chạy ngay trên trình duyệt.
+
+00:05:34.320 --> 00:05:43.320
+Để ý từng dòng tạo đặc trưng: shift và rolling chỉ nhìn về quá khứ. Một dấu trừ đặt sai chỗ là cả mô hình nhìn thấy tương lai.
+
+00:05:43.680 --> 00:05:49.248
+Thời tiết thì lấy của ngày mai, vì khi triển khai ta sẽ có bản tin dự báo thời tiết.
+
+00:05:49.608 --> 00:05:55.728
+Chia theo thời gian, không chia ngẫu nhiên. Rồi huấn luyện gradient boosting.
+
+00:05:56.088 --> 00:06:01.392
+Mọi mô hình của chương 0 đến 8, cùng 12 đặc trưng, cùng tập kiểm tra.
+
+00:06:01.752 --> 00:06:09.624
+Hai cột xám là hai mốc. Hồi quy tuyến tính chỉ với bụi hôm nay: 15,64, gần như ngang mốc.
+
+00:06:09.984 --> 00:06:17.640
+Thêm thời tiết, vẫn là hồi quy tuyến tính: 12,01. Đặc trưng tốt giúp nhiều hơn mô hình phức tạp.
+
+00:06:18.000 --> 00:06:24.408
+Cây sâu 3 tệ: 15,03. Rừng ngẫu nhiên 11,76.
+
+00:06:24.768 --> 00:06:32.424
+Đứng đầu phần A là gradient boosting: 11,16 µg/m³, giảm khoảng một phần ba so với mốc.
+
+00:06:32.784 --> 00:06:37.320
+Mức quan trọng của đặc trưng: bụi hôm nay chiếm 61%.
+
+00:06:37.680 --> 00:06:42.720
+Tiếp theo là gió ngày mai, 11%: gió mạnh thổi bụi đi.
+
+00:06:43.080 --> 00:06:50.208
+Nhưng nhớ bẫy của chương 5: mức quan trọng không phải nhân quả, và các đặc trưng tương quan với nhau chia nhau phần quan trọng.
+
+00:06:50.568 --> 00:06:58.752
+Bốn bẫy. Một: không có mốc so sánh. Sai 12 chỉ có nghĩa khi biết mốc là 16,3.
+
+00:06:59.112 --> 00:07:07.440
+Hai: chia ngẫu nhiên dữ liệu có thời gian. Tập test ngẫu nhiên chứa cả mùa hè dễ đoán, con số sẽ đẹp giả tạo.
+
+00:07:07.800 --> 00:07:15.888
+Ba: bảng này dùng thời tiết thật của ngày mai. Khi triển khai phải dùng bản tin dự báo, và sai số sẽ tăng lên.
+
+00:07:16.248 --> 00:07:30.144
+Bốn: đổi trạm mà không ghi lại. Chỉ số năm 2023 tính từ 1 trạm, năm 2026 từ 2 đến 3 trạm. So "năm nay sạch hơn năm ngoái" trên chỉ số này phải rất cẩn thận.
+
+00:07:30.504 --> 00:07:32.568
+Tóm lại phần A.
+
+00:07:32.928 --> 00:07:40.152
+Khám dữ liệu trước tiên: trạm lỗi, mã −999, cảm biến giá rẻ đều lẫn trong dữ liệu thật.
+
+00:07:40.512 --> 00:07:43.512
+Đặt mốc so sánh trước khi làm mô hình.
+
+00:07:43.872 --> 00:07:50.400
+Với dữ liệu thời gian, mọi đặc trưng chỉ được nhìn về quá khứ, và tập test phải nằm sau tập huấn luyện.
+
+00:07:50.760 --> 00:07:55.944
+Và đặc trưng tốt, ở đây là thời tiết ngày mai, giúp nhiều hơn mô hình phức tạp.
+
+00:07:56.304 --> 00:08:07.368
+Phần B ôn chương 8 đến 11: cross-validation theo thời gian, mạng nơ-ron, tích chập và attention trên 72 giờ số liệu, và mô hình sống thế nào khi thế giới thay đổi.
+
+00:08:07.728 --> 00:08:13.992
+Giờ hãy cuộn xuống, đi qua từng chặng của dự án. Hẹn gặp lại ở phần B.
