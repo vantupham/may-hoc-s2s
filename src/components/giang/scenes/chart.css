@@ -1,0 +1,10 @@
+/* Trục và nhãn của các cảnh có đồ thị: màu lấy từ token, đọc rõ trên cả giấy trắng và bảng đen */
+svg.gchart { font-family: var(--serif); overflow: visible; }
+svg.gchart text { font-size: 15px; fill: var(--pencil); }
+svg.gchart .tick text { font-family: var(--mono); fill: var(--pencil); }
+svg.gchart .tick line { stroke: var(--rule-2); }
+svg.gchart .axis-label { font-style: italic; fill: var(--pencil); }
+svg.gchart .domain { stroke: var(--ink); stroke-opacity: 0.7; }
+svg.gchart .ink { fill: var(--ink); }
+.gread { display: flex; gap: 26px; justify-content: flex-end; padding-right: 36px; font-size: 21px; color: var(--pencil); height: 34px; font-family: var(--mono); }
+.gread b { font-weight: 650; color: var(--ink); }

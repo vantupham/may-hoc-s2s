@@ -1,0 +1,211 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:05.088
+Chương 2: hồi quy logistic, mô hình phân loại đầu tiên của chúng ta.
+
+00:00:05.448 --> 00:00:13.440
+Ở hai chương trước, đầu ra là một con số. Lần này đầu ra là một nhãn: khối u lành tính hay ác tính.
+
+00:00:13.800 --> 00:00:22.752
+Dữ liệu là 569 mẫu sinh thiết khối u vú trong bộ Breast Cancer Wisconsin: 212 ca ác tính và 357 ca lành tính.
+
+00:00:23.112 --> 00:00:32.088
+Một lưu ý trước khi bắt đầu: đây là bài học về thuật toán, không phải công cụ chẩn đoán. Chẩn đoán thật cần nhiều xét nghiệm và bác sĩ.
+
+00:00:32.448 --> 00:00:41.016
+Để vẽ được trên mặt phẳng, ta chỉ dùng hai đặc trưng của nhân tế bào: bán kính trung bình và độ nhám bề mặt, cả hai đã chuẩn hoá như chương 1.
+
+00:00:41.376 --> 00:00:47.448
+Mỗi chấm là một bệnh nhân. Màu cam là ác tính, màu xanh là lành tính.
+
+00:00:47.808 --> 00:00:55.632
+Hai nhóm tách khá rõ theo bán kính, độ nhám giúp thêm một chút. Nhưng vùng giữa chồng lấn: sẽ có những ca khó.
+
+00:00:55.992 --> 00:01:01.080
+Vì vậy mô hình tốt không chỉ nói lành hay ác, mà còn nói chắc chắn bao nhiêu.
+
+00:01:01.440 --> 00:01:07.128
+Bước 1 giống hồi quy tuyến tính: tính một điểm số z bằng tổ hợp tuyến tính của hai đặc trưng.
+
+00:01:07.488 --> 00:01:14.592
+Nhưng z có thể là bất kỳ số nào, từ âm vô cùng đến dương vô cùng. Đó không phải xác suất.
+
+00:01:14.952 --> 00:01:19.512
+Bước 2: ép z vào khoảng từ 0 đến 1 bằng hàm sigmoid.
+
+00:01:19.872 --> 00:01:23.928
+Đây là đồ thị sigmoid: một đường cong hình chữ S.
+
+00:01:24.288 --> 00:01:33.672
+z = 0 cho đúng 0,5: không biết gì. z = 2 cho 88,1%, z = −2 cho 11,9%.
+
+00:01:34.032 --> 00:01:41.232
+z = 5 đã cho 99,3%. Điểm số càng xa 0, mô hình càng chắc chắn.
+
+00:01:41.592 --> 00:01:49.944
+Những điểm có z = 0, tức p = 0,5, tạo thành một đường thẳng trên mặt phẳng. Đó là ranh giới quyết định.
+
+00:01:50.304 --> 00:02:01.032
+Thử tự đặt một ranh giới đơn giản: chỉ dùng bán kính, w = (1; 0), b = 0. Ranh giới là đường thẳng đứng tại bán kính trung bình.
+
+00:02:01.392 --> 00:02:08.904
+Trên cả 569 bệnh nhân, ranh giới này đoán đúng 86,3%, mất mát 0,4512.
+
+00:02:09.264 --> 00:02:14.904
+Nền tô màu chuyển dần từ xanh sang cam: càng xa ranh giới, mô hình càng chắc chắn.
+
+00:02:15.264 --> 00:02:22.776
+Nghiêng đường thẳng để độ nhám góp phần, và tăng độ lớn trọng số để mô hình tự tin hơn ở hai bên, mất mát sẽ giảm thêm.
+
+00:02:23.136 --> 00:02:28.536
+Ở bước 3 của bài, bạn có thể tự kéo ba thanh trượt để tìm ranh giới tốt hơn.
+
+00:02:28.896 --> 00:02:36.600
+Làm tay trên 6 bệnh nhân thật: 3 ca ác tính, 3 ca lành tính. Xuất phát với mọi trọng số bằng 0.
+
+00:02:36.960 --> 00:02:41.040
+Mọi z bằng 0, nên mọi xác suất bằng 0,5.
+
+00:02:41.400 --> 00:02:47.112
+Mỗi người đóng góp mất mát −ln 0,5 = 0,6931.
+
+00:02:47.472 --> 00:02:56.904
+Cột cuối là p − y: âm 0,5 với ca ác tính, dương 0,5 với ca lành tính. Đó chính là "sai số" của mô hình.
+
+00:02:57.264 --> 00:03:05.448
+Gradient theo mỗi trọng số là trung bình của p − y nhân đặc trưng tương ứng. Dạng giống hệt hồi quy tuyến tính.
+
+00:03:05.808 --> 00:03:13.032
+Với η = 1, sau vòng 1: w₁ = 0,369, w₂ = 0,387.
+
+00:03:13.392 --> 00:03:18.768
+Mất mát giảm từ 0,6931 xuống 0,4517 chỉ sau một bước.
+
+00:03:19.128 --> 00:03:28.536
+Trên mặt phẳng: nền tô màu là xác suất ác tính, cam đậm là gần 1, xanh đậm là gần 0. Đường đen là ranh giới p = 0,5.
+
+00:03:28.896 --> 00:03:32.784
+Chạy tiếp các vòng và xem ranh giới xoay vào vị trí.
+
+00:03:33.144 --> 00:03:41.160
+Ở vòng 40: w = (1,903; 3,05), mất mát chỉ còn 0,0351.
+
+00:03:41.520 --> 00:03:50.064
+Với η = 3, ở vòng 40 mất mát còn 0,0122, trọng số còn lớn hơn: w₁ = 2,383.
+
+00:03:50.424 --> 00:04:01.416
+Vì sao trọng số cứ tăng? Khi ranh giới đã tách đúng cả 6 người, cách duy nhất để giảm mất mát nữa là làm mọi xác suất gần 0 hoặc 1 hơn, tức là kéo z ra xa 0.
+
+00:04:01.776 --> 00:04:11.688
+Sáu điểm này tách được hoàn toàn, nên mô hình cứ tự tin hơn mãi: trọng số tăng không dừng. Trên dữ liệu thật có chồng lấn, điều đó không xảy ra.
+
+00:04:12.048 --> 00:04:17.448
+Ở bước 4 của bài, bạn có thể bấm vào từng con số để xem phép tính đầy đủ.
+
+00:04:17.808 --> 00:04:27.552
+Với một người có y = 1, ta muốn p càng gần 1 càng tốt: mất mát là −ln p. Với y = 0, mất mát là −ln(1 − p).
+
+00:04:27.912 --> 00:04:34.656
+Gộp lại thành một công thức, rồi lấy trung bình trên mọi người. Đó là cross-entropy.
+
+00:04:35.016 --> 00:04:43.608
+Đường cam: ca ác tính. Mô hình đoán p càng nhỏ, mất mát càng lớn, và tiến ra vô cùng khi p về 0.
+
+00:04:43.968 --> 00:04:47.592
+Đường xanh: ca lành tính, đối xứng lại.
+
+00:04:47.952 --> 00:04:56.064
+Đoán sai một cách tự tin bị phạt rất nặng. Còn đoán 0,5 bị phạt ln 2 ≈ 0,693: mức không biết gì.
+
+00:04:56.424 --> 00:05:04.632
+Vì sao gradient lại gọn như vậy? Áp dụng quy tắc dây chuyền qua ba tầng: mất mát, xác suất, điểm số.
+
+00:05:04.992 --> 00:05:12.024
+Đạo hàm của sigmoid là p(1 − p), và nó triệt tiêu đúng mẫu số trong đạo hàm của cross-entropy.
+
+00:05:12.384 --> 00:05:24.312
+Kết quả: dự đoán trừ thật, nhân đầu vào. Đây cũng là lý do không dùng MSE cho phân loại: ghép MSE với sigmoid cho gradient gần bằng 0 đúng lúc mô hình sai nặng.
+
+00:05:24.672 --> 00:05:33.960
+Bài toán này không có công thức đóng. Nhưng cross-entropy là hàm lồi, chỉ có một đáy, nên Gradient Descent luôn tìm được nó.
+
+00:05:34.320 --> 00:05:37.224
+Phiên bản tự viết chỉ hơn chục dòng.
+
+00:05:37.584 --> 00:05:40.128
+Hàm sigmoid đúng một dòng.
+
+00:05:40.488 --> 00:05:45.384
+Mỗi vòng: điểm số, xác suất, mất mát cross-entropy.
+
+00:05:45.744 --> 00:05:52.344
+Gradient là X chuyển vị nhân p trừ y, chia n. Rồi cập nhật cả w và b.
+
+00:05:52.704 --> 00:05:58.680
+Ở bước 6 còn có phiên bản scikit-learn chạy trên toàn bộ dữ liệu, với hai ngưỡng khác nhau.
+
+00:05:59.040 --> 00:06:05.016
+Toàn bộ dữ liệu: 455 bệnh nhân để huấn luyện, 114 để kiểm tra.
+
+00:06:05.376 --> 00:06:13.152
+Sau 2.000 vòng, ranh giới nằm chéo qua vùng chồng lấn. Lần này trọng số dừng lại ở giá trị hữu hạn.
+
+00:06:13.512 --> 00:06:22.920
+Mô hình xuất ra xác suất. Quyết định cuối cùng phụ thuộc ngưỡng ta chọn, và ngưỡng không phải chuyện toán học: nó là chuyện cái giá của từng loại sai lầm.
+
+00:06:23.280 --> 00:06:29.448
+Ma trận nhầm lẫn đếm bốn loại kết quả: đúng ác, đúng lành, bỏ sót và báo nhầm.
+
+00:06:29.808 --> 00:06:38.184
+Ngưỡng 0,5: bỏ sót 6 ca ác tính, báo nhầm 4 ca lành tính. Độ nhạy 84,6%.
+
+00:06:38.544 --> 00:06:46.992
+Độ chính xác ở ngưỡng này là 91,2%. Nghe rất tốt, nhưng nó gộp hai loại sai lầm rất khác nhau làm một.
+
+00:06:47.352 --> 00:06:57.048
+Độ nhạy là tỷ lệ ca ác tính được phát hiện. Độ chuẩn là tỷ lệ báo động đúng trong số các lần báo ác tính: ở đây 89,2%.
+
+00:06:57.408 --> 00:07:06.216
+Với ung thư, bỏ sót đắt hơn báo nhầm rất nhiều: người bị bỏ sót có thể mất cơ hội điều trị, còn người bị báo nhầm chỉ phải làm thêm xét nghiệm.
+
+00:07:06.576 --> 00:07:16.440
+Hạ ngưỡng xuống 0,2: chỉ còn bỏ sót 4 ca, độ nhạy lên 89,7%. Đổi lại, báo nhầm tăng lên 16 ca.
+
+00:07:16.800 --> 00:07:25.320
+Độ chuẩn giảm xuống 68,6%. Hạ ngưỡng là đổi báo nhầm lấy ít bỏ sót hơn, không bao giờ được cả hai.
+
+00:07:25.680 --> 00:07:33.240
+Không có ngưỡng đúng cho mọi bài toán. Ở bước 7, bạn có thể tự kéo ngưỡng và xem ma trận thay đổi.
+
+00:07:33.600 --> 00:07:35.592
+Ba bẫy thường gặp.
+
+00:07:35.952 --> 00:07:44.880
+Một: chỉ nhìn độ chính xác. Nếu chỉ 1% bệnh nhân bị ung thư, mô hình luôn nói lành tính đạt 99% mà vô dụng.
+
+00:07:45.240 --> 00:07:49.032
+Hai: coi ngưỡng 0,5 là mặc định đúng.
+
+00:07:49.392 --> 00:07:57.048
+Ba: dữ liệu tách được hoàn toàn làm trọng số tăng vô hạn. Người ta thêm điều chuẩn để giữ trọng số nhỏ.
+
+00:07:57.408 --> 00:07:59.280
+Tóm lại.
+
+00:07:59.640 --> 00:08:04.992
+Hồi quy logistic tính một điểm số tuyến tính, rồi ép qua sigmoid thành xác suất.
+
+00:08:05.352 --> 00:08:08.688
+Ranh giới năm mươi phần trăm là một đường thẳng.
+
+00:08:09.048 --> 00:08:17.016
+Mất mát cross-entropy phạt nặng những dự đoán sai mà tự tin, và cho gradient gọn: dự đoán trừ thật, nhân đầu vào.
+
+00:08:17.376 --> 00:08:24.624
+Ngưỡng là quyết định về chi phí của sai lầm. Hãy đọc ma trận nhầm lẫn, đừng chỉ nhìn độ chính xác.
+
+00:08:24.984 --> 00:08:31.872
+Chương 3 dừng lại với thuật toán để nhìn kỹ dữ liệu: khám phá, đánh giá và xử lý nó trước khi huấn luyện.
+
+00:08:32.232 --> 00:08:37.728
+Giờ hãy cuộn xuống làm các phòng thí nghiệm. Hẹn gặp lại ở chương 3.

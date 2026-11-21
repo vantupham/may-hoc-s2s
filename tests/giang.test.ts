@@ -99,6 +99,8 @@ const LECTURE_NUMBERS: Record<string, [string, number, number, number][]> = {
   'gradient-descent': [['tay', 0, 1, 3], ['tay', 1, 1, 3], ['vong', 0, 0, 4], ['vong', 1, 0, 3], ['vong', 2, 0, 4], ['eta', 0, 0, 3]],
   'hoi-quy-tuyen-tinh': [['keo', 0, 0, 3], ['keo', 1, 0, 3], ['buoc', 0, 0, 3], ['buoc', 0, 1, 3], ['buoc', 1, 0, 3], ['buoc', 1, 1, 3],
     ['chuanhoa', 0, 0, 0], ['chuanhoa', 1, 0, 0], ['chuanhoa', 2, 0, 0], ['danhgia', 0, 0, 3], ['danhgia', 1, 0, 3]],
+  'hoi-quy-logistic': [['sigmoid', 0, 0, 1], ['sigmoid', 1, 0, 1], ['sigmoid', 2, 0, 1], ['ranhgioi', 0, 0, 1], ['ranhgioi', 0, 1, 4],
+    ['buoc', 0, 0, 3], ['buoc', 0, 2, 4], ['buoc', 1, 0, 3], ['buoc', 1, 2, 4], ['nguong', 0, 2, 1], ['nguong', 1, 2, 1]],
 };
 
 const views = (lec: BuiltLecture) => [...new Set(lec.chapters.flatMap((c) => c.scenes.map((s) => s.view)))];
