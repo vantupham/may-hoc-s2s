@@ -211,8 +211,6 @@
   .stage {
     position: relative; overflow: hidden; border: 1.5px solid var(--ink); border-radius: 4px;
     background-color: var(--paper);
-    background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
-    background-size: 24px 24px;
   }
   .stage::before { content: ''; position: absolute; top: 0; bottom: 0; left: 6.8%; border-left: 1.5px solid var(--le); opacity: 0.55; }
   .canvas { position: absolute; left: 0; top: 0; width: 960px; height: 540px; transform-origin: 0 0; font-family: var(--serif); color: var(--ink); }
