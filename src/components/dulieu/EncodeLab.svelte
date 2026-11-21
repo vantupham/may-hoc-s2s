@@ -63,7 +63,7 @@
   const hRaw = $derived(cal ? histogram(popRaw, 30, 0, 8000) : []);
   const hLog = $derived(cal ? histogram(popLog, 30, 1, 11) : []);
 
-  const W = 520, H = 230, m = { t: 14, r: 14, b: 42, l: 54 };
+  const W = 520, H = 242, m = { t: 26, r: 14, b: 42, l: 54 };
   const gx = scaleLinear().domain([0, CAP]).range([m.l, W - m.r]);
   const gy = scaleLog().domain([1e-4, 10]).range([H - m.b, m.t]).clamp(true);
   const col = { raw: 'var(--c-L)', mm: 'var(--ok)', z: 'var(--tim)' } as Record<string, string>;

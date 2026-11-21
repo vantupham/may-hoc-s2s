@@ -59,7 +59,7 @@
       <rect x={sx(i + nets.K - 1) - 3} y={mapY(v)} width="6" height={mapTop + MH - mapY(v)} fill={i === t ? 'var(--ink)' : 'var(--c-z)'} opacity={i === t ? 1 : 0.55}
         role="button" tabindex="-1" onclick={() => (t = i)} onkeydown={() => {}} style="cursor:pointer" />
     {/each}
-    {#each [0, 24, 48, 71] as h}<text x={sx(h)} y={H - 8} text-anchor="middle" class="lbl">{h === 71 ? '23h hôm nay' : h === 0 ? '0h, 2 ngày trước' : h === 24 ? '0h hôm qua' : '0h hôm nay'}</text>{/each}
+    {#each [0, 24, 48, 71] as h}<text x={sx(h)} y={H - 8} text-anchor={h === 71 ? 'end' : h === 0 ? 'start' : 'middle'} class="lbl">{h === 71 ? '23h hôm nay' : h === 0 ? '0h, 2 ngày trước' : h === 24 ? '0h hôm qua' : '0h hôm nay'}</text>{/each}
   </svg>
   <div class="lab-grid">
     <div>

@@ -53,7 +53,7 @@
     return () => clearTimeout(h);
   });
 
-  const W = 560, H = 280, m = { t: 14, r: 14, b: 44, l: 50 };
+  const W = 560, H = 292, m = { t: 26, r: 14, b: 44, l: 50 };
   const sx = scaleLog().domain([40, 20000]).range([m.l, W - m.r]);
   const sy = scaleLinear().domain([0.3, 1.4]).range([H - m.b, m.t]).clamp(true);
   const line = (key: 'linTr' | 'linVa' | 'knnVa') => pts.map((p, i) => `${i ? 'L' : 'M'}${sx(p.n)},${sy(p[key])}`).join('');
