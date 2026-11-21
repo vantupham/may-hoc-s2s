@@ -169,7 +169,7 @@ export function cnnLecture(): Lecture {
               L('Tính trọn một ví dụ nhỏ: ảnh 6 nhân 6, toàn số 0, trừ một vạch sáng ở cột thứ tư.', undefined, { say: 'Tính trọn một ví dụ nhỏ: ảnh sáu nhân sáu, toàn số không, trừ một vạch sáng ở cột thứ tư.' }),
               L(`Trượt con tem cạnh dọc qua: được bản đồ 4 nhân 4. Cột bên trái vạch cho ${fmt(toyMap[1], 0)}, cột bên phải cho ${fmt(toyMap[3], 0)}.`, { n: 2 }, { say: `Trượt con tem cạnh dọc qua: được bản đồ bốn nhân bốn. Cột bên trái vạch cho ${speakNum(fmt(toyMap[1], 0))}, cột bên phải cho ${speakNum(fmt(toyMap[3], 0))}.` }),
               L('Dương là chỗ chuyển từ tối sang sáng, âm là chỗ chuyển từ sáng sang tối.'),
-              L('ReLU giữ phần dương, xoá phần âm.', { n: 3 }),
+              L('ReLU giữ phần dương, xoá phần âm. Bộ lọc này chỉ "quan tâm" chỗ tối chuyển sang sáng; muốn bắt chỗ sáng chuyển sang tối thì cần một bộ lọc khác, có dấu ngược lại.', { n: 3 }),
               L(`Max-pool lấy số lớn nhất trong mỗi ô 2 nhân 2: chỉ còn 4 con số, mà vẫn giữ được điều quan trọng: có một cạnh tối sang sáng, ở nửa bên ${toyPool[0] > 0 ? 'trái' : 'phải'}.`, { n: 4 }, { say: `Max-pool lấy số lớn nhất trong mỗi ô hai nhân hai: chỉ còn bốn con số, mà vẫn giữ được điều quan trọng: có một cạnh tối sang sáng, ở nửa bên ${toyPool[0] > 0 ? 'trái' : 'phải'}.` }),
             ],
           },
@@ -249,7 +249,8 @@ export function cnnLecture(): Lecture {
             init: { n: 1, hl: '' },
             lines: [
               L(`Trên ${net.nTest.toLocaleString('vi-VN')} ảnh test, mạng chỉ với 6 bộ lọc đạt ${pc(net.testAcc)}%.`, undefined, { say: `Trên ${speakNum(net.nTest.toLocaleString('vi-VN'))} ảnh test, mạng chỉ với sáu bộ lọc đạt ${spc(net.testAcc)}.` }),
-              L('Quần, túi, giày, dép gần như không nhầm.'),
+              L('Quần, túi, giày, dép gần như không nhầm: hình dáng của chúng khác hẳn nhau ngay cả khi ảnh rất nhỏ.'),
+              L(`Dép và giày thể thao thỉnh thoảng lẫn vào nhau: ${cm[5][7]} ảnh dép bị đoán là giày. Cả hai đều nằm ngang, thấp, ở nửa dưới ảnh.`, undefined, { say: `Dép và giày thể thao thỉnh thoảng lẫn vào nhau: ${speakNum(String(cm[5][7]))} ảnh dép bị đoán là giày. Cả hai đều nằm ngang, thấp, ở nửa dưới ảnh.` }),
               L(`Áo sơ mi khó nhất: chỉ ${shirtOk} ảnh đoán đúng, và ${shirtTee} ảnh bị đoán là áo phông.`, { hl: `0,${K.shirt},${K.tee}` }, { say: `Áo sơ mi khó nhất: chỉ ${speakNum(String(shirtOk))} ảnh đoán đúng, và ${speakNum(String(shirtTee))} ảnh bị đoán là áo phông.` }),
               L(`Thêm ${cm[K.shirt][K.coat]} ảnh áo sơ mi bị đoán là áo khoác. Ở 28 nhân 28 điểm ảnh, cổ áo và hàng cúc gần như biến mất.`, { hl: `0,${K.shirt},${K.coat}` }, { say: `Thêm ${speakNum(String(cm[K.shirt][K.coat]))} ảnh áo sơ mi bị đoán là áo khoác. Ở hai mươi tám nhân hai mươi tám điểm ảnh, cổ áo và hàng cúc gần như biến mất.` }),
               L('Các CNN sâu hơn, với nhiều tầng tích chập chồng lên nhau, đạt trên 93% trên Fashion-MNIST.', { hl: '' }, { say: 'Các CNN sâu hơn, với nhiều tầng tích chập chồng lên nhau, đạt trên chín mươi ba phần trăm trên Fashion-MNIST.' }),

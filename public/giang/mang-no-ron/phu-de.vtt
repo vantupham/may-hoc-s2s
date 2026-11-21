@@ -1,0 +1,175 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:02.640
+Chương 9: mạng nơ-ron.
+
+00:00:03.000 --> 00:00:13.080
+Bài toán: cho ảnh 8 nhân 8 điểm ảnh của một chữ số viết tay, đó là số mấy? Đầu vào là 64 con số, đầu ra là một trong 10 lớp.
+
+00:00:13.440 --> 00:00:21.360
+Hồi quy logistic chỉ vẽ được ranh giới thẳng. Với ảnh, ranh giới giữa số 3 và số 8 phức tạp hơn nhiều.
+
+00:00:21.720 --> 00:00:31.968
+Ảnh do 43 người viết, được quét và thu nhỏ năm 1998. Có 1.797 ảnh, mỗi chữ số khoảng 180 ảnh.
+
+00:00:32.328 --> 00:00:38.136
+Độ đậm mỗi ô từ 0 đến 16; ta chia cho 16 để đưa về khoảng 0 đến 1.
+
+00:00:38.496 --> 00:00:47.736
+Để hiểu cơ chế học, ta bắt đầu với một mạng tí hon trên 6 bệnh nhân quen thuộc của chương 2. Rồi áp dụng đúng thuật toán đó cho chữ số.
+
+00:00:48.096 --> 00:00:55.488
+Mỗi nơ-ron làm hai việc. Một: tính tổng có trọng số của đầu vào, giống hệt hồi quy tuyến tính.
+
+00:00:55.848 --> 00:00:59.736
+Hai: đưa tổng đó qua một hàm kích hoạt phi tuyến.
+
+00:01:00.096 --> 00:01:04.800
+Sigmoid ta đã gặp ở chương 2: ép mọi số vào khoảng 0 đến 1.
+
+00:01:05.160 --> 00:01:10.872
+Tanh tương tự nhưng từ âm 1 đến 1. Mạng tí hon của ta dùng tanh.
+
+00:01:11.232 --> 00:01:18.312
+ReLU đơn giản nhất: số âm thành 0, số dương giữ nguyên. Mạng chữ số dùng ReLU.
+
+00:01:18.672 --> 00:01:29.976
+Vì sao cần chúng? Không có hàm kích hoạt, ghép bao nhiêu tầng tuyến tính lại vẫn chỉ là một hàm tuyến tính. Chính các khúc gập cho phép mạng uốn ranh giới theo hình dạng tuỳ ý.
+
+00:01:30.336 --> 00:01:39.240
+Người ta chứng minh được: một mạng chỉ cần một tầng ẩn đủ rộng là có thể xấp xỉ mọi hàm liên tục, với độ chính xác tuỳ ý. Đó là định lý xấp xỉ phổ quát.
+
+00:01:39.600 --> 00:01:52.776
+Học vẫn là Gradient Descent. Câu hỏi khó là: với hàng nghìn trọng số ở các tầng khác nhau, làm sao biết mỗi trọng số góp bao nhiêu vào sai số ở đầu ra? Câu trả lời là lan truyền ngược.
+
+00:01:53.136 --> 00:02:02.856
+Mạng tí hon: 2 đầu vào, 3 nơ-ron ẩn dùng tanh, 1 nơ-ron ra dùng sigmoid. Đưa bệnh nhân 1 vào, một ca ác tính.
+
+00:02:03.216 --> 00:02:08.448
+Lan truyền xuôi: mỗi nơ-ron ẩn tính tổng có trọng số, rồi qua tanh.
+
+00:02:08.808 --> 00:02:19.536
+Nơ-ron ra cộng ba giá trị đó theo trọng số v, qua sigmoid, được p = 0,603. Mất mát cross-entropy: 0,5053.
+
+00:02:19.896 --> 00:02:27.576
+Lan truyền ngược bắt đầu ở đầu ra: giống hồi quy logistic, δ = p − y = −0,397.
+
+00:02:27.936 --> 00:02:36.264
+Lùi về nơ-ron ẩn: nhân δ ra với trọng số v nối tới nó, rồi nhân với đạo hàm tanh, 1 − a².
+
+00:02:36.624 --> 00:02:47.472
+Gradient của một trọng số ở tầng đầu bằng δ của nơ-ron đó nhân với đầu vào. Mỗi tầng đi lùi thêm một thừa số: đó là quy tắc dây chuyền, áp dụng lặp lại.
+
+00:02:47.832 --> 00:03:03.936
+Ví dụ trọng số ra của h3, v = 0,73. Gradient của nó là δ ra nhân a của h3: −0,1865. Với η = 0,5, v mới = 0,8232.
+
+00:03:04.296 --> 00:03:11.928
+Gradient âm nên v tăng: nơ-ron h3 đang đẩy về phía "ác tính", và mạng muốn nghe nó nhiều hơn với ca ác tính này.
+
+00:03:12.288 --> 00:03:21.912
+Áp dụng cập nhật 6 lần, chỉ dùng gradient của bệnh nhân 1. Mất mát của bệnh nhân 1 giảm từ 0,5053 xuống 0,1268.
+
+00:03:22.272 --> 00:03:29.736
+Nhưng bệnh nhân 4, một ca lành tính: mất mát tăng từ 0,8161 lên 1,6522, gấp đôi.
+
+00:03:30.096 --> 00:03:37.728
+Học theo một mẫu có thể làm hỏng mẫu khác. Vì vậy người ta lấy gradient trung bình trên cả một lô nhiều mẫu.
+
+00:03:38.088 --> 00:03:44.496
+Mạng chữ số: 64 đầu vào, 32 nơ-ron ẩn dùng ReLU, 10 đầu ra.
+
+00:03:44.856 --> 00:03:54.600
+Tầng cuối dùng softmax để biến 10 điểm số thành 10 xác suất cộng lại bằng 1. Mất mát vẫn là cross-entropy: âm log xác suất của lớp đúng.
+
+00:03:54.960 --> 00:04:07.464
+Lan truyền ngược: ở tầng cuối, δ = p − y, với y viết dạng one-hot. Lùi một tầng: nhân với ma trận trọng số chuyển vị, rồi nhân từng phần tử với đạo hàm của hàm kích hoạt.
+
+00:04:07.824 --> 00:04:18.096
+Trọng số ban đầu được chọn ngẫu nhiên, nhỏ, với độ lệch chuẩn căn của hai chia số đầu vào. Nhờ vậy tín hiệu không phình to hay teo nhỏ khi đi qua từng tầng.
+
+00:04:18.456 --> 00:04:27.144
+Gradient của mỗi ma trận trọng số là một phép nhân ma trận. Tính gradient cho mọi trọng số chỉ tốn cỡ một lần lan truyền xuôi.
+
+00:04:27.504 --> 00:04:39.528
+Gradient Descent theo lô: thay vì tính trên toàn bộ ảnh, ta lấy trung bình trên 32 ảnh rồi cập nhật ngay. Gradient nhiễu một chút, nhưng mỗi epoch có 45 bước cập nhật thay vì 1.
+
+00:04:39.888 --> 00:04:44.256
+Toàn bộ mạng và lan truyền ngược bằng NumPy, khoảng 20 dòng.
+
+00:04:44.616 --> 00:04:49.008
+Khởi tạo trọng số ngẫu nhiên, nhỏ, theo cỡ của tầng.
+
+00:04:49.368 --> 00:04:54.072
+Mỗi lô 32 ảnh: lan truyền xuôi qua ReLU và softmax.
+
+00:04:54.432 --> 00:05:01.680
+Lan truyền ngược: p trừ y, rồi lùi qua ReLU. Mỗi dòng ứng với một công thức vừa xem.
+
+00:05:02.040 --> 00:05:10.776
+Cập nhật bốn ma trận và vector. Trong thực tế, PyTorch hay JAX tự động tính phần lan truyền ngược cho bất kỳ mạng nào bạn viết.
+
+00:05:11.136 --> 00:05:19.560
+Trước khi học, mạng đoán bừa: khoảng 5%. Mất mát cỡ ln 10, đúng mức "không biết gì" với 10 lớp.
+
+00:05:19.920 --> 00:05:25.536
+Với η = 0,1, chỉ sau 1 epoch đã đạt 57,2%.
+
+00:05:25.896 --> 00:05:32.688
+Sau 15 epoch: 97,1% trên tập huấn luyện, 95,8% trên tập test.
+
+00:05:33.048 --> 00:05:42.984
+Khoảng cách giữa huấn luyện và test chỉ khoảng 1,3 điểm phần trăm: mạng chưa học thuộc lòng. Nếu khoảng cách này lớn dần qua các epoch, đó là lúc nên dừng.
+
+00:05:43.344 --> 00:05:55.992
+Thử η = 2: mất mát nhảy loạn, như quả bóng văng khỏi lòng chảo ở chương 0. Sau 15 epoch chỉ 10,6% trên huấn luyện, 8,3% trên test: còn tệ hơn đoán bừa.
+
+00:05:56.352 --> 00:06:03.720
+Ma trận nhầm lẫn: hàng là chữ số thật, cột là chữ số mạng đoán. Đường chéo đậm là đoán đúng.
+
+00:06:04.080 --> 00:06:08.208
+Nhầm nhiều nhất: số 1 bị đoán là 9, 2 lần.
+
+00:06:08.568 --> 00:06:14.784
+Những chữ số có nét giống nhau là nơi mạng còn vất vả, giống như mắt người khi nhìn chữ viết vội.
+
+00:06:15.144 --> 00:06:23.736
+Mỗi nơ-ron ẩn có 64 trọng số, xếp lại thành ảnh 8 nhân 8. Màu đỏ là trọng số dương, xanh là âm.
+
+00:06:24.096 --> 00:06:33.192
+Cả mạng có 2410 tham số. Mỗi tham số được chỉnh hàng trăm lần, mỗi lần theo đúng công thức lan truyền ngược ta vừa tính tay.
+
+00:06:33.552 --> 00:06:42.864
+Mỗi nơ-ron thành một bộ dò: sáng lên khi ảnh có nét ở vùng đỏ, và tắt đi khi có nét ở vùng xanh. Không ai dạy chúng điều đó.
+
+00:06:43.224 --> 00:06:52.656
+Bốn bẫy thường gặp. Một: khởi tạo mọi trọng số bằng 0. Mọi nơ-ron ẩn nhận cùng gradient và mãi mãi giống nhau.
+
+00:06:53.016 --> 00:07:02.904
+Hai: gradient biến mất. Đạo hàm của sigmoid hay tanh gần 0 khi z lớn; nhân qua nhiều tầng, gradient ở các tầng đầu gần như bằng 0.
+
+00:07:03.264 --> 00:07:06.144
+Ba: không chuẩn hoá đầu vào.
+
+00:07:06.504 --> 00:07:14.352
+Bốn: quá khớp. Theo dõi độ chính xác test; dừng sớm hoặc điều chuẩn khi khoảng cách giữa huấn luyện và test lớn dần.
+
+00:07:14.712 --> 00:07:16.584
+Tóm lại.
+
+00:07:16.944 --> 00:07:25.488
+Một nơ-ron là tổng có trọng số cộng một hàm kích hoạt phi tuyến. Không có phi tuyến, mạng nhiều tầng chỉ là một mô hình tuyến tính.
+
+00:07:25.848 --> 00:07:31.656
+Lan truyền ngược là quy tắc dây chuyền áp dụng lặp lại, bắt đầu từ p trừ y ở đầu ra.
+
+00:07:32.016 --> 00:07:39.744
+Học theo lô vì một mẫu có thể kéo mạng đi sai hướng với mẫu khác. Và tốc độ học sai thì không gì cứu được.
+
+00:07:40.104 --> 00:07:47.712
+Mạng 64, 32, 10 đạt khoảng 96% trên ảnh chưa từng thấy, chỉ sau 15 lượt qua dữ liệu.
+
+00:07:48.072 --> 00:07:56.856
+Chương 10 làm mạng thông minh hơn với ảnh: thay vì nhìn từng điểm ảnh riêng lẻ, nó trượt những bộ lọc nhỏ qua ảnh. Đó là mạng tích chập.
+
+00:07:57.216 --> 00:08:04.344
+Giờ hãy cuộn xuống, tự huấn luyện mạng và thử vẽ chữ số của bạn. Hẹn gặp lại ở chương 10.

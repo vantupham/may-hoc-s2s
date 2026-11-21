@@ -1,0 +1,190 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:04.104
+Chương 10: mạng tích chập, gọi tắt là CNN.
+
+00:00:04.464 --> 00:00:19.392
+Năm 2017, Zalando, một cửa hàng thời trang trực tuyến ở Đức, công bố Fashion-MNIST: ảnh sản phẩm thật, thu nhỏ còn 28 nhân 28 điểm ảnh xám, thuộc 10 loại. Cho một ảnh, đó là loại gì?
+
+00:00:19.752 --> 00:00:28.896
+Mười loại: áo phông, quần dài, áo len, váy liền, áo khoác, dép, áo sơ mi, giày thể thao, túi xách và bốt.
+
+00:00:29.256 --> 00:00:40.776
+Mỗi ảnh có 784 điểm ảnh, giá trị từ 0 đến 255; ta chia cho 255. Trang này dùng 8.000 ảnh để huấn luyện và 2.000 ảnh để kiểm tra.
+
+00:00:41.136 --> 00:00:49.680
+Áo phông, áo sơ mi, áo len và áo khoác trông rất giống nhau ở cỡ ảnh này. Đó sẽ là chỗ khó của mọi mô hình.
+
+00:00:50.040 --> 00:00:57.960
+Nếu dùng mạng của chương 9, tầng đầu với 32 nơ-ron cần 784 nhân 32, tức hơn 25 nghìn trọng số.
+
+00:00:58.320 --> 00:01:02.616
+Tệ hơn, mỗi trọng số gắn với đúng một vị trí trong ảnh.
+
+00:01:02.976 --> 00:01:11.976
+Học được "có cạnh ở góc trái trên" không giúp gì cho việc nhận ra một cạnh giống hệt ở giữa ảnh. Mạng phải học lại cùng một thứ ở từng vị trí.
+
+00:01:12.336 --> 00:01:16.776
+Hãy tưởng tượng một con tem 3 nhân 3 ô có in sẵn các con số.
+
+00:01:17.136 --> 00:01:24.408
+Đặt con tem lên một góc của ảnh, nhân từng số trên tem với điểm ảnh bên dưới, cộng 9 tích lại: được một con số.
+
+00:01:24.768 --> 00:01:32.904
+Dịch tem sang phải một ô, làm lại. Rồi lại dịch. Quét hết ảnh, ta được một bản đồ mới.
+
+00:01:33.264 --> 00:01:43.032
+Con tem này âm bên trái, dương bên phải. Con số sẽ lớn ở những chỗ ảnh chuyển từ tối sang sáng theo chiều ngang: nó là một bộ dò cạnh dọc.
+
+00:01:43.392 --> 00:01:52.824
+Mỗi con tem là một câu hỏi nhỏ, hỏi ở mọi vị trí: ở đây có cạnh dọc không? Có vùng sáng không? Có góc nhọn không?
+
+00:01:53.184 --> 00:02:00.816
+Điều kỳ diệu: CNN không cần ai thiết kế tem. Nó tự học các con số trên tem bằng lan truyền ngược.
+
+00:02:01.176 --> 00:02:04.152
+Đây là một ảnh áo khoác trong tập test.
+
+00:02:04.512 --> 00:02:09.216
+Qua con tem cạnh dọc tự đặt: chỉ những mép dọc của chiếc áo sáng lên.
+
+00:02:09.576 --> 00:02:18.096
+Còn đây là hai bộ lọc mạng tự học được. Một cái sáng ở các mép, giống bộ dò cạnh; một cái sáng ở cả vùng vải.
+
+00:02:18.456 --> 00:02:22.704
+Mạng tự khám phá lại những gì con người từng thiết kế bằng tay.
+
+00:02:23.064 --> 00:02:29.208
+Mỗi ô của bản đồ đặc trưng là 9 phép nhân, cộng lại, cộng bias, rồi qua ReLU.
+
+00:02:29.568 --> 00:02:38.424
+Tại ô hàng 10, cột 10, nằm giữa vùng vải gần như đều màu: bộ dò cạnh dọc cho 0,000. Không có cạnh nào ở đó.
+
+00:02:38.784 --> 00:02:44.568
+Con tem làm mờ, chín ô một phần chín, chỉ lấy trung bình: 0,133.
+
+00:02:44.928 --> 00:02:51.768
+Bộ lọc học được 1 cho 0,000, bộ lọc 2 cho 0,240: bộ lọc thứ hai phản ứng với vùng vải.
+
+00:02:52.128 --> 00:02:57.312
+Ở bước 4, bạn có thể bấm vào bất kỳ ô nào để xem đủ 9 phép nhân.
+
+00:02:57.672 --> 00:03:04.128
+Tính trọn một ví dụ nhỏ: ảnh 6 nhân 6, toàn số 0, trừ một vạch sáng ở cột thứ tư.
+
+00:03:04.488 --> 00:03:12.264
+Trượt con tem cạnh dọc qua: được bản đồ 4 nhân 4. Cột bên trái vạch cho 3, cột bên phải cho −3.
+
+00:03:12.624 --> 00:03:17.544
+Dương là chỗ chuyển từ tối sang sáng, âm là chỗ chuyển từ sáng sang tối.
+
+00:03:17.904 --> 00:03:21.192
+ReLU giữ phần dương, xoá phần âm.
+
+00:03:21.552 --> 00:03:30.864
+Max-pool lấy số lớn nhất trong mỗi ô 2 nhân 2: chỉ còn 4 con số, mà vẫn giữ được điều quan trọng: có một cạnh tối sang sáng, ở nửa bên trái.
+
+00:03:31.224 --> 00:03:36.864
+Không đệm viền, ảnh 28 nhân 28 cho bản đồ 26 nhân 26.
+
+00:03:37.224 --> 00:03:47.040
+Mỗi bộ lọc chỉ có 9 trọng số và 1 bias, dùng chung cho mọi vị trí: gọi là chia sẻ trọng số. Sáu bộ lọc chỉ tốn 60 tham số.
+
+00:03:47.400 --> 00:03:55.416
+Max-pool giữ giá trị lớn nhất trong mỗi ô 2 nhân 2. Bản đồ 26 nhân 26 còn 13 nhân 13.
+
+00:03:55.776 --> 00:04:04.824
+Mạng vì thế ít nhạy với việc hoạ tiết dịch đi một điểm ảnh. Khi lan truyền ngược, gradient chỉ chảy về đúng ô đã thắng trong mỗi cửa sổ.
+
+00:04:05.184 --> 00:04:15.216
+Vì một trọng số của bộ lọc được dùng ở mọi vị trí, gradient của nó là tổng đóng góp từ mọi vị trí. Bản thân phép tính đó cũng là một phép tích chập.
+
+00:04:15.576 --> 00:04:22.176
+Ghép lại thành cả mạng. Ảnh đi qua 6 bộ lọc, được 6 bản đồ, qua ReLU.
+
+00:04:22.536 --> 00:04:29.952
+Max-pool thu mỗi bản đồ còn 13 nhân 13. Trải phẳng ra: 1.014 con số.
+
+00:04:30.312 --> 00:04:35.904
+Một tầng dense như chương 9 biến chúng thành 10 điểm số, rồi softmax biến thành 10 xác suất.
+
+00:04:36.264 --> 00:04:41.400
+Tổng cộng chỉ 10.210 tham số, phần lớn nằm ở tầng dense cuối.
+
+00:04:41.760 --> 00:04:47.400
+Mạng trên trang được huấn luyện sẵn bằng NumPy; trình duyệt của bạn chỉ chạy phần lan truyền xuôi.
+
+00:04:47.760 --> 00:05:00.552
+Các mạng thật chồng nhiều tầng tích chập. Tầng đầu thấy ô 3 nhân 3, tầng sau thấy tổ hợp của các ô đó, nên vùng nhìn rộng dần: từ cạnh, đến hoạ tiết, đến cả bộ phận như cổ áo hay quai túi.
+
+00:05:00.912 --> 00:05:08.832
+Ý tưởng này có từ cuối thập niên 1980. Mạng LeNet của Yann LeCun từng đọc chữ số trên séc ngân hàng ở Mỹ.
+
+00:05:09.192 --> 00:05:13.920
+Tích chập và max-pool viết tay trên một ảnh 6 nhân 6 có một vạch sáng dọc.
+
+00:05:14.280 --> 00:05:16.224
+Bộ lọc cạnh dọc.
+
+00:05:16.584 --> 00:05:21.600
+Hai vòng lặp trượt cửa sổ 3 nhân 3 qua ảnh: nhân từng cặp, cộng lại.
+
+00:05:21.960 --> 00:05:30.072
+Max-pool chỉ một dòng NumPy. Ở bước 6, thử đổi bộ lọc thành bộ dò cạnh ngang rồi đoán kết quả trước khi chạy.
+
+00:05:30.432 --> 00:05:33.168
+Đưa chính ảnh đó qua cả mạng.
+
+00:05:33.528 --> 00:05:40.296
+Áo khoác: 53,5%. Áo sơ mi: 27,7%.
+
+00:05:40.656 --> 00:05:48.768
+Xác suất là thông tin hữu ích. Khi mạng không chắc, một hệ thống thật có thể chuyển ảnh đó cho người xem lại thay vì tự quyết.
+
+00:05:49.128 --> 00:05:56.088
+Mạng đoán đúng, nhưng không chắc chắn lắm: hai loại áo này thật sự giống nhau ở 28 nhân 28 điểm ảnh.
+
+00:05:56.448 --> 00:06:01.848
+Trên 2.000 ảnh test, mạng chỉ với 6 bộ lọc đạt 84,5%.
+
+00:06:02.208 --> 00:06:06.192
+Quần, túi, giày, dép gần như không nhầm.
+
+00:06:06.552 --> 00:06:12.576
+Áo sơ mi khó nhất: chỉ 74 ảnh đoán đúng, và 45 ảnh bị đoán là áo phông.
+
+00:06:12.936 --> 00:06:21.816
+Thêm 41 ảnh áo sơ mi bị đoán là áo khoác. Ở 28 nhân 28 điểm ảnh, cổ áo và hàng cúc gần như biến mất.
+
+00:06:22.176 --> 00:06:29.712
+Các CNN sâu hơn, với nhiều tầng tích chập chồng lên nhau, đạt trên 93% trên Fashion-MNIST.
+
+00:06:30.072 --> 00:06:35.712
+Ba bẫy thường gặp. Một: quên chuẩn hoá điểm ảnh về khoảng 0 đến 1.
+
+00:06:36.072 --> 00:06:44.856
+Hai: nhầm thứ tự chiều cao, rộng, kênh giữa các thư viện. Rất nhiều lỗi CNN trong thực tế là lỗi sắp xếp mảng.
+
+00:06:45.216 --> 00:06:56.376
+Ba: kết luận rằng mạng hiểu quần áo. Nó chỉ học thống kê điểm ảnh của 8.000 ảnh nền đen, sản phẩm đặt giữa. Ảnh chụp ngoài đời sẽ làm nó lúng túng.
+
+00:06:56.736 --> 00:06:58.608
+Tóm lại.
+
+00:06:58.968 --> 00:07:07.680
+Một bộ lọc 3 nhân 3 trượt qua ảnh: 9 phép nhân, cộng lại, qua ReLU. Cùng một bộ lọc dùng cho mọi vị trí.
+
+00:07:08.040 --> 00:07:12.168
+Max-pool thu nhỏ bản đồ và làm mạng bớt nhạy với dịch chuyển.
+
+00:07:12.528 --> 00:07:17.928
+Và mạng tự học ra các bộ dò cạnh, bộ dò vùng, không cần ai thiết kế.
+
+00:07:18.288 --> 00:07:24.360
+CNN là nền tảng của nhận dạng ảnh, từ mở khoá điện thoại bằng khuôn mặt đến đọc ảnh y khoa.
+
+00:07:24.720 --> 00:07:35.328
+Chương 11 chuyển từ ảnh sang chuỗi: từng từ trong một tin nhắn nhìn sang các từ khác thế nào. Đó là cơ chế attention, trái tim của các mô hình ngôn ngữ hiện đại.
+
+00:07:35.688 --> 00:07:41.784
+Giờ hãy cuộn xuống, tự trượt bộ lọc qua ảnh. Hẹn gặp lại ở chương 11.
