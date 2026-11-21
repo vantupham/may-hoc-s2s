@@ -133,3 +133,39 @@ test('bài 6: khung trải nghiệm ghi nhớ dự đoán, nhiệm vụ, số li
 
   expect(errors).toEqual([]);
 });
+
+for (const l of lessons.filter((l) => l.lecture)) {
+  test(`bài giảng ${l.no}: phát, phụ đề, nhảy chương, tệp âm thanh`, async ({ page, request }) => {
+    const errors = watchErrors(page);
+    const dir = `giang/${l.slug}`;
+    for (const f of ['loi-giang.mp3', 'phu-de.vtt', 'thoi-gian.json', 'kich-ban.json']) expect((await request.get(`${dir}/${f}`)).status(), f).toBe(200);
+    const lec = await (await request.get(`${dir}/kich-ban.json`)).json();
+
+    await page.goto(`bai-hoc/${l.slug}`);
+    await expect(page.locator('.secnav a[data-sec="bai-giang"]')).toBeVisible();
+    const player = page.locator('#bai-giang .player');
+    await page.locator('#bai-giang').scrollIntoViewIfNeeded();
+    await expect(player.locator('.big')).toBeVisible({ timeout: 15_000 });
+    await expect(player.locator('.note')).toHaveCount(0); // âm thanh khớp kịch bản
+
+    // Phát: phụ đề câu đầu hiện ra, đồng hồ chạy
+    await player.locator('.big').click();
+    await expect(player.locator('.cap')).toHaveText(lec.chapters[0].scenes[0].lines[0].cap);
+    await expect.poll(() => player.locator('.time').textContent(), { timeout: 10_000 }).not.toMatch(/^0:00 /);
+
+    // Nhảy tới chương 4: tiêu đề cảnh và phụ đề đổi theo
+    await player.locator('.chapters li').nth(3).locator('button').click();
+    await expect(player.locator('.chap')).toHaveText(`4. ${lec.chapters[3].title}`);
+    await expect(player.locator('.cap')).toHaveText(lec.chapters[3].scenes[0].lines[0].cap);
+    await expect(player.locator('.canvas .scene')).toHaveCount(1);
+
+    // Bản chép lời có đủ mọi câu
+    await player.getByRole('button', { name: 'Chép lời' }).click();
+    const n = lec.chapters.flatMap((c: any) => c.scenes.flatMap((s: any) => s.lines)).length;
+    await expect(player.locator('.transcript button')).toHaveCount(n);
+    await player.getByRole('button', { name: 'Dừng' }).click();
+
+    // Tua làm trình duyệt huỷ yêu cầu Range đang dở của tệp âm thanh: bình thường, không phải lỗi
+    expect(errors.filter((e) => !/\.mp3 \(net::ERR_ABORTED\)/.test(e))).toEqual([]);
+  });
+}

@@ -12,6 +12,7 @@ import Debrief from '../../components/hoc/Debrief.svelte';
 import Checkpoint from '../../components/hoc/Checkpoint.astro';
 import Exercises from '../../components/hoc/Exercises.astro';
 import WrapUp from '../../components/hoc/WrapUp.astro';
+import LectureSection from '../../components/giang/LectureSection.astro';
 import { gdLearn as L } from '../../lib/hoc/gradient-descent';
 
 const mini = housing.mini;
@@ -54,6 +55,8 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 <Lesson slug="gradient-descent" data="5 khu vực, rồi 400 khu vực trong bộ California Housing (điều tra dân số Mỹ 1990)" lead="Gần như mọi mô hình học máy đều học bằng cùng một cách: đoán, đo xem sai bao nhiêu, rồi chỉnh một chút theo hướng bớt sai. Bài này mổ xẻ cách đó trên đúng 5 khu dân cư có thật ở California — từng phép cộng, phép nhân.">
 
   <Goals spec={L} />
+
+  <LectureSection slug="gradient-descent" />
 
   <section id="bai-toan">
     <div class="prose">

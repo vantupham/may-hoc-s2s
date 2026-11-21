@@ -1,0 +1,283 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:07.776
+Xin chào. Đây là bài giảng chương 0 của Máy học S2S: Gradient Descent, thuật toán xuống dốc từng bước.
+
+00:00:08.136 --> 00:00:14.736
+Gần như mọi mô hình học máy, từ một đường thẳng đến mạng nơ-ron hàng tỷ tham số, đều học bằng cùng một cách.
+
+00:00:15.096 --> 00:00:21.480
+Đoán, đo xem sai bao nhiêu, rồi chỉnh một chút theo hướng bớt sai. Rồi lặp lại.
+
+00:00:21.840 --> 00:00:29.304
+Trong bài giảng này, ta làm đúng như vậy bằng tay trên 5 khu dân cư có thật ở California, từng phép cộng, phép nhân.
+
+00:00:29.664 --> 00:00:36.696
+Đây là dữ liệu. Mỗi dòng là một khu vực trong cuộc điều tra dân số Mỹ năm 1990.
+
+00:00:37.056 --> 00:00:42.072
+Cột x là thu nhập trung bình của người dân, tính theo đơn vị 10.000 USD.
+
+00:00:42.432 --> 00:00:47.208
+Cột y là giá nhà trung bình, tính theo đơn vị 100.000 USD.
+
+00:00:47.568 --> 00:00:55.392
+Ví dụ căn 1: thu nhập 1,9667, tức khoảng 19.667 USD một năm, và giá nhà khoảng 84.600 USD.
+
+00:00:55.752 --> 00:01:01.320
+Câu hỏi của bài: biết thu nhập của một khu vực, ta có đoán được giá nhà ở đó không?
+
+00:01:01.680 --> 00:01:10.656
+Thử mô hình đơn giản nhất: giá nhà tỷ lệ với thu nhập, ŷ = w · x.
+
+00:01:11.016 --> 00:01:16.824
+Chỉ có một con số cần tìm: hệ số w. "Học" ở đây nghĩa là tìm ra w tốt nhất.
+
+00:01:17.184 --> 00:01:22.488
+Vẽ 5 khu vực lên mặt phẳng: trục ngang là thu nhập, trục đứng là giá nhà.
+
+00:01:22.848 --> 00:01:27.888
+Thu nhập tăng dần từ căn 1 đến căn 5, nhưng giá nhà thì không tăng đều.
+
+00:01:28.248 --> 00:01:35.400
+Căn 4 có thu nhập cao thứ hai mà giá lại thấp thứ hai: nó nằm sâu trong nội địa, còn căn 2 ở gần biển.
+
+00:01:35.760 --> 00:01:42.792
+Vậy không có đường thẳng nào đi qua cả 5 điểm. Câu hỏi đúng là: đường thẳng nào sai ít nhất?
+
+00:01:43.152 --> 00:01:49.632
+Với mỗi căn, sai số e = ŷ − y: đoạn đỏ nối giá thật với đường dự đoán.
+
+00:01:49.992 --> 00:01:59.232
+Ta bình phương sai số, tức vẽ một hình vuông có cạnh bằng sai số. Số âm không còn triệt tiêu số dương, và sai lớn bị phạt nặng hơn.
+
+00:01:59.592 --> 00:02:06.624
+Trung bình diện tích các hình vuông gọi là sai số bình phương trung bình, MSE. Đó chính là mất mát L.
+
+00:02:06.984 --> 00:02:14.496
+L(w) = (1/n) · Σ (w·xᵢ − yᵢ)²
+
+00:02:14.856 --> 00:02:19.008
+Mục tiêu từ giờ: tìm w làm L nhỏ nhất.
+
+00:02:19.368 --> 00:02:25.128
+Bắt đầu với w = 0: đường thẳng nằm sát trục ngang, mọi dự đoán bằng 0.
+
+00:02:25.488 --> 00:02:31.464
+Mọi sai số lúc này chính là âm giá nhà, và mất mát L = 2,423.
+
+00:02:31.824 --> 00:02:37.776
+Bên phải là đồ thị L theo w. Mỗi vị trí của đường thẳng là một điểm trên đường cong này.
+
+00:02:38.136 --> 00:02:43.488
+Giờ tăng dần w. Để ý các hình vuông co lại, và điểm trên đường cong trượt xuống.
+
+00:02:43.848 --> 00:02:50.040
+Tới khoảng w = 0,37, mất mát chạm đáy: L = 0,368.
+
+00:02:50.400 --> 00:02:54.936
+Đi quá đáy, đường thẳng dốc quá, các hình vuông lại to ra.
+
+00:02:55.296 --> 00:03:03.912
+Ở w = 1, mất mát vọt lên 6,33. Hình vuông của căn 5 to nhanh nhất, vì thu nhập của nó lớn nhất.
+
+00:03:04.272 --> 00:03:09.888
+Đường cong có hình cái bát. Tìm w tốt nhất nghĩa là tìm đáy bát.
+
+00:03:10.248 --> 00:03:19.704
+Với một tham số, dò bằng mắt được. Nhưng mô hình thật có hàng nghìn, thậm chí hàng tỷ tham số. Ta cần một cách tự động.
+
+00:03:20.064 --> 00:03:25.272
+Ở bước 3 của bài, bạn có thể tự kéo thanh trượt để cảm nhận cái bát này.
+
+00:03:25.632 --> 00:03:33.072
+Hình dung bạn đứng trên sườn đồi trong sương mù. Không thấy đáy, nhưng cảm được chân mình đang dốc về phía nào.
+
+00:03:33.432 --> 00:03:41.424
+Bước một bước theo hướng xuống dốc. Rồi lặp lại. Đó là toàn bộ ý tưởng của Gradient Descent.
+
+00:03:41.784 --> 00:03:44.208
+Mỗi vòng lặp gồm bốn việc.
+
+00:03:44.568 --> 00:03:49.512
+Một, dự đoán cho từng căn: ŷᵢ = w·xᵢ.
+
+00:03:49.872 --> 00:03:54.120
+Hai, sai số: eᵢ = ŷᵢ − yᵢ.
+
+00:03:54.480 --> 00:04:01.824
+Ba, độ dốc ∂L/∂w = (2/n)·Σ eᵢxᵢ.
+
+00:04:02.184 --> 00:04:10.872
+Bốn, bước xuống dốc: w mới = w − η·∂L/∂w, với η là tốc độ học, độ dài mỗi bước.
+
+00:04:11.232 --> 00:04:18.576
+Độ dốc dương nghĩa là đi sang phải thì L tăng, nên phải đi sang trái. Vì vậy có dấu trừ.
+
+00:04:18.936 --> 00:04:22.968
+Làm vòng 1 bằng tay, xuất phát từ w = 0.
+
+00:04:23.328 --> 00:04:27.336
+Với w = 0, mọi dự đoán đều bằng 0.
+
+00:04:27.696 --> 00:04:30.672
+Nên sai số chính là âm giá nhà.
+
+00:04:31.032 --> 00:04:34.416
+Nhân từng sai số với thu nhập của căn đó.
+
+00:04:34.776 --> 00:04:42.840
+Cộng năm tích lại được −27,78. Nhân với hai phần năm, độ dốc bằng −11,11.
+
+00:04:43.200 --> 00:04:54.864
+Độ dốc âm: đi sang phải sẽ xuống dốc. Với η = 0,01: w mới = 0 − 0,01 × (−11,11) = 0,1111.
+
+00:04:55.224 --> 00:05:00.480
+Chỉ sau một bước, mất mát giảm từ 2,423 xuống 1,374.
+
+00:05:00.840 --> 00:05:03.792
+Giờ để máy lặp lại bốn việc đó.
+
+00:05:04.152 --> 00:05:09.216
+Vòng 1: quả bóng nhảy một bước dài, từ 0 tới 0,111.
+
+00:05:09.576 --> 00:05:14.952
+Vòng 2, vòng 3, … tới vòng 6, w đạt 0,327.
+
+00:05:15.312 --> 00:05:19.848
+Để ý: các bước ngắn dần, dù tốc độ học không hề đổi.
+
+00:05:20.208 --> 00:05:28.296
+Vì độ dài bước bằng η nhân độ lớn của độ dốc. Càng gần đáy, đường cong càng phẳng, độ dốc càng nhỏ.
+
+00:05:28.656 --> 00:05:32.736
+Thuật toán tự phanh khi sắp tới nơi, không cần ai bảo.
+
+00:05:33.096 --> 00:05:38.544
+Sau 25 vòng, w = 0,3699, gần như chạm đáy.
+
+00:05:38.904 --> 00:05:44.880
+Tốc độ học quyết định rất nhiều. Thử η nhỏ: 0,002.
+
+00:05:45.240 --> 00:05:52.008
+Sau 25 vòng, w mới tới 0,291, còn xa đáy. Quá chậm.
+
+00:05:52.368 --> 00:05:55.248
+Tăng η lên 0,03.
+
+00:05:55.608 --> 00:05:58.728
+Chỉ khoảng 4 vòng là gần như chạm đáy.
+
+00:05:59.088 --> 00:06:04.392
+η = 0,05: bóng nhảy qua lại hai bên đáy rồi mới lắng xuống.
+
+00:06:04.752 --> 00:06:06.816
+Xem nó dao động.
+
+00:06:07.176 --> 00:06:14.544
+η = 0,07, vừa vượt ngưỡng: mỗi lần nhảy lại xa đáy hơn. Thuật toán phân kỳ.
+
+00:06:14.904 --> 00:06:19.296
+Sau 25 vòng, mất mát lên tới khoảng 220.
+
+00:06:19.656 --> 00:06:25.200
+Ở bước 4 của bài, bạn có thể tự bấm từng vòng và thử các tốc độ học khác nhau.
+
+00:06:25.560 --> 00:06:28.200
+Công thức độ dốc đến từ đâu?
+
+00:06:28.560 --> 00:06:37.656
+Mỗi số hạng của L có dạng (w·xᵢ − yᵢ)². Theo quy tắc dây chuyền, đạo hàm của u² là 2u nhân đạo hàm của u.
+
+00:06:38.016 --> 00:06:45.696
+Ở đây u chính là sai số eᵢ, còn đạo hàm của u theo w là xᵢ. Vậy mỗi số hạng cho 2·eᵢ·xᵢ.
+
+00:06:46.056 --> 00:06:50.784
+Lấy trung bình trên n căn, ta được đúng công thức độ dốc đã dùng.
+
+00:06:51.144 --> 00:06:57.864
+Quy tắc cập nhật đi ngược chiều độ dốc. Gần đáy, độ dốc gần 0 nên bước tự ngắn lại.
+
+00:06:58.224 --> 00:07:06.024
+Khi nào bước quá dài? Độ cong của cái bát, tức đạo hàm bậc hai L″, bằng 30,03.
+
+00:07:06.384 --> 00:07:17.952
+Gradient Descent chỉ hội tụ khi η < 2/L″ ≈ 0,0666. Vì thế 0,065 còn hội tụ, còn 0,07 thì phân kỳ.
+
+00:07:18.312 --> 00:07:27.552
+Bài toán một tham số này có nghiệm chính xác: cho đạo hàm bằng 0, ta được w* = Σxy / Σx² = 0,3700.
+
+00:07:27.912 --> 00:07:34.968
+Gradient Descent sau 25 vòng đạt 0,3699. Hai cách cho cùng một đáp số.
+
+00:07:35.328 --> 00:07:41.160
+Ở các mô hình lớn không có công thức giải trực tiếp, Gradient Descent là con đường duy nhất.
+
+00:07:41.520 --> 00:07:44.856
+Toàn bộ thuật toán chỉ khoảng mười dòng NumPy.
+
+00:07:45.216 --> 00:07:49.464
+Đầu tiên là dữ liệu: 5 thu nhập và 5 giá nhà.
+
+00:07:49.824 --> 00:07:54.672
+Điểm xuất phát w = 0, tốc độ học eta = 0,01.
+
+00:07:55.032 --> 00:07:57.672
+Vòng lặp chạy 25 lần.
+
+00:07:58.032 --> 00:08:03.408
+Bên trong là đúng bốn việc: dự đoán, sai số, mất mát và độ dốc.
+
+00:08:03.768 --> 00:08:09.792
+Và dòng quan trọng nhất: w = w − eta · dw. Đó là bước xuống dốc.
+
+00:08:10.152 --> 00:08:13.248
+Cuối cùng in nghiệm chính xác để đối chiếu.
+
+00:08:13.608 --> 00:08:20.304
+Ở bước 6, bạn có thể chạy đoạn mã này ngay trên trình duyệt, sửa eta hay điểm xuất phát rồi chạy lại.
+
+00:08:20.664 --> 00:08:25.248
+Cùng thuật toán đó, chạy trên 400 khu vực ngẫu nhiên thay vì 5.
+
+00:08:25.608 --> 00:08:32.904
+Sau 100 vòng, w ≈ 0,500: mỗi 10.000 USD thu nhập ứng với khoảng 50.000 USD giá nhà.
+
+00:08:33.264 --> 00:08:39.888
+Gradient Descent không quan tâm có 5 hay 5 triệu dòng. Chỉ có tổng Σ dài hơn.
+
+00:08:40.248 --> 00:08:42.312
+Ba bẫy cần nhớ.
+
+00:08:42.672 --> 00:08:50.136
+Một: tốc độ học quá lớn thì dao động hoặc phân kỳ. Dấu hiệu là mất mát tăng, hoặc nhảy lên xuống.
+
+00:08:50.496 --> 00:08:54.432
+Hai: tốc độ học quá nhỏ thì hội tụ rất chậm.
+
+00:08:54.792 --> 00:09:06.936
+Ba: mô hình quá đơn giản. Dù tối ưu hoàn hảo, đường thẳng qua gốc toạ độ vẫn sai nhiều với căn 4. Thêm hệ số chặn và thêm đặc trưng là chủ đề của các bài sau.
+
+00:09:07.296 --> 00:09:09.168
+Tóm lại.
+
+00:09:09.528 --> 00:09:18.120
+Học nghĩa là tìm tham số làm mất mát nhỏ nhất. Với bài toán dự đoán một con số, mất mát thường là MSE.
+
+00:09:18.480 --> 00:09:25.008
+Gradient Descent lặp bốn việc: dự đoán, sai số, độ dốc, rồi bước ngược chiều độ dốc.
+
+00:09:25.368 --> 00:09:28.056
+Bước tự ngắn lại khi gần đáy.
+
+00:09:28.416 --> 00:09:35.808
+Tốc độ học quá nhỏ thì chậm, quá lớn thì phân kỳ. Mất mát tăng là dấu hiệu cần giảm η.
+
+00:09:36.168 --> 00:09:40.320
+Khi có nghiệm chính xác, hãy dùng nó để kiểm tra kết quả.
+
+00:09:40.680 --> 00:09:48.216
+Chương 1 sẽ thêm hệ số chặn b, dùng 400 khu vực, và đo xem mô hình dự đoán tốt đến đâu trên dữ liệu chưa từng thấy.
+
+00:09:48.576 --> 00:09:55.776
+Giờ hãy cuộn xuống, làm các phòng thí nghiệm và trả lời câu hỏi trong bài. Hẹn gặp lại ở chương 1.

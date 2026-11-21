@@ -71,6 +71,7 @@ src/
 │                       #   hồ sơ dữ liệu, điền thiếu, biến đổi, chia dữ liệu, nhãn sai
 ├── lib/katex.ts        # macro màu: \cw{} \cb{} \cx{} \cy{} \cyh{} \ce{} \cL{} \cg{} \ceta{} \cz{} \cp{}
 ├── lib/lessons.ts      # danh sách chương cho trang chủ và điều hướng
+├── lib/giang/          # kịch bản bài giảng có lời, đọc số tiếng Việt, dòng thời gian
 ├── components/         # StepDebugger, CalcCard, Axis, PyCell, Quiz, Tex, Lazy
 │   ├── gd/ linreg/ logreg/   # phòng thí nghiệm chương 0–2
 │   ├── dulieu/               # phòng thí nghiệm chương 3A, 3B
@@ -112,6 +113,34 @@ Dữ liệu lớn không nhúng vào HTML. Trang lấy URL bằng `import url fr
 rồi truyền vào như props bình thường. Ô Python dùng chung URL đó: `open_url("${cancerUrl}")`.
 Dữ liệu nhỏ (vài KB) vẫn có thể truyền thẳng qua props.
 
+## Bài giảng có lời
+
+Bài có `lecture: true` trong `src/lib/lessons.ts` có thêm một bài giảng khoảng 10 phút ngay sau phần
+"Trước khi học": các cảnh mô phỏng chạy theo giọng đọc, kèm phụ đề, chương và bản chép lời. Đây không phải
+tệp video. Trình phát `src/components/giang/Lecture.svelte` dựng hình bằng SVG theo thời điểm của tệp âm
+thanh, nên số trên hình vẫn do ml-core tính, và mỗi bài chỉ tốn khoảng 3,6 MB.
+
+1. Viết kịch bản trong `src/lib/giang/<slug>.ts` (mẫu: `gradient-descent.ts`) và đăng ký trong
+   `src/lib/giang/index.ts`.
+   - Mỗi chương ứng với một bước của bài.
+   - Mỗi cảnh là một component trong `src/components/giang/scenes/`. Cảnh dùng chung gồm `Title`,
+     `Bullets`, `Formula`, `Table`, `Code`; cảnh riêng của bài đặt trong thư mục con, ví dụ `gd/Bowl`.
+   - Mỗi câu thoại có phụ đề `cap`. Lời đọc `say` là tuỳ chọn: mặc định nó được sinh từ phụ đề bằng
+     `speak()`, hàm này đổi số và ký hiệu thành chữ. Câu thoại cũng có thể kèm `set` để đổi trạng thái
+     cảnh; trạng thái này được nội suy trong lúc câu đang được đọc.
+2. Sinh giọng (cần `pip install edge-tts`):
+   ```bash
+   npm run build
+   python3 scripts/gen_voice.py --only <slug>   # ghi public/giang/<slug>/: loi-giang.mp3, thoi-gian.json, phu-de.vtt
+   ```
+   Mỗi câu được lưu đệm theo mã băm trong `data/voice-cache/` (không commit), nên sửa một câu thì chỉ
+   phải tạo lại câu đó.
+3. Đặt `lecture: true` và chèn `<LectureSection slug="<slug>" />` ngay sau `<Goals>`.
+
+`tests/giang.test.ts` kiểm tra hai điều:
+- âm thanh còn khớp từng câu của kịch bản, nên sửa lời mà quên sinh lại giọng thì CI đỏ;
+- các số trong bảng ghi của bài được nói đúng trong bài giảng.
+
 Quy ước màu: mỗi đại lượng một màu cố định (CSS `--c-w`, `--c-b`, … trong `src/styles/global.css`),
 dùng chung cho hình, công thức, bảng và lời giảng.
 
@@ -124,6 +153,7 @@ dùng chung cho hình, công thức, bảng và lời giảng.
   Breast Cancer Wisconsin, Iris, chữ số viết tay 8×8 (UCI, bản trong scikit-learn);
   SMS Spam Collection (UCI, CC BY 4.0); Titanic (datasciencedojo/datasets);
   Palmer Penguins (CC0, mwaskom/seaborn-data); Fashion-MNIST (Zalando Research, MIT).
+- Giọng đọc bài giảng: tổng hợp bằng Microsoft Edge TTS (giọng vi-VN-HoaiMyNeural) qua thư viện edge-tts.
 
 ## Thiết kế
 

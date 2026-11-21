@@ -14,10 +14,12 @@ export interface Lesson {
   requires: string[];
   /** Bài đã có khung trải nghiệm đầy đủ: phần "Trước khi học" và bước 8 "Tổng kết" */
   extended?: boolean;
+  /** Bài đã có bài giảng có lời (src/lib/giang/<slug>.ts, âm thanh trong public/giang/<slug>/) */
+  lecture?: boolean;
 }
 
 export const lessons: Lesson[] = [
-  { slug: 'gradient-descent', short: 'Gradient Descent', no: '0', pos: [0, 1], title: 'Gradient Descent: xuống dốc từng bước', summary: 'Thuật toán tối ưu đứng sau gần như mọi mô hình học máy, tính tay trên 5 căn nhà.', dataset: 'California Housing', ready: true, requires: [], extended: true },
+  { slug: 'gradient-descent', short: 'Gradient Descent', no: '0', pos: [0, 1], title: 'Gradient Descent: xuống dốc từng bước', summary: 'Thuật toán tối ưu đứng sau gần như mọi mô hình học máy, tính tay trên 5 căn nhà.', dataset: 'California Housing', ready: true, requires: [], extended: true, lecture: true },
   { slug: 'hoi-quy-tuyen-tinh', short: 'Hồi quy tuyến tính', no: '1', pos: [1, 1], title: 'Hồi quy tuyến tính', summary: 'Dự đoán giá nhà từ thu nhập: MSE, gradient, nghiệm đóng và đánh giá trên dữ liệu thật.', dataset: 'California Housing', ready: true, requires: ['gradient-descent'], extended: true },
   { slug: 'hoi-quy-logistic', short: 'Hồi quy logistic', no: '2', pos: [2, 1], title: 'Hồi quy logistic', summary: 'Phân loại khối u lành hay ác: sigmoid, cross-entropy, ngưỡng và ma trận nhầm lẫn.', dataset: 'Breast Cancer Wisconsin', ready: true, requires: ['hoi-quy-tuyen-tinh'], extended: true },
   { slug: 'kham-pha-du-lieu', short: 'Khám phá dữ liệu', no: '3A', pos: [3, 0.55], title: 'Dữ liệu (A): khám phá và đánh giá', summary: 'Phiếu khám sức khoẻ cho 20.640 khu vực: giá trị thiếu, chặn trần, ngoại lai, tương quan giả, nhãn sai và lệch phân phối.', dataset: 'California Housing đầy đủ, Breast Cancer', ready: true, requires: ['hoi-quy-logistic'], extended: true },

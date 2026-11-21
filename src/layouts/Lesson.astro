@@ -19,6 +19,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 <Base title={lesson.title} description={lead}>
   <nav class="secnav" aria-label="Các phần của bài">
     <div class="secnav-inner">
+      {lesson.lecture && <a href="#bai-giang" data-sec="bai-giang" class="lec">▶ Bài giảng</a>}
       {sections.map((s, k) => <a href={`#${s.id}`} data-sec={s.id}><span class="k">{k + 1}.</span> {s.label}</a>)}
     </div>
   </nav>
@@ -72,6 +73,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     @media (max-width: 900px) { .secnav-inner { padding-left: 1.1rem; } }
     .secnav a { white-space: nowrap; font-size: 0.86rem; color: var(--pencil); text-decoration: none; padding: 0.1rem 0; border-bottom: 2px solid transparent; }
     .secnav a .k { color: var(--faint); }
+    .secnav a.lec { color: var(--tim); }
     .secnav a:hover { color: var(--ink); }
     .secnav a.on { color: var(--ink); border-bottom-color: var(--le); }
     .head { padding-top: 3rem; }

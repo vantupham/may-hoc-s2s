@@ -1,0 +1,25 @@
+---
+/** Khối "Bài giảng" đặt ngay sau phần "Trước khi học" của một bài có lecture: true. */
+import Lazy from '../Lazy.svelte';
+
+interface Props { slug: string }
+const { slug } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const dir = `${base}/giang/${slug}`;
+---
+<section id="bai-giang" class="lecture">
+  <div class="prose">
+    <p class="tag hand">Bài giảng</p>
+    <p class="how">Khoảng 10 phút đi qua toàn bộ bài bằng giọng đọc tổng hợp, với mô phỏng chạy trên chính số liệu của bài. Có phụ đề, bản chép lời và chia chương: bấm một chương để nghe lại, hoặc <b>↓ trong bài</b> để tới phòng thí nghiệm tương ứng. Phím tắt: Space phát/dừng, ←/→ tua 5 giây, C phụ đề, F toàn màn hình.</p>
+  </div>
+  <div class="wide">
+    <Lazy client:visible view="giang/Lecture" minHeight="22rem"
+          data={{ lecture: `${dir}/kich-ban.json` }}
+          props={{ slug, audio: `${dir}/loi-giang.mp3`, timing: `${dir}/thoi-gian.json`, vtt: `${dir}/phu-de.vtt` }} />
+  </div>
+</section>
+
+<style>
+  .tag { margin: 1.6rem 0 0; font-size: 1.3rem; }
+  .how { font-size: 0.92rem; color: var(--pencil); margin: 0.2rem 0 0; }
+</style>
