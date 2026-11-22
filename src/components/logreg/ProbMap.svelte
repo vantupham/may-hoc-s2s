@@ -3,6 +3,7 @@
    * Bản đồ xác suất của hồi quy logistic trên hai đặc trưng đã chuẩn hoá:
    * nền tô màu theo p = σ(w₁x₁ + w₂x₂ + b), đường ranh giới tại p = ngưỡng, các bệnh nhân là chấm.
    */
+  import { onMount } from 'svelte';
   import { scaleLinear } from 'd3';
   import Axis from '../Axis.svelte';
   import { sigmoid } from '../../lib/ml-core';
@@ -16,6 +17,9 @@
   const dx = [-2.4, 4.2], dy = [-2.6, 4.8];
   const sx = scaleLinear().domain(dx).range([m.l, W - m.r]);
   const sy = scaleLinear().domain(dy).range([H - m.b, m.t]);
+  // Lưới nền 36×36 ô chỉ vẽ trên trình duyệt: dựng sẵn trong HTML thì nặng hơn 200 KB mà không thêm thông tin gì
+  let mounted = $state(false);
+  onMount(() => { mounted = true; });
   const N = 36;
   const cw = (W - m.l - m.r) / N, ch = (H - m.t - m.b) / N;
   const cells = $derived.by(() => {
@@ -42,9 +46,9 @@
 
 <svg class="chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Bản đồ xác suất ác tính và ranh giới quyết định">
   <defs><clipPath id="pm-clip"><rect x={m.l} y={m.t} width={W - m.l - m.r} height={H - m.t - m.b} /></clipPath></defs>
-  {#each cells as c}
+  {#if mounted}{#each cells as c}
     <rect x={c.x} y={c.y} width={cw} height={ch} shape-rendering="crispEdges" fill={c.p >= threshold ? 'var(--c-pos)' : 'var(--c-neg)'} fill-opacity={Math.min(0.32, Math.abs(c.p - threshold) * 0.6)} />
-  {/each}
+  {/each}{/if}
   <Axis scale={sx} orient="bottom" size={0} offset={H - m.b} label="x₁: bán kính (đã chuẩn hoá)" />
   <Axis scale={sy} orient="left" size={0} offset={m.l} label="x₂: độ nhám (đã chuẩn hoá)" />
   <g clip-path="url(#pm-clip)">

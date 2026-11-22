@@ -6,6 +6,9 @@ import '@fontsource/patrick-hand/latin-400.css';
 import '@fontsource-variable/jetbrains-mono';
 import 'katex/dist/katex.min.css';
 import '../styles/global.css';
+// Font chữ nội dung: tải trước để chữ không nhảy khi font về (cùng tệp mà CSS của fontsource trỏ tới)
+import litLatin from '@fontsource-variable/literata/files/literata-latin-opsz-normal.woff2?url';
+import litViet from '@fontsource-variable/literata/files/literata-vietnamese-opsz-normal.woff2?url';
 
 interface Props {
   /** Tên trang; tên site được nối vào sau, trừ khi đã có sẵn trong title */
@@ -57,6 +60,8 @@ const ogImage = new URL(`${base}/og/${image}.png`, Astro.site).href;
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="theme-color" content="#fbfcff" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#1e2a27" media="(prefers-color-scheme: dark)" />
+    <link rel="preload" href={litLatin} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={litViet} as="font" type="font/woff2" crossorigin />
     <link rel="icon" href={`${base}/favicon.svg`} type="image/svg+xml" />
     {jsonLd.length > 0 && (
       <script type="application/ld+json" set:html={JSON.stringify({ '@context': 'https://schema.org', '@graph': jsonLd }).replace(/</g, '\\u003c')} />

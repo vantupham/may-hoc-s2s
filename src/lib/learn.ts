@@ -62,6 +62,9 @@ export interface LessonLearn {
   reflect: string[];
 }
 
+/** Phần của LessonLearn mà tự đánh giá và tệp ghi chép cần (truyền ít để HTML nhẹ). */
+export type SelfCheckSpec = Pick<LessonLearn, 'slug' | 'goals' | 'missions' | 'reflect'>;
+
 /** Những gì người học đã làm trong một bài. */
 export interface LearnState {
   /** Đáp án đã chọn cho câu dự đoán, theo id nhiệm vụ */
@@ -102,7 +105,7 @@ export const CONF_LABELS = ['Chưa hiểu', 'Còn mơ hồ', 'Làm được khi 
 /** Nhãn ngắn trên nút chấm, cùng thứ tự với CONF_LABELS */
 export const CONF_SHORT = ['Chưa hiểu', 'Mơ hồ', 'Cần gợi ý', 'Tự tin'];
 
-export function summarize(spec: LessonLearn, st: LearnState) {
+export function summarize(spec: SelfCheckSpec, st: LearnState) {
   const withPred = spec.missions.filter((m) => m.predict);
   const predicted = withPred.filter((m) => st.pred[m.id] !== undefined);
   const predRight = predicted.filter((m) => st.pred[m.id] === m.predict!.answer);
@@ -122,7 +125,7 @@ export function summarize(spec: LessonLearn, st: LearnState) {
 }
 
 /** Ghi chép của người học dưới dạng Markdown, để tải về hoặc nộp cho giáo viên. */
-export function toMarkdown(title: string, spec: LessonLearn, st: LearnState, date = new Date()): string {
+export function toMarkdown(title: string, spec: SelfCheckSpec, st: LearnState, date = new Date()): string {
   const s = summarize(spec, st);
   const L: string[] = [`# Ghi chép: ${title}`, '', `Ngày: ${date.toLocaleDateString('vi-VN')}`, ''];
   L.push('## Tổng quan', '', `- Dự đoán đúng: ${s.predRight}/${s.predTotal}`, `- Nhiệm vụ đã làm: ${s.tasksDone}/${s.tasksTotal}`,

@@ -5,9 +5,9 @@
    */
   import { onMount } from 'svelte';
   import { init, get, update, reset } from '../../lib/learn.svelte';
-  import { summarize, toMarkdown, CONF_LABELS, CONF_SHORT, type LessonLearn } from '../../lib/learn';
+  import { summarize, toMarkdown, CONF_LABELS, CONF_SHORT, type SelfCheckSpec } from '../../lib/learn';
 
-  let { spec, title, labels }: { spec: LessonLearn; title: string; labels: Record<string, string> } = $props();
+  let { spec, title, labels }: { spec: SelfCheckSpec; title: string; labels: Record<string, string> } = $props();
   onMount(init);
   const st = $derived(get(spec.slug));
   const s = $derived(summarize(spec, st));

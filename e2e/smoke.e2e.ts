@@ -259,3 +259,17 @@ for (const l of lessons.filter((l) => l.ready)) {
     }
   });
 }
+
+test('HTML mỗi trang dưới 300 KB (chưa nén): dữ liệu lớn phải tải qua <Lazy>, hình trang trí vẽ trên trình duyệt', async ({ request }) => {
+  const sizes = await Promise.all(pages.map(async (p) => [p.path, (await (await request.get(p.path)).body()).length] as const));
+  expect(sizes.filter(([, n]) => n > 300_000)).toEqual([]);
+});
+
+test('lưới xác suất của bài 2 vẽ trên trình duyệt, không dựng sẵn trong HTML', async ({ page, request }) => {
+  const html = await (await request.get('bai-hoc/hoi-quy-logistic/')).text();
+  expect((html.match(/shape-rendering="crispEdges"/g) ?? []).length).toBe(0);
+  await page.goto('bai-hoc/hoi-quy-logistic/');
+  const lab = page.locator('astro-island[component-url*="LogRegLab"]');
+  await lab.locator('svg.chart').first().scrollIntoViewIfNeeded(); // astro-island là display: contents, không cuộn tới được
+  await expect(lab.locator('rect[shape-rendering="crispEdges"]')).toHaveCount(36 * 36);
+});
