@@ -218,3 +218,44 @@ test('trang không tồn tại hiện trang 404 có mục lục và không cho l
   await expect(page.locator('meta[name=robots]')).toHaveAttribute('content', 'noindex');
   await expect(page.locator('main ol a')).toHaveCount(lessons.filter((l) => l.ready).length);
 });
+
+const jsonLd = async (page: Page) => {
+  const raw = await page.locator('script[type="application/ld+json"]').textContent();
+  const d = JSON.parse(raw!);
+  expect(d['@context']).toBe('https://schema.org');
+  return d['@graph'] as Record<string, any>[];
+};
+
+test('trang chủ có JSON-LD: WebSite, Organization và Course gồm mọi bài', async ({ page }) => {
+  await page.goto('');
+  const g = await jsonLd(page);
+  expect(g.map((x) => x['@type'])).toEqual(['WebSite', 'Organization', 'Course']);
+  const course = g[2];
+  expect(course.hasPart.map((p: any) => p.url)).toEqual(lessons.filter((l) => l.ready).map((l) => `${SITE}bai-hoc/${l.slug}/`));
+});
+
+for (const l of lessons.filter((l) => l.ready)) {
+  test(`SEO nội dung ${l.no}: JSON-LD, định nghĩa, tiêu đề bước, bản chép lời`, async ({ page }) => {
+    await page.goto(`bai-hoc/${l.slug}/`);
+    const g = await jsonLd(page);
+    const res = g.find((x) => x['@type'] === 'LearningResource')!;
+    expect(res.url).toBe(`${SITE}bai-hoc/${l.slug}/`);
+    expect(res.description).toBe(l.seoDescription);
+    const crumbs = g.find((x) => x['@type'] === 'BreadcrumbList')!.itemListElement;
+    expect(crumbs.map((c: any) => c.item)).toEqual([SITE, `${SITE}bai-hoc/${l.slug}/`]);
+
+    // Khối "X là gì?" ngay dưới tiêu đề
+    await expect(page.locator('.def h2')).toHaveText(l.question);
+    await expect(page.locator('.def p')).toHaveText(l.answer);
+
+    // Bước 3–6 mang tên chủ đề của bài
+    for (const n of [3, 4, 5, 6]) await expect(page.locator(`h2:has(.step-no:text-is("${n}"))`)).toContainText(l.topic);
+
+    // Lời giảng có sẵn trong HTML (không cần JavaScript), đủ mọi chương
+    if (l.lecture) {
+      const lec = await (await page.request.get(`giang/${l.slug}/kich-ban.json`)).json();
+      await expect(page.locator('.chep-loi h3')).toHaveCount(lec.chapters.length);
+      await expect(page.locator('.chep-loi p').first()).toContainText(lec.chapters[0].scenes[0].lines[0].cap);
+    }
+  });
+}

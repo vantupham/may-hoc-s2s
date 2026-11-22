@@ -1,6 +1,7 @@
 ---
 import Base from './Base.astro';
 import { lessons, sectionsFor } from '../lib/lessons';
+import { lessonJsonLd } from '../lib/seo';
 
 interface Props {
   slug: string;
@@ -16,7 +17,7 @@ const prev = ready[i - 1];
 const next = ready[i + 1];
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
-<Base title={lesson.seoTitle} description={lesson.seoDescription} image={slug} type="article">
+<Base title={lesson.seoTitle} description={lesson.seoDescription} image={slug} type="article" jsonLd={lessonJsonLd(lesson)}>
   <nav class="secnav" aria-label="Các phần của bài">
     <div class="secnav-inner">
       {lesson.lecture && <a href="#bai-giang" data-sec="bai-giang" class="lec">▶ Bài giảng</a>}
@@ -29,6 +30,10 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
       <h1>{lesson.title}</h1>
       <p class="lead">{lead}</p>
       <p class="data">Dữ liệu thật: {data}</p>
+      <div class="def">
+        <h2 id="la-gi">{lesson.question}</h2>
+        <p>{lesson.answer}</p>
+      </div>
     </header>
     <slot />
     <div class="prose end">
@@ -80,6 +85,10 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     .chap { top: 3.3rem; font-size: 1.5rem; transform: rotate(-3deg); }
     .lead { font-size: 1.22rem; line-height: 1.6; color: var(--ink); max-width: 38rem; }
     .data { font-size: 0.92rem; color: var(--pencil); font-style: italic; }
+    /* Định nghĩa ngắn "X là gì?": câu trả lời gọn cho người lướt và cho đoạn trích của máy tìm kiếm */
+    .def { margin: 1.6rem 0 0; padding: 0.15rem 0 0.15rem 1.1rem; border-left: 3px solid var(--tim); max-width: 38rem; }
+    .def h2 { font-size: 1.02rem; font-weight: 700; margin: 0 0 0.3rem; letter-spacing: 0; color: var(--tim); }
+    .def p { margin: 0; font-size: 0.98rem; line-height: 1.65; }
     .end { margin-top: 5rem; padding-top: 2rem; border-top: 1.5px solid var(--ink); }
     .pn { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 2rem; }
     .pn a { text-decoration: none; color: var(--ink); font-weight: 650; line-height: 1.35; }

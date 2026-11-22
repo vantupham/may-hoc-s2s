@@ -122,7 +122,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="truc-giac">
     <div class="prose">
-      <h2><span class="step-no">3</span>Trực giác</h2>
+      <h2><span class="step-no">3</span>Trực giác về xử lý dữ liệu</h2>
       <p>Không có cách điền "trung lập". Mỗi cách là một <b>giả định</b> về lý do ô bị trống. Điền trung bình là giả định ô trống trông giống một khu vực điển hình. Điền theo nhóm là giả định nó giống các khu vực cùng nhóm. Điền bằng láng giềng là giả định nó giống những khu vực có số phòng, số hộ, dân số gần nó nhất. Giả định càng sát sự thật, giá trị điền càng đúng.</p>
     </div>
     <div class="prose"><Mission client:visible slug={L.slug} m={M["dien"]} /></div>
@@ -134,7 +134,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="tinh-tay">
     <div class="prose">
-      <h2><span class="step-no">4</span>Tính tay từng bước</h2>
+      <h2><span class="step-no">4</span>Tính tay xử lý dữ liệu từng bước</h2>
       <p>Mỗi bước xử lý là một phép tính nhỏ. Sáu khu vực dưới đây đi qua cả dây chuyền.</p>
     </div>
     <div class="wide"><HandPrep client:visible rows={rows} cats={cal.cats} calcs={calcs} labels={labels} /></div>
@@ -149,7 +149,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="ly-thuyet">
     <div class="prose">
-      <h2><span class="step-no">5</span>Lý thuyết</h2>
+      <h2><span class="step-no">5</span>Lý thuyết xử lý dữ liệu</h2>
       <h3>Thiết kế đặc trưng</h3>
       <p>Mô hình tuyến tính chỉ cộng các cột với trọng số. Nó không tự nghĩ ra được "số phòng chia số hộ" hay "log thu nhập". Thiết kế đặc trưng là đưa hiểu biết về bài toán vào dữ liệu: tỷ lệ thay cho số đếm khi cỡ đơn vị không quan trọng, log khi tác động là tương đối (thêm 1 phòng cho căn hộ 2 phòng khác hẳn thêm 1 phòng cho biệt thự 20 phòng), one-hot cho loại không có thứ tự.</p>
 
@@ -195,7 +195,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="ma-nguon">
     <div class="prose">
-      <h2><span class="step-no">6</span>Mã nguồn</h2>
+      <h2><span class="step-no">6</span>Mã nguồn Python cho xử lý dữ liệu</h2>
       <p>Trong scikit-learn, <code>ColumnTransformer</code> áp dụng các bước khác nhau cho các nhóm cột khác nhau, và <code>Pipeline</code> nối chúng với mô hình. Cross-validation sẽ gọi <code>fit</code> của cả chuỗi trên từng phần huấn luyện.</p>
       <PyCell client:visible code={pyCode} packages={['numpy', 'pandas', 'scikit-learn']} title="xu_ly_du_lieu.py" />
     </div>

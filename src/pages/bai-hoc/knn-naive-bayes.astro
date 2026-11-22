@@ -105,7 +105,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="truc-giac">
     <div class="prose">
-      <h2><span class="step-no">3</span>Trực giác</h2>
+      <h2><span class="step-no">3</span>Trực giác về KNN và Naive Bayes</h2>
       <h3>KNN: "Hãy cho tôi biết bạn bè của bạn là ai"</h3>
       <p>Muốn đoán loài của một bông hoa lạ, hãy tìm k bông đã biết loài có số đo gần nó nhất, rồi để chúng bỏ phiếu. Không có tham số nào để học; toàn bộ dữ liệu huấn luyện chính là mô hình.</p>
     </div>
@@ -122,7 +122,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="tinh-tay">
     <div class="prose">
-      <h2><span class="step-no">4</span>Tính tay từng bước</h2>
+      <h2><span class="step-no">4</span>Tính tay KNN và Naive Bayes từng bước</h2>
       <p>Với KNN, phép tính duy nhất là khoảng cách Euclid — định lý Pythagoras trên mặt phẳng. Bấm vào khoảng cách của từng láng giềng trong bảng ở phần 3 để xem phép tính đầy đủ.</p>
       <p>Với Naive Bayes, ta "huấn luyện" trên 6 tin nhắn thật bằng cách đếm, rồi chấm điểm một tin mới:</p>
     </div>
@@ -137,7 +137,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="ly-thuyet">
     <div class="prose">
-      <h2><span class="step-no">5</span>Lý thuyết</h2>
+      <h2><span class="step-no">5</span>Lý thuyết KNN và Naive Bayes</h2>
       <h3>KNN</h3>
       <Tex tex={String.raw`d(\mathbf{q}, \mathbf{x}_i) = \sqrt{\sum_{j}(q_j - x_{ij})^2} \qquad \hat y = \arg\max_c \sum_{i \in N_k(\mathbf q)} [y_i = c]`} display />
       <p><i>N<sub>k</sub>(q)</i> là tập k điểm gần q nhất. Vì khoảng cách cộng trực tiếp các chiều, mọi đặc trưng phải cùng thang đo: nếu một cột tính bằng mm và cột kia bằng m, cột mm sẽ áp đảo. Ở đây cả hai đều là cm nên không cần chuẩn hoá.</p>
@@ -154,7 +154,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="ma-nguon">
     <div class="prose">
-      <h2><span class="step-no">6</span>Mã nguồn</h2>
+      <h2><span class="step-no">6</span>Mã nguồn Python cho KNN và Naive Bayes</h2>
       <p>KNN tự viết bằng NumPy trong vài dòng:</p>
       <PyCell client:visible code={pyKnn} title="knn_iris.py" />
       <p>Naive Bayes với scikit-learn, dùng đúng từ điển và bảng đếm của trang này:</p>

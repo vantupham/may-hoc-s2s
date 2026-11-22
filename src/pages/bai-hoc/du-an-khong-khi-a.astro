@@ -94,7 +94,7 @@ print("gradient boosting: ", round(mean_absolute_error(te.y, m.predict(te[feats]
 
   <section id="truc-giac">
     <div class="prose">
-      <h2><span class="step-no">3</span>Trực giác</h2>
+      <h2><span class="step-no">3</span>Trực giác về dự báo PM2.5</h2>
       <h3>Chặng 2 · Đặt mốc trước khi làm mô hình <span class="rv" set:html={`ôn ${ch('danh-gia-mo-hinh', 'chương 8')}`} /></h3>
       <p>Trước khi học bất kỳ mô hình nào, ta hỏi: <i>không cần học máy thì làm được đến đâu?</i> Có hai cách dự báo "miễn phí": chép lại số đo hôm nay, hoặc lấy trung bình của cùng tháng trong các năm trước.</p>
       <Mission client:visible slug={L.slug} m={M.moc} />
@@ -109,7 +109,7 @@ print("gradient boosting: ", round(mean_absolute_error(te.y, m.predict(te[feats]
 
   <section id="tinh-tay">
     <div class="prose">
-      <h2><span class="step-no">4</span>Tính tay từng bước</h2>
+      <h2><span class="step-no">4</span>Tính tay dự báo PM2.5 từng bước</h2>
       <h3>Chặng 3 · Gradient Descent trên 5 ngày Tết <span class="rv" set:html={`ôn ${ch('gradient-descent', 'chương 0')}, ${ch('hoi-quy-tuyen-tinh', '1')}`} /></h3>
       <p>Mô hình đơn giản nhất có học: ŷ = w·x + b, với x là PM2.5 hôm nay. Ta lấy 5 ngày liên tiếp quanh Tết Ất Tỵ (29/1 – 2/2/2025), khi bụi giảm đều từ 78 xuống 22 µg/m³. Để dễ tính tay, đơn vị là chục µg/m³.</p>
       <Mission client:visible slug={L.slug} m={M.tay} />
@@ -124,7 +124,7 @@ print("gradient boosting: ", round(mean_absolute_error(te.y, m.predict(te[feats]
 
   <section id="ly-thuyet">
     <div class="prose">
-      <h2><span class="step-no">5</span>Lý thuyết qua từng chặng</h2>
+      <h2><span class="step-no">5</span>Lý thuyết dự báo PM2.5 qua từng chặng</h2>
       <p>Mỗi chặng dưới đây dùng lại một chương. Không có lý thuyết mới, chỉ có câu hỏi mới: <i>công cụ này giúp được gì cho bài toán bụi mịn?</i></p>
 
       <h3>Chặng 4 · 12 đặc trưng và rò rỉ từ tương lai <span class="rv" set:html={`ôn ${ch('xu-ly-du-lieu', 'chương 3B')}`} /></h3>
@@ -179,7 +179,7 @@ print("gradient boosting: ", round(mean_absolute_error(te.y, m.predict(te[feats]
 
   <section id="ma-nguon">
     <div class="prose">
-      <h2><span class="step-no">6</span>Mã nguồn</h2>
+      <h2><span class="step-no">6</span>Mã nguồn Python cho dự báo PM2.5</h2>
       <p>Toàn bộ chặng 4 và mô hình mạnh nhất của bài trong khoảng 30 dòng pandas và scikit-learn, chạy ngay trên trình duyệt với đúng dữ liệu của trang. Để ý từng dòng tạo đặc trưng: <code>shift(1)</code> và <code>rolling(7)</code> nhìn về quá khứ, <code>shift(-1)</code> chỉ dùng cho nhãn và thời tiết ngày mai.</p>
       <PyCell client:visible code={pyCode} packages={['numpy', 'pandas', 'scikit-learn']} title="du_bao_pm25.py" />
       <h3>Thử sửa mã</h3>

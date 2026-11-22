@@ -85,7 +85,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="truc-giac">
     <div class="prose">
-      <h2><span class="step-no">3</span>Trực giác</h2>
+      <h2><span class="step-no">3</span>Trực giác về mạng nơ-ron</h2>
       <p>Mỗi nơ-ron làm hai việc: tính tổng có trọng số của đầu vào, rồi đưa tổng đó qua một <b>hàm kích hoạt</b> phi tuyến.</p>
       <div class="acts">
         {act.map((a) => (
@@ -107,7 +107,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="tinh-tay">
     <div class="prose">
-      <h2><span class="step-no">4</span>Tính tay từng bước</h2>
+      <h2><span class="step-no">4</span>Tính tay mạng nơ-ron từng bước</h2>
     </div>
     <div class="prose"><Mission client:visible slug={L.slug} m={M["lantruyen"]} /></div>
     <div class="wide"><BackpropLab client:visible patients={cancer.mini} init={tiny} /></div>
@@ -120,7 +120,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="ly-thuyet">
     <div class="prose">
-      <h2><span class="step-no">5</span>Lý thuyết</h2>
+      <h2><span class="step-no">5</span>Lý thuyết mạng nơ-ron</h2>
       <h3>Lan truyền xuôi</h3>
       <Tex tex={String.raw`\mathbf a^{(0)} = \cx{\mathbf x}, \qquad \cz{\mathbf z^{(l)}} = \cw{W^{(l)}}\,\mathbf a^{(l-1)} + \cb{\mathbf b^{(l)}}, \qquad \mathbf a^{(l)} = g\big(\cz{\mathbf z^{(l)}}\big)`} display />
       <p>Với phân loại 10 lớp, tầng cuối dùng <b>softmax</b> để biến 10 điểm số thành 10 xác suất cộng lại bằng 1, và mất mát là cross-entropy:</p>
@@ -137,7 +137,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="ma-nguon">
     <div class="prose">
-      <h2><span class="step-no">6</span>Mã nguồn</h2>
+      <h2><span class="step-no">6</span>Mã nguồn Python cho mạng nơ-ron</h2>
       <p>Toàn bộ mạng và lan truyền ngược bằng NumPy, khoảng 20 dòng. Mỗi dòng trong vòng lặp ứng với một công thức ở phần 5.</p>
       <PyCell client:visible code={pyCode} title="mlp_chu_so.py" />
       <p>Trong thực tế, người ta dùng PyTorch hoặc JAX: chúng tự động tính lan truyền ngược (automatic differentiation) cho bất kỳ mạng nào bạn viết.</p>

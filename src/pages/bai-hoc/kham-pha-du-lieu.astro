@@ -91,7 +91,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="truc-giac">
     <div class="prose">
-      <h2><span class="step-no">3</span>Trực giác</h2>
+      <h2><span class="step-no">3</span>Trực giác về đánh giá dữ liệu</h2>
       <p>Người làm học máy có câu "rác vào, rác ra". Mô hình không biết dòng nào là lỗi: nó chỉ cố gắng khớp mọi dòng. Với hồi quy, sai số bị <b>bình phương</b> trước khi cộng lại, nên một điểm sai lệch xa có sức nặng bằng hàng chục điểm bình thường.</p>
       <p>Nhưng không phải điểm lạ nào cũng là rác. Một khu vực có 1.000 người mà chỉ 4 hộ không phải lỗi gõ phím: đó có thể là một trại lính. Việc của người làm dữ liệu là <b>hỏi vì sao</b> trước khi xoá.</p>
     </div>
@@ -103,7 +103,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="tinh-tay">
     <div class="prose">
-      <h2><span class="step-no">4</span>Tính tay từng bước</h2>
+      <h2><span class="step-no">4</span>Tính tay đánh giá dữ liệu từng bước</h2>
       <p>Mọi con số trong phiếu khám đều từ vài công thức đơn giản. Ta tính lại trên 10 khu vực để thấy rõ từng bước, trong đó có một khu vực mang thu nhập lớn nhất bộ dữ liệu.</p>
     </div>
     <div class="prose"><Mission client:visible slug={L.slug} m={M["tay"]} /></div>
@@ -117,7 +117,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="ly-thuyet">
     <div class="prose">
-      <h2><span class="step-no">5</span>Lý thuyết</h2>
+      <h2><span class="step-no">5</span>Lý thuyết đánh giá dữ liệu</h2>
       <h3>Thế nào là một bộ dữ liệu tốt</h3>
       <p>Không có bộ dữ liệu "tốt nhất" nói chung, chỉ có bộ dữ liệu tốt nhất <b>cho một bài toán và một nơi sử dụng cụ thể</b>. Tám tiêu chí dưới đây giúp kiểm tra điều đó. Mỗi tiêu chí có một cách đo bằng con số, và đa số đã có phòng thí nghiệm trong hai bài 3A và 3B.</p>
       <table class="data crit">
@@ -170,7 +170,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="ma-nguon">
     <div class="prose">
-      <h2><span class="step-no">6</span>Mã nguồn</h2>
+      <h2><span class="step-no">6</span>Mã nguồn Python cho đánh giá dữ liệu</h2>
       <p>Toàn bộ phiếu khám ở phần 2 gói gọn trong vài lệnh pandas. Tạo thói quen chạy chúng <b>trước</b> khi viết dòng huấn luyện đầu tiên.</p>
       <PyCell client:visible code={pyCode} packages={['pandas']} title="kham_du_lieu.py" />
     </div>

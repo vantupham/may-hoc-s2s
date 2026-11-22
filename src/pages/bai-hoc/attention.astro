@@ -66,7 +66,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="truc-giac">
     <div class="prose">
-      <h2><span class="step-no">3</span>Trực giác</h2>
+      <h2><span class="step-no">3</span>Trực giác về attention</h2>
       <p>Hình dung một buổi họp lớp. Mỗi học sinh (token) cầm ba tấm thẻ: một <b>câu hỏi</b> (q) — "ai biết về giải thưởng?"; một <b>nhãn tên</b> (k) — "tôi biết về tiền"; và một <b>ghi chú</b> (v) — nội dung thật sự mình biết. Mỗi bạn so câu hỏi của mình với nhãn của mọi bạn khác; bạn nào có nhãn khớp thì được chú ý nhiều hơn. Rồi mỗi bạn tổng hợp ghi chú của cả lớp, theo tỷ lệ chú ý đó.</p>
       <p>Kết quả: mỗi từ có một biểu diễn mới đã "pha" thông tin từ các từ liên quan. "Free" đứng cạnh "prize" sẽ mang ý nghĩa khác "free" đứng cạnh "tonight".</p>
     </div>
@@ -75,7 +75,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="tinh-tay">
     <div class="prose">
-      <h2><span class="step-no">4</span>Tính tay từng bước</h2>
+      <h2><span class="step-no">4</span>Tính tay attention từng bước</h2>
     </div>
     <div class="prose"><Mission client:visible slug={L.slug} m={M["chuy"]} /></div>
     <div class="wide"><Lazy client:visible view="ch10/AttnLab" data={{ model: attentionUrl }} props={{ samples }} /></div>
@@ -88,7 +88,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="ly-thuyet">
     <div class="prose">
-      <h2><span class="step-no">5</span>Lý thuyết</h2>
+      <h2><span class="step-no">5</span>Lý thuyết attention</h2>
       <h3>Scaled dot-product attention</h3>
       <Tex tex={String.raw`Q = XW_Q,\quad K = XW_K,\quad V = XW_V`} display />
       <Tex tex={String.raw`\text{Attention}(Q, K, V) = \operatorname{softmax}\!\left(\frac{QK^\top}{\sqrt{d}}\right) V`} display />
@@ -107,7 +107,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="ma-nguon">
     <div class="prose">
-      <h2><span class="step-no">6</span>Mã nguồn</h2>
+      <h2><span class="step-no">6</span>Mã nguồn Python cho attention</h2>
       <p>Attention chỉ là vài phép nhân ma trận và một softmax. Ví dụ với 3 token, 4 chiều:</p>
       <PyCell client:visible code={pyCode} title="attention.py" />
       <p>Mô hình trên trang được huấn luyện bằng NumPy thuần trong <code>scripts/prep_ch10.py</code> của kho mã, với lan truyền ngược viết tay và một bước kiểm tra gradient bằng sai phân hữu hạn trước khi huấn luyện.</p>

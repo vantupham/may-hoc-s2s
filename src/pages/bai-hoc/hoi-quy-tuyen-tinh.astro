@@ -118,7 +118,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="truc-giac">
     <div class="prose">
-      <h2><span class="step-no">3</span>Trực giác</h2>
+      <h2><span class="step-no">3</span>Trực giác về hồi quy tuyến tính</h2>
       <p>Hãy thử tự đặt đường thẳng. Bạn sẽ thấy chỉnh <span class="v-w">w</span> và <span class="v-b">b</span> không độc lập: tăng độ dốc thường phải hạ hệ số chặn để đường thẳng vẫn đi qua giữa đám mây điểm.</p>
     </div>
     <div class="prose"><Mission client:visible slug={L.slug} m={M["keo"]} /></div>
@@ -129,7 +129,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="tinh-tay">
     <div class="prose">
-      <h2><span class="step-no">4</span>Tính tay từng bước</h2>
+      <h2><span class="step-no">4</span>Tính tay hồi quy tuyến tính từng bước</h2>
       <p>Thuật toán giống hệt bài trước, chỉ thêm một đạo hàm. Với 5 khu vực của bài trước, xuất phát từ <span class="v-w">w = 0</span>, <span class="v-b">b = 0</span>:</p>
       <ul>
         <li>Độ dốc theo <span class="v-w">w</span>: <span class="num v-g">{fmt(s0.dw, 4)}</span> — vẫn công thức <span class="v-g">(2/n)·Σ eᵢxᵢ</span>.</li>
@@ -148,7 +148,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="ly-thuyet">
     <div class="prose">
-      <h2><span class="step-no">5</span>Lý thuyết</h2>
+      <h2><span class="step-no">5</span>Lý thuyết hồi quy tuyến tính</h2>
       <h3>Hàm mất mát và hai đạo hàm riêng</h3>
       <Tex tex={String.raw`\cL{L}(\cw{w},\cb{b}) = \frac{1}{n}\sum_{i=1}^{n}\big(\underbrace{\cw{w}\cx{x_i} + \cb{b} - \cy{y_i}}_{\ce{e_i}}\big)^2`} display />
       <Tex tex={String.raw`\cg{\frac{\partial L}{\partial w}} = \frac{2}{n}\sum_{i=1}^{n}\ce{e_i}\,\cx{x_i} \qquad \cg{\frac{\partial L}{\partial b}} = \frac{2}{n}\sum_{i=1}^{n}\ce{e_i}`} display />
@@ -179,7 +179,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="ma-nguon">
     <div class="prose">
-      <h2><span class="step-no">6</span>Mã nguồn</h2>
+      <h2><span class="step-no">6</span>Mã nguồn Python cho hồi quy tuyến tính</h2>
       <p>Phiên bản tự viết bằng NumPy: chuẩn hoá, chạy Gradient Descent, đổi ngược tham số về đơn vị gốc rồi so với nghiệm đóng.</p>
       <PyCell client:visible code={pyScratch} title="hoi_quy_tu_viet.py" />
       <p>Trong thực tế, ta dùng scikit-learn. Ba dòng là đủ, và kết quả trùng với phần 7 bên dưới:</p>

@@ -69,7 +69,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="truc-giac">
     <div class="prose">
-      <h2><span class="step-no">3</span>Trực giác</h2>
+      <h2><span class="step-no">3</span>Trực giác về đánh giá mô hình</h2>
       <p>Hình dung một học sinh ôn thi. Nếu chỉ học thuộc đáp án của đúng 20 bài tập trong sách, em sẽ làm đúng 100% bài tập đó, nhưng gặp đề thi mới là lúng túng. Nếu chỉ học một mẹo duy nhất ("chọn đáp án dài nhất"), em sai đều ở mọi đề. Mô hình cũng vậy: quá phức tạp thì <b>học thuộc</b> (variance cao), quá đơn giản thì <b>học không tới</b> (bias cao).</p>
       <p>Cross-validation là cách tự kiểm tra trước kỳ thi: tự che một phần bài tập, học phần còn lại, rồi làm thử phần bị che. Làm vậy nhiều lần với các phần khác nhau để có điểm trung bình đáng tin.</p>
     </div>
@@ -78,7 +78,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="tinh-tay">
     <div class="prose">
-      <h2><span class="step-no">4</span>Tính tay từng bước</h2>
+      <h2><span class="step-no">4</span>Tính tay đánh giá mô hình từng bước</h2>
     </div>
     <div class="prose"><Mission client:visible slug={L.slug} m={M["cv"]} /></div>
     <div class="wide"><Lazy client:visible view="ch7/CVLab" data={{ sample: `${housingUrl}#sample`, testIds: `${housingUrl}#testIds` }} /></div>
@@ -91,7 +91,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="ly-thuyet">
     <div class="prose">
-      <h2><span class="step-no">5</span>Lý thuyết</h2>
+      <h2><span class="step-no">5</span>Lý thuyết đánh giá mô hình</h2>
       <h3>Ba tập dữ liệu</h3>
       <p><b>Huấn luyện</b> để học tham số. <b>Kiểm định</b> (validation) để chọn siêu tham số như bậc đa thức, k, C. <b>Test</b> để báo cáo một lần duy nhất ở cuối. Cross-validation tận dụng dữ liệu bằng cách cho mỗi phần lần lượt làm tập kiểm định:</p>
       <Tex tex={String.raw`\text{CV}_K = \frac{1}{K}\sum_{k=1}^{K} \text{MSE}\big(\hat f^{(-k)},\, D_k\big)`} display />
@@ -111,7 +111,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="ma-nguon">
     <div class="prose">
-      <h2><span class="step-no">6</span>Mã nguồn</h2>
+      <h2><span class="step-no">6</span>Mã nguồn Python cho đánh giá mô hình</h2>
       <p>Trong scikit-learn, đặt mọi bước tiền xử lý vào một <code>Pipeline</code> để cross-validation thực hiện chúng lại trong từng lần chia. Đó là cách tránh rò rỉ dữ liệu.</p>
       <PyCell client:visible code={pyCode} packages={['numpy', 'scikit-learn']} title="danh_gia.py" />
       <p>Kết quả hơi khác phòng thí nghiệm phần 4 vì ở đây bộ chuẩn hoá được học lại trong từng lần chia — đúng như nên làm. Phòng thí nghiệm dùng trung bình và độ lệch chuẩn của cả 320 khu vực cho đơn giản.</p>

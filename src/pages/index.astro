@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro';
 import HeroSheet from '../components/HeroSheet.svelte';
 import { lessons } from '../lib/lessons';
+import { homeJsonLd } from '../lib/seo';
 import housing from '../data/housing.json';
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
@@ -16,7 +17,7 @@ const mapH = PY * 2 + Math.max(...lessons.map((l) => l.pos[1])) * RH + NH;
 const first = lessons[0];
 const description = 'Học máy (machine learning) trực quan bằng tiếng Việt với dữ liệu thật: tính tay từng bước, mô phỏng tương tác và chạy Python ngay trên trình duyệt. Miễn phí, mã nguồn mở.';
 ---
-<Base title="Máy học S2S – Học máy trực quan từng bước bằng tiếng Việt" description={description}>
+<Base title="Máy học S2S – Học máy trực quan từng bước bằng tiếng Việt" description={description} jsonLd={homeJsonLd(description)}>
   <div class="book home">
     <section class="hero">
       <div class="hero-text">

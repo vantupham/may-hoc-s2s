@@ -63,7 +63,7 @@ for g in (0.1, 1, 10, 50):
 
   <section id="truc-giac">
     <div class="prose">
-      <h2><span class="step-no">3</span>Trực giác</h2>
+      <h2><span class="step-no">3</span>Trực giác về SVM</h2>
       <Mission client:visible slug={L.slug} m={M.le} />
     </div>
     <div class="wide"><MarginGuess client:visible mini={cancer.mini} /></div>
@@ -76,7 +76,7 @@ for g in (0.1, 1, 10, 50):
 
   <section id="tinh-tay">
     <div class="prose">
-      <h2><span class="step-no">4</span>Tính tay từng bước</h2>
+      <h2><span class="step-no">4</span>Tính tay SVM từng bước</h2>
       <p>Thay vì xoay bằng tay, ta tối ưu bằng một biến thể của Gradient Descent. Mất mát của SVM là <b>hinge loss</b> max(0, 1 − m): bằng 0 khi bệnh nhân nằm ngoài dải lề đúng phía, tăng tuyến tính khi họ lấn vào. Vì hàm có một góc gập tại m = 1, ta dùng <i>subgradient</i>: ở mỗi bước, chỉ người vi phạm mới góp vào hướng đi.</p>
       <Mission client:visible slug={L.slug} m={M.buoc} />
     </div>
@@ -89,7 +89,7 @@ for g in (0.1, 1, 10, 50):
 
   <section id="ly-thuyet">
     <div class="prose">
-      <h2><span class="step-no">5</span>Lý thuyết</h2>
+      <h2><span class="step-no">5</span>Lý thuyết SVM</h2>
       <h3>Lề và độ dài của w</h3>
       <p>Ranh giới là tập điểm f(x) = w·x + b = 0. Khoảng cách từ một điểm x tới ranh giới là |f(x)| / ‖w‖. Nếu ta quy ước các điểm gần nhất có |f(x)| = 1, thì dải lề có độ rộng</p>
       <Tex tex={String.raw`\text{độ rộng lề} = \frac{2}{\lVert \cw{\mathbf w} \rVert}`} display />
@@ -108,7 +108,7 @@ for g in (0.1, 1, 10, 50):
 
   <section id="ma-nguon">
     <div class="prose">
-      <h2><span class="step-no">6</span>Mã nguồn</h2>
+      <h2><span class="step-no">6</span>Mã nguồn Python cho SVM</h2>
       <p>scikit-learn giải dạng đối ngẫu bằng thuật toán SMO (thư viện LIBSVM). Kết quả cho nhân tuyến tính trùng với bộ giải subgradient của trang này đến sai số nhỏ hơn 0,5% của hàm mục tiêu — đã được kiểm thử tự động.</p>
       <PyCell client:visible code={pyCode} packages={['numpy', 'scikit-learn']} title="svm_cancer.py" />
       <h3>Thử sửa mã</h3>

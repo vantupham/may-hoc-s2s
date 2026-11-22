@@ -76,7 +76,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="truc-giac">
     <div class="prose">
-      <h2><span class="step-no">3</span>Trực giác</h2>
+      <h2><span class="step-no">3</span>Trực giác về K-means, DBSCAN và PCA</h2>
       <p><b>K-means</b> giống trò chơi "đặt K lá cờ": cắm K lá cờ ngẫu nhiên, mỗi con chim chạy về lá cờ gần nhất, rồi dời mỗi lá cờ về giữa đám chim của nó. Lặp lại cho tới khi không ai đổi chỗ.</p>
       <p><b>PCA</b> giống chụp ảnh một vật thể 3 chiều: bạn xoay vật sao cho bức ảnh 2 chiều cho thấy nhiều chi tiết nhất. PCA tìm góc chụp đó cho dữ liệu 64 chiều.</p>
     </div>
@@ -85,7 +85,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="tinh-tay">
     <div class="prose">
-      <h2><span class="step-no">4</span>Tính tay từng bước</h2>
+      <h2><span class="step-no">4</span>Tính tay K-means, DBSCAN và PCA từng bước</h2>
     </div>
     <div class="prose"><Mission client:visible slug={L.slug} m={M["kmeans"]} /></div>
     <div class="wide"><Lazy client:visible view="ch6/KMeansLab" data={{ birds: `${penguinsUrl}#birds` }} props={{ initIdx: peng.initIdx, species: sp, mean: peng.mean, std: peng.std }} /></div>
@@ -98,7 +98,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="ly-thuyet">
     <div class="prose">
-      <h2><span class="step-no">5</span>Lý thuyết</h2>
+      <h2><span class="step-no">5</span>Lý thuyết K-means, DBSCAN và PCA</h2>
       <h3>K-means tối ưu cái gì?</h3>
       <Tex tex={String.raw`\cL{J} = \sum_{i=1}^{n} \lVert \mathbf x_i - \boldsymbol\mu_{c(i)} \rVert^2`} display />
       <p>Pha gán giảm J bằng cách đổi c(i) với tâm cố định; pha cập nhật giảm J bằng cách đổi tâm với phép gán cố định (trung bình là điểm làm tổng bình phương khoảng cách nhỏ nhất). J không bao giờ tăng, nên thuật toán chắc chắn dừng — nhưng chỉ ở một <b>cực tiểu địa phương</b>. Vì vậy người ta chạy nhiều lần với khởi tạo khác nhau và giữ lần tốt nhất.</p>
@@ -114,7 +114,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="ma-nguon">
     <div class="prose">
-      <h2><span class="step-no">6</span>Mã nguồn</h2>
+      <h2><span class="step-no">6</span>Mã nguồn Python cho K-means, DBSCAN và PCA</h2>
       <PyCell client:visible code={pyCode} packages={['numpy', 'scikit-learn']} title="khong_giam_sat.py" />
     </div>
     <div class="prose">

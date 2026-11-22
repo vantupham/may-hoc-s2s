@@ -81,7 +81,7 @@ print("MLP trên mùa đông:", round(mean_absolute_error(te.y, mlp.predict(z(te
 
   <section id="truc-giac">
     <div class="prose">
-      <h2><span class="step-no">3</span>Trực giác</h2>
+      <h2><span class="step-no">3</span>Trực giác về mạng nơ-ron dự báo PM2.5</h2>
       <h3>Chặng 10 · Đánh giá trung thực theo thời gian <span class="rv" set:html={ch('danh-gia-mo-hinh', 'chương 8')} /></h3>
       <p>Trước khi so các mô hình mới, cần một cách chọn tham số không đụng tới tập kiểm tra: cross-validation trên tập huấn luyện. Với chuỗi thời gian, k-fold thường có một lỗ hổng.</p>
       <Mission client:visible slug={L.slug} m={M.cv} />
@@ -95,7 +95,7 @@ print("MLP trên mùa đông:", round(mean_absolute_error(te.y, mlp.predict(z(te
 
   <section id="tinh-tay">
     <div class="prose">
-      <h2><span class="step-no">4</span>Tính tay từng bước</h2>
+      <h2><span class="step-no">4</span>Tính tay mạng nơ-ron dự báo PM2.5 từng bước</h2>
       <h3>Chặng 12 · Tích chập 1D <span class="rv" set:html={ch('cnn', 'chương 10')} /></h3>
       <p>Ở chương 10, bộ lọc 3×3 trượt trên ảnh theo hai chiều. Ở đây bộ lọc dài 6 giờ, phủ cả 4 kênh, và chỉ trượt theo một chiều là thời gian:</p>
       <Tex tex={String.raw`z_t = \sum_{j=0}^{5}\sum_{c=1}^{4} w_{j,c}\; x_{t+j,\,c} + b, \qquad a_t = \max(0, z_t), \qquad t = 0, 1, \dots, 66`} display />
@@ -121,7 +121,7 @@ print("MLP trên mùa đông:", round(mean_absolute_error(te.y, mlp.predict(z(te
 
   <section id="ly-thuyet">
     <div class="prose">
-      <h2><span class="step-no">5</span>Lý thuyết</h2>
+      <h2><span class="step-no">5</span>Lý thuyết mạng nơ-ron dự báo PM2.5</h2>
       <h3>Chặng 11 · Mạng nơ-ron trên dữ liệu ít <span class="rv" set:html={ch('mang-no-ron', 'chương 9')} /></h3>
       <p>Trên cùng 12 đặc trưng theo ngày, một mạng MLP có thể học bất kỳ quan hệ phi tuyến nào, với điều kiện có đủ dữ liệu. Ở đây chỉ có 638 ngày, ít hơn số chữ số viết tay của chương 9, và mỗi ngày chỉ có 12 con số. Mạng dưới đây giải câu hỏi cảnh báo và được huấn luyện ngay trên trình duyệt của bạn.</p>
       <Mission client:visible slug={L.slug} m={M.mlp} />
@@ -138,7 +138,7 @@ print("MLP trên mùa đông:", round(mean_absolute_error(te.y, mlp.predict(z(te
 
   <section id="ma-nguon">
     <div class="prose">
-      <h2><span class="step-no">6</span>Mã nguồn</h2>
+      <h2><span class="step-no">6</span>Mã nguồn Python cho mạng nơ-ron dự báo PM2.5</h2>
       <p>Cross-validation theo thời gian và MLP bằng scikit-learn, trên đúng dữ liệu của trang. CNN 1D và attention được huấn luyện bằng NumPy trong <code>scripts/prep_ch12.py</code>; trang này chỉ chạy lan truyền xuôi với trọng số đã lưu, và kiểm thử tự động xác nhận trình duyệt tính lại đúng từng dự báo.</p>
       <PyCell client:visible code={pyCode} packages={['numpy', 'pandas', 'scikit-learn']} title="danh_gia_theo_thoi_gian.py" />
       <h3>Thử sửa mã</h3>

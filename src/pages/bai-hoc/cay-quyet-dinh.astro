@@ -79,7 +79,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="truc-giac">
     <div class="prose">
-      <h2><span class="step-no">3</span>Trực giác</h2>
+      <h2><span class="step-no">3</span>Trực giác về cây quyết định</h2>
       <p>Nếu chỉ được hỏi một câu để đoán ai sống sót, bạn sẽ hỏi gì? Có lẽ là giới tính. Cây quyết định làm đúng việc đó, nhưng một cách có hệ thống: nó thử <b>mọi</b> câu hỏi có thể, chấm điểm từng câu, và chọn câu tách hai nhóm "sạch" nhất. Rồi lặp lại việc đó trong từng nhóm con.</p>
       <p>"Sạch" ở đây nghĩa là trong mỗi nhánh, gần như tất cả cùng một kết cục. Một nhánh 50 người sống, 50 người mất là lẫn lộn hoàn toàn. Một nhánh 95 sống, 5 mất là gần sạch.</p>
     </div>
@@ -90,7 +90,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="tinh-tay">
     <div class="prose">
-      <h2><span class="step-no">4</span>Tính tay từng bước</h2>
+      <h2><span class="step-no">4</span>Tính tay cây quyết định từng bước</h2>
       <p>Tìm câu hỏi đầu tiên — gốc của cây. Thử kéo ngưỡng tuổi và xem Gini thay đổi; rồi so sánh câu hỏi tốt nhất của từng đặc trưng ở bảng bên phải.</p>
     </div>
     <div class="prose"><Mission client:visible slug={L.slug} m={M["chia"]} /></div>
@@ -104,7 +104,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="ly-thuyet">
     <div class="prose">
-      <h2><span class="step-no">5</span>Lý thuyết</h2>
+      <h2><span class="step-no">5</span>Lý thuyết cây quyết định</h2>
       <h3>Độ vẩn đục Gini</h3>
       <Tex tex={String.raw`G = 1 - \sum_{c} p_c^2`} display />
       <p>p<sub>c</sub> là tỷ lệ của lớp c trong nút. Ý nghĩa: chọn ngẫu nhiên hai hành khách trong nút (có lặp lại), G là xác suất họ có kết cục khác nhau. Nhóm thuần một loại có G = 0; hai lớp chia đôi có G = 0,5.</p>
@@ -124,7 +124,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="ma-nguon">
     <div class="prose">
-      <h2><span class="step-no">6</span>Mã nguồn</h2>
+      <h2><span class="step-no">6</span>Mã nguồn Python cho cây quyết định</h2>
       <p>Ba mô hình với scikit-learn trên đúng cách chia train/test của trang này. Cây độ sâu 3 in ra giống hệt cây bạn thấy ở phần 7.</p>
       <PyCell client:visible code={pyCode} packages={['numpy', 'scikit-learn']} title="cay_titanic.py" />
     </div>

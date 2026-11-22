@@ -93,7 +93,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="truc-giac">
     <div class="prose">
-      <h2><span class="step-no">3</span>Trực giác</h2>
+      <h2><span class="step-no">3</span>Trực giác về Gradient Descent</h2>
       <p>Trước khi học thuật toán, hãy tự làm "máy học" bằng tay. Kéo thanh trượt và để ý hai điều: các hình vuông đỏ to lên hay nhỏ đi, và điểm xanh trên đường cong bên phải đi về đâu.</p>
     </div>
     <div class="prose"><Mission client:visible slug={L.slug} m={M["tay"]} /></div>
@@ -107,7 +107,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="tinh-tay">
     <div class="prose">
-      <h2><span class="step-no">4</span>Tính tay từng bước</h2>
+      <h2><span class="step-no">4</span>Tính tay Gradient Descent từng bước</h2>
       <p>Ý tưởng của Gradient Descent rất đời thường: đứng trên sườn đồi trong sương mù, bạn không thấy đáy, nhưng cảm được chân mình đang dốc về phía nào. Bước một bước theo hướng xuống dốc. Lặp lại.</p>
       <p>Độ dốc của đường cong tại điểm đang đứng chính là <b>đạo hàm</b> <span class="v-g">∂L/∂w</span>. Đạo hàm dương nghĩa là đi sang phải thì L tăng — vậy phải đi sang trái, tức là <b>trừ</b> đi.</p>
       <ol>
@@ -130,7 +130,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="ly-thuyet">
     <div class="prose">
-      <h2><span class="step-no">5</span>Lý thuyết</h2>
+      <h2><span class="step-no">5</span>Lý thuyết Gradient Descent</h2>
       <h3>Đạo hàm của mất mát đến từ đâu?</h3>
       <p>Mỗi số hạng trong L có dạng (<span class="v-w">w</span><span class="v-x">xᵢ</span> − <span class="v-y">yᵢ</span>)². Áp dụng <abbr title="Chain rule">quy tắc dây chuyền</abbr>: đạo hàm của u² là 2u nhân đạo hàm của u, và đạo hàm của (w·xᵢ − yᵢ) theo w là xᵢ.</p>
       <Tex tex={String.raw`\frac{d}{d\cw{w}}\left(\cw{w}\cx{x_i} - \cy{y_i}\right)^2 = 2\left(\cw{w}\cx{x_i} - \cy{y_i}\right)\cdot \cx{x_i} = 2\,\ce{e_i}\,\cx{x_i}`} display />
@@ -151,7 +151,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="ma-nguon">
     <div class="prose">
-      <h2><span class="step-no">6</span>Mã nguồn</h2>
+      <h2><span class="step-no">6</span>Mã nguồn Python cho Gradient Descent</h2>
       <p>Toàn bộ thuật toán chỉ khoảng 10 dòng NumPy. Bấm <b>Chạy</b> để chạy Python ngay trên trình duyệt; bạn có thể sửa <code>eta</code> hoặc số vòng lặp rồi chạy lại. Các con số in ra trùng với bảng ở phần 4.</p>
       <PyCell client:visible code={pyCode} title="gradient_descent.py" />
     </div>

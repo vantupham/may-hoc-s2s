@@ -66,7 +66,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="truc-giac">
     <div class="prose">
-      <h2><span class="step-no">3</span>Trực giác</h2>
+      <h2><span class="step-no">3</span>Trực giác về CNN</h2>
       <p>Hãy tưởng tượng một con tem 3×3 ô có in sẵn các con số. Ta đặt con tem lên góc trái trên của ảnh, nhân từng số trên tem với điểm ảnh bên dưới, cộng 9 tích lại — được một con số. Dịch tem sang phải một ô, lặp lại. Quét hết ảnh, ta được một ảnh mới gọi là <b>bản đồ đặc trưng</b>.</p>
       <p>Nếu tem có dạng "âm bên trái, dương bên phải", con số sẽ lớn ở những chỗ ảnh chuyển từ tối sang sáng theo chiều ngang: tem đó là một <b>bộ dò cạnh dọc</b>. CNN không cần ai thiết kế tem — nó tự học các con số trên tem bằng lan truyền ngược.</p>
     </div>
@@ -75,7 +75,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="tinh-tay">
     <div class="prose">
-      <h2><span class="step-no">4</span>Tính tay từng bước</h2>
+      <h2><span class="step-no">4</span>Tính tay CNN từng bước</h2>
     </div>
     <div class="prose"><Mission client:visible slug={L.slug} m={M["tichchap"]} /></div>
     <div class="wide"><Lazy client:visible view="ch9/ConvLab" data={{ images: `${cnnUrl}#images`, Wc: `${cnnUrl}#Wc`, bc: `${cnnUrl}#bc` }} props={{ names }} /></div>
@@ -88,7 +88,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="ly-thuyet">
     <div class="prose">
-      <h2><span class="step-no">5</span>Lý thuyết</h2>
+      <h2><span class="step-no">5</span>Lý thuyết CNN</h2>
       <h3>Phép tích chập</h3>
       <Tex tex={String.raw`\cz{z^{(f)}_{r,c}} = \sum_{i=0}^{2}\sum_{j=0}^{2} \cx{x_{r+i,\;c+j}}\;\cw{k^{(f)}_{i,j}} + \cb{b^{(f)}}, \qquad a^{(f)}_{r,c} = \max\big(0, \cz{z^{(f)}_{r,c}}\big)`} display />
       <p>Không đệm viền, ảnh 28×28 cho bản đồ 26×26. Mỗi bộ lọc chỉ có 9 trọng số và 1 bias, dùng chung cho mọi vị trí — gọi là <b>chia sẻ trọng số</b>. Sáu bộ lọc chỉ tốn 60 tham số, so với 25.088 của một tầng dense.</p>
@@ -105,7 +105,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="ma-nguon">
     <div class="prose">
-      <h2><span class="step-no">6</span>Mã nguồn</h2>
+      <h2><span class="step-no">6</span>Mã nguồn Python cho CNN</h2>
       <p>Tích chập và max-pool viết tay trên một ảnh 6×6 có vạch sáng dọc. Chạy rồi thử đổi bộ lọc thành bộ dò cạnh ngang.</p>
       <PyCell client:visible code={pyCode} title="tich_chap.py" />
     </div>

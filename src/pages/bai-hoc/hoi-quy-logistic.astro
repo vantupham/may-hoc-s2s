@@ -103,7 +103,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="truc-giac">
     <div class="prose">
-      <h2><span class="step-no">3</span>Trực giác</h2>
+      <h2><span class="step-no">3</span>Trực giác về hồi quy logistic</h2>
       <p>Bước 1 giống hồi quy tuyến tính: tính một <b>điểm số</b> <span class="v-z">z</span> bằng tổ hợp tuyến tính. Nhưng z có thể là bất kỳ số nào, từ âm vô cùng đến dương vô cùng — không phải xác suất. Bước 2: ép z vào khoảng (0, 1) bằng hàm <abbr title="Sigmoid / logistic function">sigmoid</abbr>.</p>
       <Tex tex={String.raw`\cz{z} = \cw{w_1}\cx{x_1} + \cw{w_2}\cx{x_2} + \cb{b} \qquad \cp{p} = \sigma(\cz{z}) = \frac{1}{1+e^{-\cz{z}}}`} display />
     </div>
@@ -121,7 +121,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="tinh-tay">
     <div class="prose">
-      <h2><span class="step-no">4</span>Tính tay từng bước</h2>
+      <h2><span class="step-no">4</span>Tính tay hồi quy logistic từng bước</h2>
       <p>Mỗi vòng lặp có 5 bước: tính <span class="v-z">z</span> → tính <span class="v-p">p</span> → tính mất mát <span class="v-L">ℓ</span> của từng người → tính gradient → cập nhật. Với w = (0, 0) và b = 0 ở vòng 1, mọi z = 0 nên mọi p = 0,5 và mỗi người đóng góp mất mát −ln 0,5 = <span class="num v-L">{fmt(s0.losses[0], 4)}</span>.</p>
       <p>Gradient theo <span class="v-w">w₁</span> là trung bình của (<span class="v-p">p</span> − <span class="v-y">y</span>)·<span class="v-x">x₁</span>. Ba ca ác tính có p − y = −0,5, ba ca lành tính có p − y = +0,5, nên:</p>
       <Tex tex={String.raw`\cg{\frac{\partial L}{\partial w_1}} = ${tex(s0.gw[0], 4)} \;\Rightarrow\; \cw{w_1} = 0 - 1 \times (${tex(s0.gw[0], 4)}) = \cw{${tex(s0.wNext[0], 4)}}`} display />
@@ -138,7 +138,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="ly-thuyet">
     <div class="prose">
-      <h2><span class="step-no">5</span>Lý thuyết</h2>
+      <h2><span class="step-no">5</span>Lý thuyết hồi quy logistic</h2>
       <h3>Mất mát cross-entropy</h3>
       <p>Với một người có <span class="v-y">y = 1</span>, ta muốn <span class="v-p">p</span> càng gần 1 càng tốt; mất mát là −ln p. Với <span class="v-y">y = 0</span>, mất mát là −ln(1 − p). Gộp lại:</p>
       <Tex tex={String.raw`\cL{\ell} = -\big[\cy{y}\ln \cp{p} + (1-\cy{y})\ln(1-\cp{p})\big]`} display />
@@ -156,7 +156,7 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 
   <section id="ma-nguon">
     <div class="prose">
-      <h2><span class="step-no">6</span>Mã nguồn</h2>
+      <h2><span class="step-no">6</span>Mã nguồn Python cho hồi quy logistic</h2>
       <p>Phiên bản tự viết, chạy đúng thuật toán của phần 4. Kết quả trùng với bảng ở trên khi η = 1:</p>
       <PyCell client:visible code={pyScratch} title="logistic_tu_viet.py" />
       <p>Phiên bản scikit-learn trên toàn bộ dữ liệu, so sánh hai ngưỡng:</p>
