@@ -14,8 +14,9 @@ const edges = lessons.flatMap((l) => l.requires.map((r) => [r, l.slug] as const)
 const mapW = PX * 2 + Math.max(...lessons.map((l) => l.pos[0])) * CW + NW;
 const mapH = PY * 2 + Math.max(...lessons.map((l) => l.pos[1])) * RH + NH;
 const first = lessons[0];
+const description = 'Học máy (machine learning) trực quan bằng tiếng Việt với dữ liệu thật: tính tay từng bước, mô phỏng tương tác và chạy Python ngay trên trình duyệt. Miễn phí, mã nguồn mở.';
 ---
-<Base title="Máy học S2S">
+<Base title="Máy học S2S – Học máy trực quan từng bước bằng tiếng Việt" description={description}>
   <div class="book home">
     <section class="hero">
       <div class="hero-text">
@@ -23,7 +24,7 @@ const first = lessons[0];
         <h1>Thấy từng con số bên trong một mô hình học máy.</h1>
         <p class="lead">Các bài học tương tác bằng tiếng Việt. Mỗi bài là một dự án nhỏ với dữ liệu thật. Bạn có thể dừng thuật toán ở bất kỳ vòng lặp nào, bấm vào bất kỳ con số nào, và xem chính xác nó được tính ra như thế nào.</p>
         <p class="cta">
-          <a class="btn primary" href={`${base}/bai-hoc/${first.slug}`}>Bắt đầu với Gradient Descent</a>
+          <a class="btn primary" href={`${base}/bai-hoc/${first.slug}/`}>Bắt đầu với Gradient Descent</a>
           <a class="btn" href="#muc-luc">Xem mục lục</a>
         </p>
       </div>
@@ -53,7 +54,7 @@ const first = lessons[0];
             <span class="margin-note hand tick" aria-hidden="true">đã học ✓</span>
             <span class="no">{l.no}</span>
             <span class="body">
-              {l.ready ? <a href={`${base}/bai-hoc/${l.slug}`}>{l.title}</a> : <span class="t">{l.title}</span>}
+              {l.ready ? <a href={`${base}/bai-hoc/${l.slug}/`}>{l.title}</a> : <span class="t">{l.title}</span>}
               <span class="sum">{l.summary}</span>
             </span>
             <span class="leader" aria-hidden="true"></span>
@@ -79,7 +80,7 @@ const first = lessons[0];
             return <path d={`M${x1} ${y1}C${mx} ${y1} ${mx} ${y2} ${x2 - 2} ${y2}`} fill="none" stroke="var(--pencil)" stroke-opacity="0.6" stroke-width="1.2" marker-end="url(#map-arrow)" />;
           })}
           {lessons.map((l) => (
-            <a href={l.ready ? `${base}/bai-hoc/${l.slug}` : undefined} class:list={['node', { ready: l.ready }]} data-slug={l.slug} aria-label={`Chương ${l.no}: ${l.title}`}>
+            <a href={l.ready ? `${base}/bai-hoc/${l.slug}/` : undefined} class:list={['node', { ready: l.ready }]} data-slug={l.slug} aria-label={`Chương ${l.no}: ${l.title}`}>
               <rect x={nx(l.slug)} y={ny(l.slug)} width={NW} height={NH} rx="2" />
               <text x={nx(l.slug) + 10} y={ny(l.slug) + 27} class="tt"><tspan class="c">{l.no}</tspan>  {l.short}</text>
             </a>

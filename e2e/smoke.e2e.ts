@@ -29,7 +29,7 @@ async function scrollThrough(page: Page) {
 
 const lazy = (page: Page) => page.locator('astro-island[component-url*="Lazy"]');
 
-for (const path of ['', 've-du-an']) {
+for (const path of ['', 've-du-an/']) {
   test(`trang ${path || 'chủ'} mở được, không lỗi`, async ({ page }) => {
     const errors = watchErrors(page);
     await page.goto(path);
@@ -42,7 +42,7 @@ for (const path of ['', 've-du-an']) {
 for (const l of lessons.filter((l) => l.ready)) {
   test(`bài ${l.no}: ${l.short}`, async ({ page }) => {
     const errors = watchErrors(page);
-    await page.goto(`bai-hoc/${l.slug}`);
+    await page.goto(`bai-hoc/${l.slug}/`);
     await expect(page.locator('h1')).toHaveText(l.title);
     await scrollThrough(page);
 
@@ -63,7 +63,7 @@ test('mỗi tệp dữ liệu chỉ tải một lần dù nhiều phòng thí ng
   page.on('request', (r) => {
     if (r.url().endsWith('.json')) { const k = r.url().split('/').pop()!; count.set(k, (count.get(k) ?? 0) + 1); }
   });
-  await page.goto('bai-hoc/hoi-quy-logistic');
+  await page.goto('bai-hoc/hoi-quy-logistic/');
   await scrollThrough(page);
   await expect(lazy(page).locator('.ph')).toHaveCount(0);
   const cancer = [...count].filter(([k]) => k.startsWith('cancer.'));
@@ -72,7 +72,7 @@ test('mỗi tệp dữ liệu chỉ tải một lần dù nhiều phòng thí ng
 });
 
 test('phòng thí nghiệm tải trễ vẫn tương tác được', async ({ page }) => {
-  await page.goto('bai-hoc/hoi-quy-logistic');
+  await page.goto('bai-hoc/hoi-quy-logistic/');
   await scrollThrough(page);
   // FullLogReg: 569 bệnh nhân được vẽ, kéo ngưỡng thì hình thay đổi
   const lab = lazy(page).nth(2);
@@ -88,7 +88,7 @@ test('phòng thí nghiệm tải trễ vẫn tương tác được', async ({ pa
 
 test('bài 6: khung trải nghiệm ghi nhớ dự đoán, nhiệm vụ, số liệu và tự đánh giá', async ({ page }) => {
   const errors = watchErrors(page);
-  await page.goto('bai-hoc/svm');
+  await page.goto('bai-hoc/svm/');
   await expect(page.locator('.secnav a[data-sec="tong-ket"]')).toHaveText(/Tổng kết/);
   await expect(page.locator('#truoc-khi-hoc')).toContainText('Sau bài này, bạn có thể');
 
@@ -141,7 +141,7 @@ for (const l of lessons.filter((l) => l.lecture)) {
     for (const f of ['loi-giang.mp3', 'phu-de.vtt', 'thoi-gian.json', 'kich-ban.json']) expect((await request.get(`${dir}/${f}`)).status(), f).toBe(200);
     const lec = await (await request.get(`${dir}/kich-ban.json`)).json();
 
-    await page.goto(`bai-hoc/${l.slug}`);
+    await page.goto(`bai-hoc/${l.slug}/`);
     await expect(page.locator('.secnav a[data-sec="bai-giang"]')).toBeVisible();
     const player = page.locator('#bai-giang .player');
     await page.locator('#bai-giang').scrollIntoViewIfNeeded();
@@ -169,3 +169,52 @@ for (const l of lessons.filter((l) => l.lecture)) {
     expect(errors.filter((e) => !/\.mp3 \(net::ERR_ABORTED\)/.test(e))).toEqual([]);
   });
 }
+
+// ——— SEO: thẻ meta, ảnh chia sẻ, sitemap, 404, liên kết nội bộ ———
+
+const SITE = 'https://vantupham.github.io/may-hoc-s2s/';
+const pages = [
+  { path: '', image: 'trang-chu', title: /^Máy học S2S – / },
+  { path: 've-du-an/', image: 'trang-chu', title: 'Về dự án – Máy học S2S' },
+  ...lessons.filter((l) => l.ready).map((l) => ({ path: `bai-hoc/${l.slug}/`, image: l.slug, title: `${l.seoTitle} – Máy học S2S`, l })),
+];
+
+for (const p of pages) {
+  test(`SEO ${p.path || 'trang chủ'}: canonical, mô tả, ảnh chia sẻ, liên kết nội bộ`, async ({ page, request }) => {
+    await page.goto(p.path);
+    await expect(page).toHaveTitle(p.title);
+    const meta = (sel: string, attr = 'content') => page.locator(sel).getAttribute(attr);
+    expect(await meta('link[rel=canonical]', 'href')).toBe(SITE + p.path);
+    expect(await meta('meta[property="og:url"]')).toBe(SITE + p.path);
+    const desc = (await meta('meta[name=description]'))!;
+    expect(desc.length).toBeGreaterThanOrEqual(110);
+    expect(desc.length).toBeLessThanOrEqual(170);
+    if ('l' in p) expect(desc).toBe(p.l!.seoDescription);
+    expect(await meta('meta[property="og:type"]')).toBe('l' in p ? 'article' : 'website');
+    const img = (await meta('meta[property="og:image"]'))!;
+    expect(img).toBe(`${SITE}og/${p.image}.png`);
+    const res = await request.get(`og/${p.image}.png`);
+    expect(res.status()).toBe(200);
+    expect(res.headers()['content-type']).toContain('image/png');
+
+    // Liên kết tới trang trong site phải có / ở cuối, để không bị chuyển hướng 301 trên GitHub Pages
+    const hrefs = await page.locator('a[href^="/may-hoc-s2s"]').evaluateAll((as) => as.map((a) => a.getAttribute('href')!));
+    const bad = hrefs.filter((h) => { const path = h.split('#')[0]; return !path.endsWith('/') && !/\.[a-z0-9]+$/i.test(path); });
+    expect(bad).toEqual([]);
+  });
+}
+
+test('sitemap liệt kê mọi trang, đúng URL chuẩn', async ({ request }) => {
+  const res = await request.get('sitemap.xml');
+  expect(res.status()).toBe(200);
+  const locs = [...(await res.text()).matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+  expect(locs.sort()).toEqual(pages.map((p) => SITE + p.path).sort());
+});
+
+test('trang không tồn tại hiện trang 404 có mục lục và không cho lập chỉ mục', async ({ page }) => {
+  const res = await page.goto('khong-co-trang-nay/');
+  expect(res?.status()).toBe(404);
+  await expect(page.locator('h1')).toHaveText('Không tìm thấy trang này');
+  await expect(page.locator('meta[name=robots]')).toHaveAttribute('content', 'noindex');
+  await expect(page.locator('main ol a')).toHaveCount(lessons.filter((l) => l.ready).length);
+});

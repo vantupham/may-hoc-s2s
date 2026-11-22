@@ -8,13 +8,29 @@ import 'katex/dist/katex.min.css';
 import '../styles/global.css';
 
 interface Props {
+  /** Tên trang; tên site được nối vào sau, trừ khi đã có sẵn trong title */
   title: string;
   description?: string;
+  /** Ảnh chia sẻ 1200×630 trong public/og/, ví dụ "svm" → /og/svm.png */
+  image?: string;
+  type?: 'website' | 'article';
+  /** Trang không nên lập chỉ mục (404) */
+  noindex?: boolean;
 }
-const { title, description = 'Học máy trực quan từng bước với dữ liệu thật: thấy mọi con số được tính ra như thế nào.' } = Astro.props;
+const SITE = 'Máy học S2S';
+const {
+  title,
+  description = 'Học máy trực quan từng bước với dữ liệu thật: thấy mọi con số được tính ra như thế nào.',
+  image = 'trang-chu',
+  type = 'website',
+  noindex = false,
+} = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-const fullTitle = title === 'Máy học S2S' ? title : `${title} – Máy học S2S`;
+const fullTitle = title.includes(SITE) ? title : `${title} – ${SITE}`;
 const path = Astro.url.pathname.replace(base, '') || '/';
+// URL chuẩn: luôn có dấu / ở cuối (trùng với cách GitHub Pages phục vụ thư mục)
+const canonical = new URL(Astro.url.pathname.replace(/\/?$/, '/'), Astro.site).href;
+const ogImage = new URL(`${base}/og/${image}.png`, Astro.site).href;
 ---
 <!doctype html>
 <html lang="vi">
@@ -23,9 +39,21 @@ const path = Astro.url.pathname.replace(base, '') || '/';
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
+    {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
+    <link rel="sitemap" href={`${base}/sitemap.xml`} />
+    <meta property="og:site_name" content={SITE} />
+    <meta property="og:locale" content="vi_VN" />
+    <meta property="og:type" content={type} />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
-    <meta name="theme-color" content="#fbfcff" />
+    {!noindex && <meta property="og:url" content={canonical} />}
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={fullTitle} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="theme-color" content="#fbfcff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1e2a27" media="(prefers-color-scheme: dark)" />
     <link rel="icon" href={`${base}/favicon.svg`} type="image/svg+xml" />
     <script is:inline>
       try { const t = localStorage.getItem('s2s-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
@@ -40,7 +68,7 @@ const path = Astro.url.pathname.replace(base, '') || '/';
         </a>
         <nav aria-label="Chính">
           <a href={`${base}/#muc-luc`} aria-current={path === '/' ? 'page' : undefined}>Mục lục</a>
-          <a href={`${base}/ve-du-an`} aria-current={path.startsWith('/ve-du-an') ? 'page' : undefined}>Về dự án</a>
+          <a href={`${base}/ve-du-an/`} aria-current={path.startsWith('/ve-du-an') ? 'page' : undefined}>Về dự án</a>
           <a class="gh" href="https://github.com/vantupham/may-hoc-s2s">GitHub</a>
           <button class="theme" type="button" aria-label="Đổi giữa giấy trắng và bảng đen"><span class="to-dark">Bảng đen</span><span class="to-light">Giấy trắng</span></button>
         </nav>

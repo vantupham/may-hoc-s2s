@@ -141,8 +141,8 @@ const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
       <h3>Bẫy thường gặp</h3>
       <ul>
         <li><b>Chọn mô hình bằng tập test.</b> Tập test chỉ dùng một lần, ở cuối. Mọi lựa chọn phải dựa trên cross-validation.</li>
-        <li><b>Rò rỉ dữ liệu.</b> Chuẩn hoá, điền dữ liệu thiếu hay chọn đặc trưng trên toàn bộ dữ liệu trước khi chia. Hãy đưa chúng vào pipeline. Xem thí nghiệm đo rò rỉ ở <a href={`${base}/bai-hoc/xu-ly-du-lieu#danh-gia`}>chương 3B</a>.</li>
-        <li><b>Chia ngẫu nhiên khi dữ liệu có nhóm.</b> Các khu vực cùng toạ độ, cùng bệnh nhân, cùng người dùng phải nằm cùng một tập; <a href={`${base}/bai-hoc/xu-ly-du-lieu#danh-gia`}>chương 3B</a> cho thấy sai số chênh bao nhiêu.</li>
+        <li><b>Rò rỉ dữ liệu.</b> Chuẩn hoá, điền dữ liệu thiếu hay chọn đặc trưng trên toàn bộ dữ liệu trước khi chia. Hãy đưa chúng vào pipeline. Xem thí nghiệm đo rò rỉ ở <a href={`${base}/bai-hoc/xu-ly-du-lieu/#danh-gia`}>chương 3B</a>.</li>
+        <li><b>Chia ngẫu nhiên khi dữ liệu có nhóm.</b> Các khu vực cùng toạ độ, cùng bệnh nhân, cùng người dùng phải nằm cùng một tập; <a href={`${base}/bai-hoc/xu-ly-du-lieu/#danh-gia`}>chương 3B</a> cho thấy sai số chênh bao nhiêu.</li>
         <li><b>Tin vào con số của một tập test nhỏ.</b> Với 80 mẫu, khoảng tin cậy rất rộng. Báo cáo cả độ lệch giữa các phần của CV.</li>
         <li><b>Chia ngẫu nhiên dữ liệu theo thời gian.</b> Dự báo tương lai thì tập kiểm định phải nằm sau tập huấn luyện về thời gian.</li>
       </ul>

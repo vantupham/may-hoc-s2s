@@ -18,7 +18,7 @@ import { duAnALearn as L } from '../../lib/hoc/du-an-khong-khi-a';
 
 const M = Object.fromEntries(L.missions.map((m) => [m.id, m]));
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-const ch = (slug: string, label: string) => `<a href="${base}/bai-hoc/${slug}">${label}</a>`;
+const ch = (slug: string, label: string) => `<a href="${base}/bai-hoc/${slug}/">${label}</a>`;
 const partA = ['persist', 'clim', 'ols1', 'ols', 'logreg', 'knn', 'nb', 'tree', 'rf', 'gb', 'svm'];
 const pyCode = `import json, numpy as np, pandas as pd
 from pyodide.http import open_url

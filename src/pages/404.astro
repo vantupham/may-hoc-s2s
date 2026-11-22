@@ -1,0 +1,27 @@
+---
+import Base from '../layouts/Base.astro';
+import { lessons } from '../lib/lessons';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+<Base title="Không tìm thấy trang" description="Trang bạn tìm không có trên Máy học S2S." noindex>
+  <div class="book"><article class="prose page">
+    <span class="margin-note hand mn">ôi, lạc rồi</span>
+    <h1>Không tìm thấy trang này</h1>
+    <p class="lead">Có thể đường dẫn bị gõ nhầm, hoặc bài đã đổi tên. Bạn chọn một bài dưới đây, hoặc <a href={`${base}/`}>về trang chủ</a>.</p>
+    <ol class="list">
+      {lessons.filter((l) => l.ready).map((l) => (
+        <li><a href={`${base}/bai-hoc/${l.slug}/`}><span class="no">Chương {l.no}</span> {l.title}</a></li>
+      ))}
+    </ol>
+  </article></div>
+</Base>
+
+<style>
+  .page { padding-top: 3rem; position: relative; }
+  .mn { top: 3.4rem; font-size: 1.4rem; transform: rotate(-3deg); }
+  .list { padding-left: 0; list-style: none; }
+  .list li { margin: 0.35rem 0; }
+  .no { display: inline-block; min-width: 6.5rem; color: var(--pencil); font-size: 0.9rem; }
+  @media (max-width: 900px) { .mn { position: static; display: block; transform: none; } }
+</style>

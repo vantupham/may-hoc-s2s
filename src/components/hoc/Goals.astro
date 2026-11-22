@@ -13,7 +13,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 <section id="truoc-khi-hoc" class="prose before">
   <p class="tag hand">Trước khi học</p>
   <p class="meta">Khoảng <b>{spec.minutes} phút</b>
-    {req.length > 0 && <> · Cần học trước: {req.map((r, i) => <>{i > 0 && ', '}<a href={`${base}/bai-hoc/${r.slug}`}>chương {r.no} — {r.short}</a></>)}</>}
+    {req.length > 0 && <> · Cần học trước: {req.map((r, i) => <>{i > 0 && ', '}<a href={`${base}/bai-hoc/${r.slug}/`}>chương {r.no} — {r.short}</a></>)}</>}
   </p>
   <p class="h">Sau bài này, bạn có thể:</p>
   <ol class="goals">{spec.goals.map((g) => <li>{g.text}</li>)}</ol>

@@ -46,6 +46,11 @@ npm run check      # kiểm tra kiểu TypeScript, Svelte, Astro
 npm run test:e2e   # kiểm thử khói trên bản build (lần đầu: npx playwright install chromium)
 ```
 
+Thêm bài hoặc đổi tên bài trong `src/lib/lessons.ts` thì điền `seoTitle`, `seoDescription` (120–165 ký tự)
+và sinh lại ảnh chia sẻ 1200×630 vào `public/og/` bằng `npm run og`, rồi commit các ảnh đó.
+Sitemap ở `/may-hoc-s2s/sitemap.xml`; trang nằm trong thư mục con của github.io nên không có `robots.txt`,
+hãy nộp sitemap tay trong Google Search Console và Bing Webmaster Tools.
+
 Chuẩn bị lại dữ liệu và kết quả tham chiếu (cần Python 3 với numpy, scikit-learn):
 
 ```bash

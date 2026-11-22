@@ -6,6 +6,7 @@ import svelte from '@astrojs/svelte';
 export default defineConfig({
   site: 'https://vantupham.github.io',
   base: '/may-hoc-s2s',
-  trailingSlash: 'ignore',
+  // URL luôn có / ở cuối: GitHub Pages phục vụ thư mục như vậy, tránh chuyển hướng 301 và URL trùng
+  trailingSlash: 'always',
   integrations: [svelte()],
 });

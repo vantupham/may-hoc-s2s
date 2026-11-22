@@ -12,7 +12,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   <div><p class="h ok">Nên dùng khi</p><ul>{t.use.map((p) => <li set:html={p} />)}</ul></div>
   <div><p class="h no">Cân nhắc cách khác khi</p><ul>{t.avoid.map((p) => <li set:html={p} />)}</ul></div>
 </div>
-{t.next && <p class="next note"><span set:html={t.next.text} /> <a href={`${base}/bai-hoc/${t.next.slug}`}>{t.next.title} →</a></p>}
+{t.next && <p class="next note"><span set:html={t.next.text} /> <a href={`${base}/bai-hoc/${t.next.slug}/`}>{t.next.title} →</a></p>}
 
 <style>
   .pts li { margin: 0.35rem 0; }
