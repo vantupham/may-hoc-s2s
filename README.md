@@ -40,16 +40,12 @@ kiểm thử trước mỗi lần phát hành; nếu toán sai, trang không đ�
 ```bash
 npm install
 npm run dev        # http://localhost:4321/may-hoc-s2s/
-npm test           # kiểm thử ml-core
+npm test           # kiểm thử đơn vị: ml-core so với NumPy/scikit-learn, kịch bản bài giảng, khung học tập
 npm run build      # xuất trang tĩnh ra dist/
 npm run check      # kiểm tra kiểu TypeScript, Svelte, Astro
-npm run test:e2e   # kiểm thử khói trên bản build (lần đầu: npx playwright install chromium)
+npm run test:e2e   # kiểm thử trên bản build bằng Chromium (lần đầu: npx playwright install chromium)
+npm run og         # sinh lại ảnh chia sẻ 1200×630 vào public/og/
 ```
-
-Thêm bài hoặc đổi tên bài trong `src/lib/lessons.ts` thì điền `seoTitle`, `seoDescription` (120–165 ký tự)
-và sinh lại ảnh chia sẻ 1200×630 vào `public/og/` bằng `npm run og`, rồi commit các ảnh đó.
-Sitemap ở `/may-hoc-s2s/sitemap.xml`; trang nằm trong thư mục con của github.io nên không có `robots.txt`,
-hãy nộp sitemap tay trong Google Search Console và Bing Webmaster Tools.
 
 Chuẩn bị lại dữ liệu và kết quả tham chiếu (cần Python 3 với numpy, scikit-learn):
 
@@ -75,19 +71,29 @@ src/
 │                       #   K-means, DBSCAN, PCA, đánh giá, mạng nơ-ron, CNN, attention,
 │                       #   hồ sơ dữ liệu, điền thiếu, biến đổi, chia dữ liệu, nhãn sai
 ├── lib/katex.ts        # macro màu: \cw{} \cb{} \cx{} \cy{} \cyh{} \ce{} \cL{} \cg{} \ceta{} \cz{} \cp{}
-├── lib/lessons.ts      # danh sách chương cho trang chủ và điều hướng
+├── lib/lessons.ts      # danh sách chương: tiêu đề, tóm tắt, bài tiên quyết, title và mô tả cho máy tìm kiếm
+├── lib/hoc/            # khung học tập của từng bài: mục tiêu, nhiệm vụ, bảng ghi, câu hỏi, thử thách
 ├── lib/giang/          # kịch bản bài giảng có lời, đọc số tiếng Việt, dòng thời gian
+├── lib/thuat-ngu.ts    # bảng thuật ngữ Anh–Việt, mỗi thuật ngữ trỏ về bài dạy nó
+├── lib/bo-du-lieu.ts   # mô tả các bộ dữ liệu cho trang /du-lieu/
+├── lib/seo.ts          # dữ liệu có cấu trúc schema.org (JSON-LD)
 ├── components/         # StepDebugger, CalcCard, Axis, PyCell, Quiz, Tex, Lazy
 │   ├── gd/ linreg/ logreg/   # phòng thí nghiệm chương 0–2
 │   ├── dulieu/               # phòng thí nghiệm chương 3A, 3B
 │   ├── ch3/ … ch10/          # phòng thí nghiệm chương 4–11 (tên thư mục theo số cũ)
-│   └── ch12/                 # phòng thí nghiệm dự án bụi mịn Hà Nội (12A, 12B)
-├── layouts/            # Base (khung trang), Lesson (7 phần của một bài)
-├── pages/bai-hoc/      # mỗi bài học một trang
+│   ├── ch12/                 # phòng thí nghiệm dự án bụi mịn Hà Nội (12A, 12B)
+│   ├── hoc/                  # khung học tập: Goals, Mission, Debrief, Checkpoint, WrapUp, SelfCheck
+│   └── giang/                # trình phát bài giảng và các cảnh
+├── layouts/            # Base (khung trang, thẻ meta), Lesson (khung một bài)
+├── pages/              # trang chủ, về dự án, thuật ngữ, bộ dữ liệu, 404, sitemap.xml
+│   └── bai-hoc/        # mỗi bài học một trang
 └── data/               # JSON sinh bởi scripts/, nơi duy nhất chứa dữ liệu của trang
+public/og/              # ảnh chia sẻ, sinh bởi scripts/og.ts
+public/giang/           # âm thanh, phụ đề và mốc thời gian của bài giảng
 data/raw/               # dữ liệu gốc
-scripts/                # tiền xử lý và sinh kết quả tham chiếu
-tests/                  # kiểm thử và fixtures
+scripts/                # tiền xử lý, sinh kết quả tham chiếu, giọng đọc và ảnh chia sẻ
+tests/                  # kiểm thử đơn vị và fixtures
+e2e/                    # kiểm thử trên trình duyệt
 ```
 
 ## Viết một bài mới
@@ -97,7 +103,10 @@ tests/                  # kiểm thử và fixtures
 3. Tạo các phòng thí nghiệm trong `src/components/<bai>/`, dùng lại `StepDebugger`, `CalcCard`, `Axis`.
 4. Tạo trang `src/pages/bai-hoc/<slug>.astro` dùng layout `Lesson` với 7 phần:
    bài toán · khám phá dữ liệu · trực giác · tính tay · lý thuyết · mã nguồn · toàn bộ dữ liệu.
-5. Đặt `ready: true` cho chương trong `src/lib/lessons.ts`.
+5. Khai báo chương trong `src/lib/lessons.ts` và đặt `ready: true`. Ngoài tiêu đề và tóm tắt, mỗi bài cần:
+   `seoTitle` (mở đầu bằng từ khoá người học hay tìm), `seoDescription` (120–165 ký tự),
+   `topic` (tên chủ đề ghép vào tiêu đề các bước 3–6), `question` và `answer` (khối "X là gì?" dưới tiêu đề).
+   Thêm các thuật ngữ của bài vào `src/lib/thuat-ngu.ts`, chạy `npm run og` và commit ảnh chia sẻ mới.
 6. Thêm khung trải nghiệm (xem `src/pages/bai-hoc/svm.astro` làm mẫu): viết nội dung trong
    `src/lib/hoc/<slug>.ts` theo kiểu `LessonLearn` (`src/lib/learn.ts`), đặt `extended: true` cho bài,
    rồi ghép các component trong `src/components/hoc/`:
@@ -152,6 +161,18 @@ thanh, nên số trên hình vẫn do ml-core tính, và mỗi bài chỉ tốn 
 Quy ước màu: mỗi đại lượng một màu cố định (CSS `--c-w`, `--c-b`, … trong `src/styles/global.css`),
 dùng chung cho hình, công thức, bảng và lời giảng.
 
+## Tìm kiếm và chia sẻ
+
+- Mỗi trang có title, mô tả, URL chuẩn (luôn có `/` ở cuối) và thẻ Open Graph với ảnh 1200×630 trong `public/og/`.
+- `src/lib/seo.ts` sinh JSON-LD: khoá học ở trang chủ, tài liệu học tập và breadcrumb ở mỗi bài,
+  bộ thuật ngữ ở `/thuat-ngu/`.
+- `sitemap.xml` được sinh từ danh sách bài. Site nằm trong thư mục con của github.io nên không có
+  `robots.txt` riêng.
+- Bản chép lời bài giảng được dựng sẵn trong HTML, nên đọc được mà không cần JavaScript.
+- Các lưới, hình chỉ để trang trí được vẽ trên trình duyệt, để HTML mỗi trang dưới 300 KB.
+- Kiểm thử e2e kiểm tra các điều trên, và kiểm tra rằng mỗi thuật ngữ thật sự xuất hiện trong bài nó trỏ tới.
+- Lượt xem được đếm bằng GoatCounter: không cookie, không định danh người dùng.
+
 ## Giấy phép
 
 - Mã nguồn: MIT (xem `LICENSE`).
@@ -160,12 +181,14 @@ dùng chung cho hình, công thức, bảng và lời giảng.
   California Housing (U.S. Census 1990, bản CSV trong ageron/handson-ml2);
   Breast Cancer Wisconsin, Iris, chữ số viết tay 8×8 (UCI, bản trong scikit-learn);
   SMS Spam Collection (UCI, CC BY 4.0); Titanic (datasciencedojo/datasets);
-  Palmer Penguins (CC0, mwaskom/seaborn-data); Fashion-MNIST (Zalando Research, MIT).
+  Palmer Penguins (CC0, mwaskom/seaborn-data); Fashion-MNIST (Zalando Research, MIT);
+  PM2.5 Hà Nội (kho lưu trữ mở của OpenAQ); thời tiết ERA5 và PM2.5 mô hình CAMS (qua Open-Meteo, CC BY 4.0).
+  Chi tiết từng bộ ở trang `/du-lieu/`.
 - Giọng đọc bài giảng: tổng hợp bằng Microsoft Edge TTS (giọng vi-VN-HoaiMyNeural) qua thư viện edge-tts.
 
 ## Thiết kế
 
-Giao diện mô phỏng **trang vở ô ly**: giấy kẻ ô tím nhạt, lề đỏ, chữ in Literata, ghi chú viết tay
+Giao diện mô phỏng **trang vở**: giấy trắng xanh trơn, lề đỏ, chữ in Literata, ghi chú viết tay
 (Patrick Hand) bằng mực tím chỉ dùng cho số thứ tự phần và ghi chú lề. Chế độ tối là **bảng đen**.
 Font được tự host qua Fontsource (có đủ dấu tiếng Việt), không gọi Google Fonts.
 Token màu và nguyên tắc nằm ở đầu `src/styles/global.css`.

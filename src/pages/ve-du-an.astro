@@ -13,9 +13,10 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     <p>Không có bước nào bị ẩn. Mọi con số trên trang — trong hình vẽ, bảng, công thức — đều do cùng một bộ máy tính toán sinh ra. Bộ máy này (<code>ml-core</code>, viết bằng TypeScript) vừa chạy thuật toán vừa ghi lại từng phép tính trung gian, gọi là <i>trace</i>. Giao diện chỉ đọc từ trace, nên các cách biểu diễn luôn khớp nhau.</p>
 
     <h2>Toán có đúng không?</h2>
-    <p>Mỗi lần cập nhật mã, 51 bài kiểm thử tự động chạy lại các thuật toán của <code>ml-core</code> và so sánh với kết quả của NumPy và scikit-learn, phần lớn tới 9 chữ số thập phân. Nếu lệch, trang sẽ không được phát hành.</p>
+    <p>Mỗi lần cập nhật mã, hàng trăm kiểm thử tự động chạy lại các thuật toán của <code>ml-core</code> và so sánh với kết quả của NumPy và scikit-learn, phần lớn tới 9 chữ số thập phân. Chúng còn kiểm tra rằng các con số trong bảng ghi và trong lời giảng khớp với phép tính thật, và mọi trang mở được trên trình duyệt mà không có lỗi. Nếu một kiểm thử thất bại, trang sẽ không được phát hành.</p>
 
     <h2>Cấu trúc một bài học</h2>
+    <p>Mỗi bài mở đầu bằng phần <b>Trước khi học</b> (mục tiêu, thời lượng, bài cần học trước, câu hỏi khởi động) và một <b>bài giảng có lời</b> khoảng 10 phút, với mô phỏng chạy trên chính số liệu của bài. Sau đó là tám bước:</p>
     <ol>
       <li><b>Bài toán</b> — một câu hỏi cụ thể trên dữ liệu thật.</li>
       <li><b>Khám phá dữ liệu</b> — phân phối, tương quan, dữ liệu thiếu, ngoại lai.</li>
@@ -23,8 +24,10 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
       <li><b>Tính tay</b> — 5–10 dòng dữ liệu, từng phép tính, chạy từng bước.</li>
       <li><b>Lý thuyết</b> — dẫn xuất công thức, mỗi ký hiệu một màu.</li>
       <li><b>Mã nguồn</b> — NumPy tự viết và scikit-learn, chạy ngay trên trình duyệt.</li>
-      <li><b>Toàn bộ dữ liệu</b> — huấn luyện, đánh giá, bẫy thường gặp, câu hỏi kiểm tra.</li>
+      <li><b>Toàn bộ dữ liệu</b> — huấn luyện, đánh giá, bẫy thường gặp.</li>
+      <li><b>Tổng kết</b> — bài học rút ra, câu hỏi kiểm tra, tự đánh giá theo mục tiêu và thử thách.</li>
     </ol>
+    <p>Ở các phòng thí nghiệm chính, người học dự đoán trước, tự làm, ghi lại số liệu rồi đối chiếu. Tiến độ và ghi chép được lưu trong trình duyệt và có thể tải về dưới dạng Markdown.</p>
 
     <h2>Công nghệ</h2>
     <p>Astro (trang tĩnh), Svelte (thành phần tương tác), D3 (thang đo), KaTeX (công thức), Pyodide (Python trên trình duyệt), Vitest (kiểm thử), GitHub Actions và GitHub Pages (phát hành).</p>
