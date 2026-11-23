@@ -1,5 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
 <Base title="Về dự án" description="Máy học S2S là website mã nguồn mở dạy học máy bằng tiếng Việt: nguyên tắc “hộp kính”, cách kiểm chứng toán với NumPy và scikit-learn, cấu trúc bài học và cách đóng góp.">
   <div class="book"><article class="prose page">
@@ -30,7 +32,11 @@ import Base from '../layouts/Base.astro';
     <h2>Đóng góp</h2>
     <p>Mã nguồn tại <a href="https://github.com/vantupham/may-hoc-s2s">github.com/vantupham/may-hoc-s2s</a>. Báo lỗi sai số liệu, lỗi chính tả hay đề xuất bài mới đều rất quý.</p>
 
+    <h2>Quyền riêng tư</h2>
+    <p>Trang đếm lượt xem bằng <a href="https://www.goatcounter.com/">GoatCounter</a>: không dùng cookie, không theo dõi qua các trang khác, không lưu địa chỉ IP. Tiến độ học, dự đoán và ghi chép của bạn chỉ nằm trong trình duyệt của bạn.</p>
+
     <h2>Giấy phép và nguồn dữ liệu</h2>
+    <p>Chi tiết từng bộ dữ liệu và bài nào dùng nó: xem trang <a href={`${base}/du-lieu/`}>Bộ dữ liệu</a>.</p>
     <ul>
       <li>Mã nguồn: MIT. Nội dung bài học: CC BY-SA 4.0.</li>
       <li>California Housing — U.S. Census 1990, Pace &amp; Barry (1997), bản CSV trong kho ageron/handson-ml2.</li>

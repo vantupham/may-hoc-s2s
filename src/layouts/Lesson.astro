@@ -2,6 +2,7 @@
 import Base from './Base.astro';
 import { lessons, sectionsFor } from '../lib/lessons';
 import { lessonJsonLd } from '../lib/seo';
+import { terms, termId } from '../lib/thuat-ngu';
 
 interface Props {
   slug: string;
@@ -16,6 +17,9 @@ const i = ready.findIndex((l) => l.slug === slug);
 const prev = ready[i - 1];
 const next = ready[i + 1];
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+// Cuối bài: các bài học tiếp (bài nhận bài này làm tiên quyết) và thuật ngữ của bài, để liên kết nội bộ có nghĩa
+const after = ready.filter((l) => l.requires.includes(slug));
+const myTerms = terms.filter((t) => t.slug === slug);
 ---
 <Base title={lesson.seoTitle} description={lesson.seoDescription} image={slug} type="article" jsonLd={lessonJsonLd(lesson)}>
   <nav class="secnav" aria-label="Các phần của bài">
@@ -38,6 +42,11 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     <slot />
     <div class="prose end">
       <button class="btn done" type="button" data-slug={slug}>Đánh dấu đã học xong</button>
+      {after.length > 0 && <div class="after">
+        <h2>Học tiếp sau bài này</h2>
+        <ul>{after.map((l) => <li><a href={`${base}/bai-hoc/${l.slug}/`}>Chương {l.no}: {l.title}</a> — {l.summary}</li>)}</ul>
+      </div>}
+      {myTerms.length > 0 && <p class="terms"><span>Thuật ngữ trong bài:</span> {myTerms.map((t, k) => <>{k > 0 && ' · '}<a href={`${base}/thuat-ngu/#${termId(t)}`}>{t.vi}</a></>)}</p>}
       <nav class="pn" aria-label="Bài trước và bài sau">
         {prev ? <a href={`${base}/bai-hoc/${prev.slug}/`}><span>Bài trước</span>{prev.title}</a> : <span />}
         {next ? <a class="nx" href={`${base}/bai-hoc/${next.slug}/`}><span>Bài tiếp theo</span>{next.title}</a> : <a class="nx" href={`${base}/#muc-luc`}><span>Hết các bài đã có</span>Về mục lục</a>}
@@ -90,6 +99,13 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     .def h2 { font-size: 1.02rem; font-weight: 700; margin: 0 0 0.3rem; letter-spacing: 0; color: var(--tim); }
     .def p { margin: 0; font-size: 0.98rem; line-height: 1.65; }
     .end { margin-top: 5rem; padding-top: 2rem; border-top: 1.5px solid var(--ink); }
+    .after { margin-top: 2.2rem; }
+    .after h2 { font-size: 1.2rem; margin: 0 0 0.4rem; }
+    .after ul { margin: 0; padding-left: 1.1rem; }
+    .after li { margin: 0.3rem 0; line-height: 1.55; }
+    .after a { font-weight: 650; }
+    .terms { margin-top: 1.6rem; font-size: 0.92rem; line-height: 1.7; }
+    .terms span { color: var(--pencil); }
     .pn { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 2rem; }
     .pn a { text-decoration: none; color: var(--ink); font-weight: 650; line-height: 1.35; }
     .pn a span { display: block; font-weight: 400; font-size: 0.85rem; color: var(--pencil); margin-bottom: 0.2rem; }

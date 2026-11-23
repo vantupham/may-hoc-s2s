@@ -1,0 +1,39 @@
+---
+import Base from '../layouts/Base.astro';
+import { datasets, type DataSet } from '../lib/bo-du-lieu';
+import { lessons } from '../lib/lessons';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const lessonsUsing = (d: DataSet) => lessons.filter((l) => l.ready && l.dataset.toLowerCase().includes(d.match.toLowerCase()));
+const description = `${datasets.length} bộ dữ liệu thật để học máy học: California Housing, Breast Cancer, Titanic, Iris, SMS Spam, Fashion-MNIST, bụi mịn PM2.5 Hà Nội… kèm nguồn, quy mô và bài dùng.`;
+---
+<Base title="Bộ dữ liệu thật để học máy học" description={description} image="du-lieu">
+  <div class="book"><article class="prose page">
+    <span class="margin-note hand mn">dữ liệu thật</span>
+    <h1>Bộ dữ liệu thật để học máy học</h1>
+    <p class="lead">Không con số nào trên trang được bịa ra cho đẹp. Đây là {datasets.length} bộ dữ liệu các bài đang dùng: dữ liệu nói về gì, lớn cỡ nào, lấy từ đâu, và bài nào dùng nó.</p>
+
+    {datasets.map((d) => {
+      const used = lessonsUsing(d);
+      return (
+        <section class="ds" id={d.id}>
+          <h2>{d.name}</h2>
+          <p>{d.what}</p>
+          <ul>{d.facts.map((f) => <li>{f}</li>)}</ul>
+          <p class="src">Nguồn: {d.source}{d.license && <> Giấy phép: {d.license}.</>}</p>
+          {used.length > 0 && <p class="used">Dùng trong: {used.map((l, i) => <>{i > 0 && ' · '}<a href={`${base}/bai-hoc/${l.slug}/`}>Chương {l.no}: {l.short}</a></>)}</p>}
+        </section>
+      );
+    })}
+  </article></div>
+  <style>
+    .page { padding-top: 3rem; }
+    .mn { top: 3.4rem; font-size: 1.3rem; transform: rotate(-4deg); }
+    .lead { font-size: 1.15rem; color: var(--pencil); }
+    .ds { border-top: 1px solid var(--rule-2); margin-top: 2rem; padding-top: 0.4rem; scroll-margin-top: 4rem; }
+    .ds h2 { font-size: 1.4rem; margin-bottom: 0.4rem; }
+    .src { font-size: 0.88rem; color: var(--pencil); font-style: italic; }
+    .used { font-size: 0.95rem; }
+    @media (max-width: 900px) { .mn { position: static; display: block; transform: none; } }
+  </style>
+</Base>

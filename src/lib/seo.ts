@@ -4,6 +4,7 @@
  * còn giúp Google, Bing và các công cụ tìm kiếm bằng AI hiểu đúng trang là bài học gì, thuộc khoá nào.
  */
 import { lessons, type Lesson } from './lessons';
+import { terms, termId } from './thuat-ngu';
 
 export const SITE_NAME = 'Máy học S2S';
 const SITE = 'https://vantupham.github.io/may-hoc-s2s/';
@@ -99,6 +100,38 @@ export function lessonJsonLd(l: Lesson) {
       itemListElement: [
         { '@type': 'ListItem', position: 1, name: SITE_NAME, item: SITE },
         { '@type': 'ListItem', position: 2, name: `Chương ${l.no}: ${l.short}`, item: url },
+      ],
+    },
+  ];
+}
+
+/** Trang thuật ngữ: bộ thuật ngữ, mỗi thuật ngữ trỏ về bài dạy nó. */
+export function glossaryJsonLd(description: string) {
+  const url = pageUrl('thuat-ngu/');
+  return [
+    {
+      '@type': 'DefinedTermSet',
+      '@id': `${url}#bo-thuat-ngu`,
+      name: 'Thuật ngữ học máy Anh–Việt',
+      description,
+      url,
+      inLanguage: 'vi',
+      publisher: { '@id': id.org },
+      hasDefinedTerm: terms.map((t) => ({
+        '@type': 'DefinedTerm',
+        '@id': `${url}#${termId(t)}`,
+        name: t.vi,
+        alternateName: t.en,
+        description: t.def,
+        url: `${url}#${termId(t)}`,
+        subjectOf: lessonUrl(t.slug),
+      })),
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: SITE_NAME, item: SITE },
+        { '@type': 'ListItem', position: 2, name: 'Thuật ngữ', item: url },
       ],
     },
   ];

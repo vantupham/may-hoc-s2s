@@ -5,6 +5,8 @@
  */
 import { test, expect, type Page } from '@playwright/test';
 import { lessons } from '../src/lib/lessons';
+import { terms, termId } from '../src/lib/thuat-ngu';
+import { datasets } from '../src/lib/bo-du-lieu';
 
 /** Ghi lại lỗi trang, lỗi console và yêu cầu mạng thất bại (bỏ qua CDN của Pyodide). */
 function watchErrors(page: Page) {
@@ -27,9 +29,14 @@ async function scrollThrough(page: Page) {
   await page.waitForLoadState('networkidle');
 }
 
+// Không gọi GoatCounter khi kiểm thử: không tạo lượt xem giả, không phụ thuộc mạng ngoài
+test.beforeEach(async ({ page }) => {
+  await page.route('https://gc.zgo.at/**', (r) => r.fulfill({ status: 200, contentType: 'text/javascript', body: '' }));
+});
+
 const lazy = (page: Page) => page.locator('astro-island[component-url*="Lazy"]');
 
-for (const path of ['', 've-du-an/']) {
+for (const path of ['', 've-du-an/', 'thuat-ngu/', 'du-lieu/']) {
   test(`trang ${path || 'chủ'} mở được, không lỗi`, async ({ page }) => {
     const errors = watchErrors(page);
     await page.goto(path);
@@ -176,6 +183,8 @@ const SITE = 'https://vantupham.github.io/may-hoc-s2s/';
 const pages = [
   { path: '', image: 'trang-chu', title: /^Máy học S2S – / },
   { path: 've-du-an/', image: 'trang-chu', title: 'Về dự án – Máy học S2S' },
+  { path: 'thuat-ngu/', image: 'thuat-ngu', title: 'Thuật ngữ học máy Anh–Việt – Máy học S2S' },
+  { path: 'du-lieu/', image: 'du-lieu', title: 'Bộ dữ liệu thật để học máy học – Máy học S2S' },
   ...lessons.filter((l) => l.ready).map((l) => ({ path: `bai-hoc/${l.slug}/`, image: l.slug, title: `${l.seoTitle} – Máy học S2S`, l })),
 ];
 
@@ -272,4 +281,70 @@ test('lưới xác suất của bài 2 vẽ trên trình duyệt, không dựng 
   const lab = page.locator('astro-island[component-url*="LogRegLab"]');
   await lab.locator('svg.chart').first().scrollIntoViewIfNeeded(); // astro-island là display: contents, không cuộn tới được
   await expect(lab.locator('rect[shape-rendering="crispEdges"]')).toHaveCount(36 * 36);
+});
+
+// ——— Giai đoạn 4: thuật ngữ, bộ dữ liệu, liên kết cuối bài ———
+
+const pageText = async (request: import('@playwright/test').APIRequestContext, path: string) =>
+  (await (await request.get(path)).text()).replace(/<(script|style)[\s\S]*?<\/\1>/g, ' ').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').toLowerCase();
+
+test('mỗi thuật ngữ có neo riêng và thật sự xuất hiện trong bài nó trỏ tới', async ({ request }) => {
+  const ids = terms.map(termId);
+  expect(new Set(ids).size).toBe(ids.length);
+  const texts = new Map<string, string>();
+  const missing: string[] = [];
+  for (const t of terms) {
+    if (!texts.has(t.slug)) texts.set(t.slug, await pageText(request, `bai-hoc/${t.slug}/`));
+    const m = (t.match ?? t.vi).toLowerCase();
+    if (!texts.get(t.slug)!.includes(m)) missing.push(`${t.vi} → ${t.slug} (tìm "${m}")`);
+  }
+  expect(missing).toEqual([]);
+});
+
+test('trang thuật ngữ: đủ thuật ngữ, JSON-LD DefinedTermSet, ô lọc chạy được', async ({ page }) => {
+  await page.goto('thuat-ngu/');
+  await expect(page.locator('.term')).toHaveCount(terms.length);
+  const g = await jsonLd(page);
+  const set = g.find((x) => x['@type'] === 'DefinedTermSet')!;
+  expect(set.hasDefinedTerm).toHaveLength(terms.length);
+  // Gõ không dấu vẫn tìm được "Lề"; gõ tiếng Anh tìm được "Quá khớp"
+  await page.locator('#loc').fill('overfitting');
+  await expect(page.locator('.term:not([hidden])')).toHaveCount(1);
+  await expect(page.locator('.term:not([hidden]) dfn')).toHaveText('Quá khớp');
+  await page.locator('#loc').fill('vector ho tro');
+  await expect(page.locator('.term:not([hidden]) dfn').getByText('Vector hỗ trợ', { exact: true })).toHaveCount(1);
+  await page.locator('#loc').fill('zzzz');
+  await expect(page.locator('.none')).toBeVisible();
+});
+
+test('trang bộ dữ liệu: mỗi bộ có nguồn và ít nhất một bài dùng nó', async ({ page }) => {
+  await page.goto('du-lieu/');
+  for (const d of datasets) {
+    const sec = page.locator(`#${d.id}`);
+    await expect(sec.locator('h2')).toHaveText(d.name);
+    await expect(sec.locator('.src')).toContainText('Nguồn:');
+    expect(await sec.locator('.used a').count(), d.name).toBeGreaterThan(0);
+  }
+});
+
+for (const l of lessons.filter((l) => l.ready)) {
+  test(`cuối bài ${l.no}: học tiếp và thuật ngữ trong bài`, async ({ page }) => {
+    await page.goto(`bai-hoc/${l.slug}/`);
+    const after = lessons.filter((x) => x.ready && x.requires.includes(l.slug));
+    await expect(page.locator('.after li')).toHaveCount(after.length);
+    const mine = terms.filter((t) => t.slug === l.slug);
+    expect(mine.length, 'mỗi bài nên có thuật ngữ').toBeGreaterThan(0);
+    await expect(page.locator('.terms a')).toHaveCount(mine.length);
+  });
+}
+
+test('tệp xác minh Google Search Console và Bing Webmaster Tools nằm đúng chỗ', async ({ request }) => {
+  expect(await (await request.get('google77c80e46c4a5350a.html')).text()).toContain('google-site-verification: google77c80e46c4a5350a.html');
+  expect(await (await request.get('BingSiteAuth.xml')).text()).toContain('6715EEB8CA3633252AB11C953E26AACD');
+});
+
+test('mọi trang có thẻ đếm GoatCounter', async ({ request }) => {
+  for (const p of pages) {
+    expect(await (await request.get(p.path)).text(), p.path).toContain('data-goatcounter="https://pvtu.goatcounter.com/count"');
+  }
 });

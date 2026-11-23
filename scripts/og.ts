@@ -10,6 +10,8 @@ import { chromium } from '@playwright/test';
 import { readFileSync, mkdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { lessons } from '../src/lib/lessons.ts';
+import { terms } from '../src/lib/thuat-ngu.ts';
+import { datasets } from '../src/lib/bo-du-lieu.ts';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const out = `${root}public/og`;
@@ -59,6 +61,8 @@ const card = (note: string, title: string, sum: string, foot: string) => `<!doct
 
 const cards = [
   { name: 'trang-chu', html: card('tính tay từng bước', 'Thấy từng con số bên trong một mô hình học máy', 'Các bài học tương tác bằng tiếng Việt, mỗi bài một dự án nhỏ với dữ liệu thật. Python chạy ngay trên trình duyệt.', `${lessons.filter((l) => l.ready).length} bài, từ Gradient Descent đến Attention`) },
+  { name: 'thuat-ngu', html: card('tra cứu', 'Thuật ngữ học máy Anh–Việt', 'Gradient descent, quá khớp, cross-validation, lan truyền ngược, attention… mỗi thuật ngữ một định nghĩa ngắn và một bài học đi kèm.', `${terms.length} thuật ngữ`) },
+  { name: 'du-lieu', html: card('dữ liệu thật', 'Bộ dữ liệu thật để học máy học', 'California Housing, Breast Cancer, Titanic, Iris, SMS Spam, chim cánh cụt Palmer, chữ số viết tay, Fashion-MNIST, bụi mịn Hà Nội.', `${datasets.length} bộ dữ liệu, có nguồn`) },
   ...lessons.filter((l) => l.ready).map((l) => ({ name: l.slug, html: card(`Chương ${l.no}`, l.title, l.summary, `Dữ liệu thật: ${l.dataset}`) })),
 ];
 

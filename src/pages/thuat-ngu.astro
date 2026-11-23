@@ -1,0 +1,93 @@
+---
+import Base from '../layouts/Base.astro';
+import { lessons } from '../lib/lessons';
+import { terms, termId } from '../lib/thuat-ngu';
+import { glossaryJsonLd } from '../lib/seo';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const bySlug = Object.fromEntries(lessons.map((l) => [l.slug, l]));
+const coll = new Intl.Collator('vi', { sensitivity: 'base' });
+const sorted = [...terms].sort((a, b) => coll.compare(a.vi, b.vi));
+// Nhóm theo chữ cái đầu (Đ tách khỏi D như từ điển tiếng Việt)
+const first = (s: string) => { const c = s[0].toUpperCase(); return c === 'Đ' ? 'Đ' : c.normalize('NFD')[0]; };
+const groups: [string, typeof sorted][] = [];
+for (const t of sorted) {
+  const k = first(t.vi);
+  if (groups.at(-1)?.[0] !== k) groups.push([k, []]);
+  groups.at(-1)![1].push(t);
+}
+const description = `${terms.length} thuật ngữ học máy Anh–Việt: gradient descent, quá khớp, cross-validation, lan truyền ngược, attention… mỗi thuật ngữ một định nghĩa ngắn và một bài học đi kèm.`;
+---
+<Base title="Thuật ngữ học máy Anh–Việt" description={description} image="thuat-ngu" jsonLd={glossaryJsonLd(description)}>
+  <div class="book"><article class="prose page">
+    <span class="margin-note hand mn">tra cứu</span>
+    <h1>Thuật ngữ học máy Anh–Việt</h1>
+    <p class="lead">{terms.length} thuật ngữ dùng trong các bài, mỗi thuật ngữ một định nghĩa ngắn bằng lời thường. Bấm tên chương để học kỹ bằng tính tay và mô phỏng trên dữ liệu thật.</p>
+
+    <p class="find">
+      <label for="loc">Lọc nhanh</label>
+      <input id="loc" type="search" placeholder="ví dụ: overfitting, lề, softmax" autocomplete="off" />
+      <span class="count" aria-live="polite"></span>
+    </p>
+    <nav class="letters" aria-label="Chữ cái">{groups.map(([k]) => <a href={`#chu-${k}`}>{k}</a>)}</nav>
+
+    {groups.map(([k, ts]) => (
+      <section class="grp" id={`chu-${k}`}>
+        <h2>{k}</h2>
+        <dl>
+          {ts.map((t) => {
+            const l = bySlug[t.slug];
+            return (
+              <div class="term" id={termId(t)}>
+                <dt><dfn>{t.vi}</dfn> <span class="en" lang="en">{t.en}</span></dt>
+                <dd>{t.def} <a class="ch" href={`${base}/bai-hoc/${l.slug}/`}>Chương {l.no}: {l.short} →</a></dd>
+              </div>
+            );
+          })}
+        </dl>
+      </section>
+    ))}
+    <p class="none" hidden>Không có thuật ngữ nào khớp. Thử gõ bằng tiếng Anh hoặc không dấu.</p>
+  </article></div>
+
+  <script>
+    // Lọc theo tên Việt, tên Anh và định nghĩa; gõ không dấu vẫn khớp
+    const fold = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd');
+    const input = document.querySelector<HTMLInputElement>('#loc')!;
+    const items = [...document.querySelectorAll<HTMLElement>('.term')].map((el) => ({ el, text: fold(el.textContent ?? '') }));
+    const count = document.querySelector('.count')!;
+    const none = document.querySelector<HTMLElement>('.none')!;
+    input.addEventListener('input', () => {
+      const q = fold(input.value.trim());
+      let n = 0;
+      for (const it of items) { const on = !q || it.text.includes(q); it.el.hidden = !on; if (on) n++; }
+      document.querySelectorAll<HTMLElement>('.grp').forEach((g) => { g.hidden = !g.querySelector('.term:not([hidden])'); });
+      count.textContent = q ? `${n} thuật ngữ` : '';
+      none.hidden = n > 0;
+    });
+  </script>
+  <style>
+    .page { padding-top: 3rem; }
+    .mn { top: 3.4rem; font-size: 1.3rem; transform: rotate(-4deg); }
+    .lead { font-size: 1.15rem; color: var(--pencil); }
+    .find { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.6rem; margin-top: 1.6rem; }
+    .find label { font-size: 0.9rem; color: var(--pencil); }
+    .find input { flex: 1 1 14rem; font: inherit; font-size: 1rem; padding: 0.4rem 0.6rem; border: 1px solid var(--rule-2); border-radius: 3px; background: var(--sheet); color: var(--ink); }
+    .find input:focus { outline: 2px solid var(--tim); outline-offset: 1px; }
+    .count { font-size: 0.86rem; color: var(--pencil); }
+    .letters { display: flex; flex-wrap: wrap; gap: 0.15rem 0.7rem; margin: 0.8rem 0 0.5rem; font-size: 0.95rem; }
+    .letters a { text-decoration: none; }
+    .grp h2 { font-family: var(--hand); font-weight: 400; color: var(--tim); font-size: 1.9rem; margin: 2rem 0 0.2rem; }
+    .grp { scroll-margin-top: 4rem; }
+    dl { margin: 0; }
+    .term { padding: 0.65rem 0; border-top: 1px solid var(--rule); scroll-margin-top: 4rem; }
+    .term:target { background: var(--tim-soft); }
+    dt { font-weight: 700; }
+    dfn { font-style: normal; }
+    .en { font-weight: 400; font-style: italic; color: var(--pencil); font-size: 0.92rem; margin-left: 0.3rem; }
+    dd { margin: 0.2rem 0 0; line-height: 1.6; }
+    .ch { font-size: 0.88rem; white-space: nowrap; }
+    .none { color: var(--pencil); font-style: italic; }
+    @media (max-width: 900px) { .mn { position: static; display: block; transform: none; } }
+  </style>
+</Base>

@@ -69,6 +69,8 @@ const ogImage = new URL(`${base}/og/${image}.png`, Astro.site).href;
     <script is:inline>
       try { const t = localStorage.getItem('s2s-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
     </script>
+    <!-- Đếm lượt xem bằng GoatCounter: không cookie, không lưu dữ liệu cá nhân; tự bỏ qua localhost -->
+    <script is:inline data-goatcounter="https://pvtu.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
   </head>
   <body>
     <a class="skip" href="#main">Bỏ qua đến nội dung</a>
@@ -91,6 +93,7 @@ const ogImage = new URL(`${base}/og/${image}.png`, Astro.site).href;
     <footer class="site">
       <div class="prose">
         <p><b>Máy học S2S</b> — học máy từng bước, với dữ liệu thật. Mã nguồn mở theo giấy phép MIT, nội dung theo CC BY-SA 4.0.</p>
+        <nav class="fnav small" aria-label="Chân trang"><a href={`${base}/#muc-luc`}>Mục lục</a> · <a href={`${base}/thuat-ngu/`}>Thuật ngữ Anh–Việt</a> · <a href={`${base}/du-lieu/`}>Bộ dữ liệu</a> · <a href={`${base}/ve-du-an/`}>Về dự án</a></nav>
         <p class="small">Dữ liệu trong mỗi bài đều ghi nguồn ở cuối bài. Thấy một con số sai? <a href="https://github.com/vantupham/may-hoc-s2s/issues">Báo lỗi trên GitHub</a>.</p>
       </div>
     </footer>
@@ -133,6 +136,8 @@ const ogImage = new URL(`${base}/og/${image}.png`, Astro.site).href;
       }
       footer.site { border-top: 1.5px solid var(--ink); margin-top: 6rem; padding: 2rem 0 3rem; color: var(--pencil); font-size: 0.92rem; background: var(--paper); position: relative; z-index: 1; }
       .small { font-size: 0.86rem; }
+      .fnav { margin: 0.4rem 0 0.8rem; }
+      .fnav a { color: var(--pencil); }
       @media (max-width: 600px) { .gh { display: none; } nav { gap: 0.9rem; } }
     </style>
   </body>
